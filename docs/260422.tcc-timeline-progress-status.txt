@@ -1,0 +1,376 @@
+================================================================================
+TCC TIMELINE PROGRESS STATUS
+================================================================================
+
+Generated: 2026-04-22
+Topic:     Current status of TCC implementation, what has been accomplished
+           during Iteration 1, and what remains to complete Iteration 1 and
+           subsequent iterations before the 2026-06-17 manuscript deadline
+Source:    TCC "Procedural Generation of Game Maps as a Constraint
+           Satisfaction Problem: An Euler-based Conditional Flow Matching
+           Approach" (Luiz Slongo, UFSC 2025); meeting transcript with Prof.
+           Elder Rizzon Santos on 2026-03-10; implementation plan in
+           260419.tcc-iteration-1-unet-implementation-plan.txt
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+This report documents the current position of the TCC implementation within
+the agreed timeline, enumerates every component that has been completed and
+merged to main, and lists the components that remain for Iteration 1
+(baseline) and subsequent iterations. The report serves as a communication
+document to Prof. Elder Rizzon Santos and to Synth (company supervisor) on
+where the project stands as of 2026-04-22.
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+PART 1: TIMELINE POSITION
+
+PART 2: COMPLETED WORK
+  2.1 Assembly c2-pcg.flow-matching-dataloader
+  2.2 Assembly c4-cmd.pcg-flow-matching entry point
+  2.3 Assembly c2-pcg.flow-matching-model (in progress)
+  2.4 Evaluation pipeline verification
+  2.5 Reports written
+
+PART 3: REMAINING WORK FOR ITERATION 1
+
+PART 4: REMAINING WORK FOR ITERATION 2
+
+PART 5: REMAINING WORK FOR ITERATION 3
+
+PART 6: WRITING AND DEFENSE PHASE
+
+PART 7: RISKS AND DEPENDENCIES
+
+PART 8: PULL REQUEST HISTORY
+
+
+================================================================================
+PART 1: TIMELINE POSITION
+================================================================================
+
+Original timeline agreed with Prof. Elder on 2026-03-10 targets three
+iterations of approximately two weeks each, finishing with a writing phase
+that concludes at the 2026-06-17 manuscript deadline.
+
+    Date             Planned Milestone                Actual Status
+    ---------------  -------------------------------  --------------------------
+    2026-03-10       Meeting with Prof. Elder         Completed
+    2026-03-17       Dataset locked                   Completed (VGLC Mario)
+    2026-03-28       Data loader starts               Completed
+    2026-04-01       PR 3925 merged (dataloader)      Completed
+    2026-04-04       Iteration 1 baseline target      MISSED
+    2026-04-10       PR 4060 merged (std fixes)       Completed
+    2026-04-19       Entry point merged               Completed (PR 4240)
+    2026-04-22       Current date                     U-Net 60 percent built
+    2026-05-01       Iteration 2 target               Likely slipping
+    2026-05-29       Iteration 3 target               At risk
+    2026-06-10       Writing freeze target            At risk
+    2026-06-17       MANUSCRIPT DEADLINE              Fixed date
+    Early July       SOUTENANCE                       Fixed by UFSC department
+
+Calendar days remaining to manuscript deadline: 56 days.
+Weeks remaining: 8 weeks.
+
+Current position assessment: Iteration 1 is running approximately 2.5 weeks
+behind the original schedule due to time spent on code review, standards
+compliance fixes (PR 4060), and merge conflicts on the model assembly branch.
+The 8 weeks remaining is enough to finish Iteration 1, perform Iteration 2,
+and write the manuscript if Iteration 3 scope is cut or reduced.
+
+
+================================================================================
+PART 2: COMPLETED WORK
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 ASSEMBLY c2-pcg.flow-matching-dataloader
+--------------------------------------------------------------------------------
+
+Status: MERGED TO MAIN (PR 3925 on 2026-04-01, PR 4060 on 2026-04-10)
+
+Location: c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/
+
+Seven files delivered:
+
+    File                          Purpose
+    ----------------------------  ----------------------------------------
+    TileTypeEnum.cs               14 tile type enum with Error=0 first
+    TileMap.cs                    Pure state class: Width, Height, Tiles
+    VglcTileCharMap.cs            Bidirectional char-to-enum conversion
+    VglcLevelParser.cs            Parse VGLC .txt files to TileMap list
+    TileMapChunker.cs             Sliding-window chunk extraction
+    TileMapTensorConverter.cs     TileMap to/from torch.Tensor one-hot
+    c2-pcg.flow-matching-
+      dataloader.csproj           Project file, TorchSharp conditional refs
+
+Standards compliance: full (C005, C006, C026, C067 all clean).
+No proprietary dependencies: TorchSharp NuGet packages only.
+Buildable as standalone assembly outside of kcg-ml-csharp.sln.
+
+--------------------------------------------------------------------------------
+2.2 ASSEMBLY c4-cmd.pcg-flow-matching ENTRY POINT
+--------------------------------------------------------------------------------
+
+Status: MERGED TO MAIN (PR 4240 on 2026-04-19)
+
+Location: c4-cmd.pcg-flow-matching/
+
+Two files delivered:
+
+    File                                    Purpose
+    --------------------------------------  --------------------------------
+    PcgFlowMatchingDataloaderEntryPoint.cs  Five-step end-to-end test CLI
+    c4-cmd.pcg-flow-matching.csproj         Exe project file
+
+The entry point performs five verification steps:
+
+    1. Loads every VGLC Super Mario Bros Processed .txt file
+    2. Extracts sliding-window chunks of shape (14, 28)
+    3. Converts first chunk to one-hot tensor of shape (14, 14, 28)
+    4. Converts all chunks to batch tensor of shape (N, 14, 14, 28)
+    5. Round-trips tensor back to TileMap back to ASCII text
+
+--------------------------------------------------------------------------------
+2.3 ASSEMBLY c2-pcg.flow-matching-model (IN PROGRESS)
+--------------------------------------------------------------------------------
+
+Status: LOCAL BRANCH dev-luiz-flow-matching, not yet in a PR.
+
+Location: c2-pcg.flow-matching/c2-pcg.flow-matching-model/
+
+Five files written and building clean:
+
+    File                             Purpose                           Lines
+    -------------------------------  ------------------------------  -------
+    c2-pcg.flow-matching-model
+      .csproj                        Project file, TorchSharp refs        17
+    SinusoidalTimeEmbedding.cs       Scalar t to vector encoding          45
+    ResidualConvBlock.cs             Conv-Norm-SiLU x 2 with skip         62
+    DownsampleBlock.cs               Strided 3x3 conv, halves H and W     20
+    UpsampleBlock.cs                 Nearest-neighbor upsample + conv     30
+
+The UnetBaseline class that composes these building blocks is not yet
+written. Once UnetBaseline is added, the model assembly is feature complete
+for Iteration 1 and ready for a pull request.
+
+--------------------------------------------------------------------------------
+2.4 EVALUATION PIPELINE VERIFICATION
+--------------------------------------------------------------------------------
+
+Status: EXECUTED on 2026-04-19
+
+On the container with the VGLC dataset cloned to /tmp/TheVGLC, running
+c4-cmd.pcg-flow-matching with the Super Mario Bros Processed directory
+produced:
+
+    Levels loaded:       15 (mario-1-1 through mario-8-1)
+    Total chunks:        2518 (via sliding window, stride 1)
+    Sample tensor shape: (14, 14, 28) matching expected (C, H, W)
+    Batch tensor shape:  (2518, 14, 14, 28) matching expected (N, C, H, W)
+    Round-trip result:   first chunk reproduces Mario 1-1 left edge exactly
+
+The full VGLC-to-tensor pipeline is proven correct end-to-end. This
+satisfies the data preparation objective (O2) from TCC Chapter 1.
+
+--------------------------------------------------------------------------------
+2.5 REPORTS WRITTEN
+--------------------------------------------------------------------------------
+
+Reports authored and placed in kcg-ml-csharp/b1.reports/:
+
+    File                                              Purpose
+    ------------------------------------------------  --------------------------
+    260416.tcc-flow-matching-progress-report.txt      Progress after dataloader
+    260419.tcc-iteration-1-unet-implementation
+      -plan.txt                                       Full Iteration 1 plan
+    260422.tcc-timeline-progress-status.txt           This report
+
+
+================================================================================
+PART 3: REMAINING WORK FOR ITERATION 1
+================================================================================
+
+Five components remain before Iteration 1 can be declared complete.
+
+3.1 UnetBaseline class
+    Composes SinusoidalTimeEmbedding, ResidualConvBlock, DownsampleBlock,
+    and UpsampleBlock into the full encoder-decoder-with-skip-connections
+    U-Net. Must accept tensor input of shape (N, 14, 14, 28) and time
+    tensor of shape (N,), and return predicted velocity field of shape
+    (N, 14, 14, 28). Estimated effort: 1 day.
+
+3.2 Evaluation metrics assembly c2-pcg.flow-matching-eval
+    Implements the five metrics specified in the Iteration 1 plan:
+    local constraint violation rate, ground continuity score, visual
+    diversity score, generation speed measurement, training loss
+    accumulator. Estimated effort: 1 day.
+
+3.3 CFM training loop assembly c2-pcg.flow-matching-training
+    Implements the linear-interpolation Conditional Flow Matching
+    training loop, Adam optimizer integration, model checkpoint
+    writer and reader, per-step loss logger. Estimated effort: 2 days.
+
+3.4 Euler ODE solver assembly c2-pcg.flow-matching-inference
+    Implements the iterative Euler integration from random noise to
+    generated map, plus a MapGenerator orchestrator. Estimated
+    effort: 1 day.
+
+3.5 c4 subcommand integration
+    Extends the existing c4-cmd.pcg-flow-matching assembly with two
+    additional entry points: PcgFlowMatchingTrainEntryPoint and
+    PcgFlowMatchingGenerateEntryPoint. Updates the .csproj file with
+    the four new c2 assembly references. Estimated effort: 0.5 day.
+
+3.6 First training run
+    Runs training on the company devbox with 3x RTX 3090 Ti for 5000
+    steps, batch size 32. Produces a model checkpoint and 100 sample
+    generated chunks. Computes all five evaluation metrics.
+    Estimated effort: 2 days (including monitoring and result
+    documentation).
+
+Total estimated effort to complete Iteration 1: 7.5 working days.
+
+
+================================================================================
+PART 4: REMAINING WORK FOR ITERATION 2
+================================================================================
+
+Iteration 2 improves the baseline based on Iteration 1 empirical findings.
+
+4.1 Architecture adjustments
+    Tune U-Net depth (add 3rd or 4th downsampling level with input
+    padding to 16x32). Tune channel progression. Adjust ResidualConvBlock
+    internals if training stability issues appear.
+
+4.2 Optimal Transport probability paths
+    Replace linear interpolation with Optimal Transport trajectories for
+    potentially straighter velocity fields and faster sampling.
+
+4.3 Sinusoidal time embedding injection via AdaGN
+    Replace simple additive time bias with Adaptive Group Normalization
+    that modulates both scale and shift per channel based on time.
+
+4.4 Hyperparameter exploration
+    Run 3 parallel experiments on the 3 devbox GPUs with different
+    learning rates, batch sizes, Euler step counts (5, 10, 20, 50).
+    Document results for each configuration.
+
+4.5 TCC Chapter 4 intermediate section
+    Document Iteration 2 architecture changes and their empirical
+    justification in comparison to Iteration 1 baseline.
+
+Estimated effort: 3 weeks (accounting for experiment iteration time).
+
+
+================================================================================
+PART 5: REMAINING WORK FOR ITERATION 3
+================================================================================
+
+Iteration 3 completes the full proposed system from TCC Chapter 3.
+
+5.1 Conditional vector support (Objective O4)
+    Add biome-type and tile-presence conditioning vectors. Extend the
+    U-Net to accept conditional vector c as input and inject it into
+    residual blocks.
+
+5.2 Constraint Manager module (TCC Section 3.4)
+    Build formal CSP violation counter with explicit tile adjacency
+    rules, biome coherence checks, and global path connectivity
+    verification. Must produce quantitative "energy" score per map.
+
+5.3 Wave Function Collapse baseline implementation (Objective O5a)
+    Implement a reference WFC generator for direct comparison against
+    the Flow Matching approach on the same VGLC dataset.
+
+5.4 Literature-based DDPM comparison (Objective O5b)
+    Write comparative analysis citing published DDPM sampling metrics
+    (NFE, wall-clock time) against Iteration 3 Flow Matching results.
+
+5.5 Final comparative results and TCC Chapter 4 finalization
+    Complete all result tables, figures, and analysis sections. Write
+    Chapter 5 conclusion.
+
+Estimated effort: 3 weeks.
+
+
+================================================================================
+PART 6: WRITING AND DEFENSE PHASE
+================================================================================
+
+Manuscript freeze target: 2026-06-10 (one week before deadline 2026-06-17).
+Defense preparation: 2026-06-18 through early July.
+
+6.1 TCC Chapter 4 sections to write
+    4.1 Data preparation
+    4.2 Evaluation criteria
+    4.3 Iteration 1 architecture
+    4.4 Iteration 1 results
+    4.5 Iteration 2 architecture
+    4.6 Iteration 2 results
+    4.7 Iteration 3 architecture
+    4.8 Iteration 3 results
+    4.9 Comparative analysis (Flow Matching vs WFC vs DDPM)
+
+6.2 TCC Chapter 5 sections to write
+    5.1 Conclusion
+    5.2 Contributions
+    5.3 Limitations
+    5.4 Future work
+
+6.3 Defense presentation slides (estimated 20-25 slides)
+
+6.4 Defense rehearsal
+
+
+================================================================================
+PART 7: RISKS AND DEPENDENCIES
+================================================================================
+
+Risk 1: Iteration 1 slippage compounds into Iteration 2 and 3
+    Impact: manuscript submitted incomplete
+    Mitigation: aggressively cut Iteration 3 scope if needed. Prof.
+    Elder already approved this trade-off in the 2026-03-10 meeting.
+
+Risk 2: Devbox GPU access issues
+    Impact: delayed training, cannot iterate on hyperparameters
+    Mitigation: personal desktop RTX 5060 as fallback for small
+    experiments. Google Colab Pro as secondary fallback.
+
+Risk 3: TorchSharp API mismatches with published Flow Matching examples
+    Impact: delays while translating Python reference code to C#
+    Mitigation: reference existing TorchSharp usage in c2-ml.classifier
+    and c2-llm.nanogpt before writing new code.
+
+Risk 4: Mode collapse or training divergence on the small dataset
+    Impact: generated samples look like noise, fails metric thresholds
+    Mitigation: this is acceptable for Iteration 1 per Prof. Elder's
+    "baseline toscão" directive. Document failure modes as motivation
+    for Iteration 2.
+
+Risk 5: Cross-team merge conflicts on kcg-ml-csharp.sln
+    Impact: rebase complications delay PR merges
+    Mitigation: pull main daily to resolve conflicts incrementally
+    rather than in batches.
+
+
+================================================================================
+PART 8: PULL REQUEST HISTORY
+================================================================================
+
+    PR       Date        Status   Description
+    -------  ----------  -------  -------------------------------------------
+    3925     2026-04-01  MERGED   Add c2-pcg.flow-matching-dataloader
+    4060     2026-04-10  MERGED   Fix dataloader standards violations
+    4240     2026-04-19  MERGED   Add entry point for dataloader test
+    pending  2026-04-22  OPEN     Add U-Net building blocks + this report
+
+
+================================================================================
+END OF REPORT
+================================================================================

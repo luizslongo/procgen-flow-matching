@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "c2-pcg.flow-matching", "c2-pcg.flow-matching", "{71C7A932-B36B-4E91-937A-2BA449C80FC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-dataloader", "c2-pcg.flow-matching\c2-pcg.flow-matching-dataloader\c2-pcg.flow-matching-dataloader.csproj", "{A1577FA2-94E0-44EF-8442-878306DC9098}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-model", "c2-pcg.flow-matching\c2-pcg.flow-matching-model\c2-pcg.flow-matching-model.csproj", "{563E2AD3-BF00-414E-A695-5F0DB978C134}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-cmd.pcg-flow-matching", "c4-cmd.pcg-flow-matching\c4-cmd.pcg-flow-matching.csproj", "{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1577FA2-94E0-44EF-8442-878306DC9098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1577FA2-94E0-44EF-8442-878306DC9098}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1577FA2-94E0-44EF-8442-878306DC9098}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1577FA2-94E0-44EF-8442-878306DC9098}.Release|Any CPU.Build.0 = Release|Any CPU
+		{563E2AD3-BF00-414E-A695-5F0DB978C134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{563E2AD3-BF00-414E-A695-5F0DB978C134}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{563E2AD3-BF00-414E-A695-5F0DB978C134}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{563E2AD3-BF00-414E-A695-5F0DB978C134}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A1577FA2-94E0-44EF-8442-878306DC9098} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
+		{563E2AD3-BF00-414E-A695-5F0DB978C134} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
+	EndGlobalSection
+EndGlobal

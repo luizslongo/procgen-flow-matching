@@ -1,0 +1,636 @@
+================================================================================
+TCC ITERATION 1 U-NET IMPLEMENTATION PLAN
+================================================================================
+
+Generated: 2026-04-19
+Topic:     Implementation plan for Iteration 1 of the TCC (Conditional Flow
+           Matching for procedural game map generation)
+Source:    TCC "Procedural Generation of Game Maps as a Constraint Satisfaction
+           Problem: An Euler-based Conditional Flow Matching Approach" (Luiz
+           Slongo, UFSC 2025) Chapter 3, meeting transcript with Prof. Elder
+           Rizzon Santos on 2026-03-10
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+This report specifies the implementation plan for Iteration 1 of the TCC,
+which is the simplest possible working baseline of a U-Net neural network
+trained with Conditional Flow Matching (CFM) to generate 2D tile-based game
+map chunks. The plan covers the neural network architecture, the training
+loop, the Euler ordinary differential equation (ODE) solver for inference,
+the domain-specific evaluation metrics, the assembly structure, and the
+timeline aligned with the manuscript deadline of 2026-06-17.
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: CONTEXT AND CONSTRAINTS
+  1.1 TCC chapter 3 specifications
+  1.2 Prof. Elder meeting directives
+  1.3 Current state of the repository
+
+PART 2: SCOPE DEFINITION
+  2.1 What Iteration 1 includes
+  2.2 What Iteration 1 explicitly excludes
+
+PART 3: ARCHITECTURE
+  3.1 U-Net structure
+  3.2 Dimension handling
+  3.3 Time embedding strategy
+
+PART 4: EVALUATION CRITERIA
+  4.1 Why metrics come first
+  4.2 Metrics for Iteration 1
+
+PART 5: PHASE BREAKDOWN
+  5.1 Phase 1 -- Evaluation metrics
+  5.2 Phase 2 -- U-Net architecture
+  5.3 Phase 3 -- CFM training loop
+  5.4 Phase 4 -- Euler ODE solver
+  5.5 Phase 5 -- c4 entry point integration
+  5.6 Phase 6 -- First training run
+  5.7 Phase 7 -- TCC Chapter 4 writing
+
+PART 6: ASSEMBLY STRUCTURE AFTER ITERATION 1
+
+PART 7: TIMELINE AND DEADLINES
+
+PART 8: RISKS AND MITIGATIONS
+
+
+================================================================================
+PART 1: CONTEXT AND CONSTRAINTS
+================================================================================
+
+--------------------------------------------------------------------------------
+1.1 TCC CHAPTER 3 SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+The TCC Chapter 3 specifies three components for the full proposed system:
+
+    1. U-Net architecture (Section 3.3.1): encoder-decoder with skip
+       connections. Encoder captures global context (biome distribution,
+       path connectivity). Decoder reconstructs fine details (tile
+       adjacency). Time step t and conditional vector c injected via
+       Adaptive Group Normalization (AdaGN) or concatenation.
+
+    2. Conditional Flow Matching training (Section 3.3.2): model regresses
+       target vector field u_t(x|x_1) pointing from noisy state toward
+       target data sample x_1. Simulation-free training via linear
+       interpolation path.
+
+    3. Euler ODE solver for inference (Section 3.4): starts from random
+       noise, iteratively applies predicted vector field to move toward
+       valid map configuration. Parallels the concept of annealing.
+
+The validation strategy (Section 3.5) defines three primary metrics:
+
+    1. Sampling Efficiency: Number of Function Evaluations (NFE) required
+       to produce a valid map, wall-clock generation time.
+
+    2. Constraint Satisfaction: percentage of valid tile adjacencies
+       (local) and structural coherence of biomes (global).
+
+    3. Diversity: Hamming-distance-style comparison between generated
+       outputs to verify no mode collapse.
+
+--------------------------------------------------------------------------------
+1.2 PROF. ELDER MEETING DIRECTIVES
+--------------------------------------------------------------------------------
+
+From the transcript of the advisor meeting on 2026-03-10, Prof. Elder
+established five directives that constrain the Iteration 1 scope:
+
+    Directive 1: "Baseline toscão" -- build the simplest working model,
+    not the best architecture. Quality is secondary in Iteration 1.
+
+    Directive 2: Evaluation criteria must be defined BEFORE the baseline
+    is measured. Elder said metrics are more important than the model
+    itself, because a model with 99 percent training accuracy can still
+    produce unusable output in production.
+
+    Directive 3: The infrastructure must enable fast iteration. Elder's
+    exact target: "só rodar o experimento novo na tua infra" (just run
+    the new experiment on your infrastructure). Architecture changes
+    should be config-level edits, not code rewrites.
+
+    Directive 4: Implementation and TCC documentation happen in parallel.
+    Each iteration produces both code AND TCC chapter text. The banca
+    evaluates the manuscript, not the code.
+
+    Directive 5: Two weeks per iteration. Elder explicitly scheduled
+    three iterations to fit within the three-months-and-one-week window
+    from 2026-03-10 to the 2026-06-17 manuscript deadline.
+
+--------------------------------------------------------------------------------
+1.3 CURRENT STATE OF THE REPOSITORY
+--------------------------------------------------------------------------------
+
+As of 2026-04-19, the following assemblies exist on main:
+
+    c2-pcg.flow-matching-dataloader (merged via PR 3925 on 2026-04-01,
+    standards fixes merged via PR 4060 on 2026-04-10):
+
+        File                          Purpose
+        ----------------------------  ----------------------------------------
+        TileTypeEnum.cs               14 tile type enum, Error=0 first
+        TileMap.cs                    Pure state: Width, Height, Tiles array
+        VglcTileCharMap.cs            Character to TileTypeEnum bidirectional
+        VglcLevelParser.cs            Parse VGLC .txt files to TileMap
+        TileMapChunker.cs             Sliding window chunk extraction
+        TileMapTensorConverter.cs     TileMap to TorchSharp tensor (one-hot)
+        c2-pcg.flow-matching-
+          dataloader.csproj           Project file, no proprietary deps
+
+    c4-cmd.pcg-flow-matching (merged via PR 4240 on 2026-04-19):
+
+        File                                    Purpose
+        --------------------------------------  -------------------------------
+        PcgFlowMatchingDataloaderEntryPoint.cs  End-to-end pipeline test CLI
+        c4-cmd.pcg-flow-matching.csproj         Exe project file
+
+Pipeline verification on 2026-04-19 with 15 Super Mario Bros levels from
+the Video Game Level Corpus (VGLC):
+
+    Levels loaded:        15
+    Chunks extracted:     2518 (28 tiles wide, 14 tiles tall)
+    Tensor shape:         (2518, 14, 14, 28) = (N, C, H, W)
+    Tile type count:      14 (13 real + Error=0)
+    Round-trip verified:  first chunk of mario-1-1 reproduces original data
+
+No U-Net, no training loop, no ODE solver, no evaluation metrics exist yet.
+
+
+================================================================================
+PART 2: SCOPE DEFINITION
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 WHAT ITERATION 1 INCLUDES
+--------------------------------------------------------------------------------
+
+Iteration 1 produces a working end-to-end training and generation pipeline.
+The deliverables are:
+
+    1. UnetBaseline class: simplest U-Net architecture with 2 downsampling
+       levels, sinusoidal time embedding, no conditional vector, no AdaGN.
+
+    2. CfmTrainingLoop class: standard CFM loss with linear interpolation
+       path, MSE regression target, Adam optimizer.
+
+    3. EulerOdeSolver class: N-step Euler integration from random noise
+       to generated map.
+
+    4. MapEvaluationMetrics class: five domain-specific metrics defined
+       per Prof. Elder Directive 2.
+
+    5. Training run output: loss curve data, checkpoint files, sample
+       generated chunks as text files.
+
+    6. TCC Chapter 4 first draft: sections covering data preparation,
+       evaluation criteria, baseline architecture, baseline results.
+
+--------------------------------------------------------------------------------
+2.2 WHAT ITERATION 1 EXPLICITLY EXCLUDES
+--------------------------------------------------------------------------------
+
+These features are explicitly deferred to later iterations per Prof. Elder
+Directive 1 (simplest possible baseline):
+
+    Deferred to Iteration 2:
+        Optimal Transport probability paths (Section 3.3.2 of TCC)
+        Architecture depth tuning (3-4 downsampling levels)
+        Hyperparameter sweeps (batch size, learning rate, NFE)
+        AdaGN time embedding injection
+
+    Deferred to Iteration 3:
+        Conditional vector c injection (TCC Objective O4)
+        Constraint Manager module (TCC Section 3.4)
+        WFC baseline direct comparison (TCC Objective O5a)
+        Literature-based DDPM comparison (TCC Objective O5b)
+
+Skipping conditional vectors means the Iteration 1 model generates any
+valid Mario chunk rather than chunks matching specific attributes. This
+preserves the CFM training loop proof-of-concept while saving Iteration 3
+for the conditioning mechanism specified in TCC Objective O4.
+
+
+================================================================================
+PART 3: ARCHITECTURE
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 U-NET STRUCTURE
+--------------------------------------------------------------------------------
+
+The UnetBaseline class uses 2 downsampling levels (not 3 or 4) to avoid
+dimension padding complexity for the 14x28 chunk size.
+
+Architecture flow for input shape (N, 14, 14, 28):
+
+    Input x:               (N, 14, 14, 28)   one-hot encoded chunk batch
+    Input t:               (N,)              scalar time value per sample
+
+    Conv2d(14 -> 64)       (N, 64, 14, 28)
+    ResBlock(64) + time    (N, 64, 14, 28)   skip1 saved
+    Downsample             (N, 64, 7, 14)
+    ResBlock(64 -> 128)    (N, 128, 7, 14)   skip2 saved
+    Downsample             (N, 128, 3, 7)    bottleneck resolution
+    ResBlock(128 -> 256)   (N, 256, 3, 7)    bottleneck
+    Upsample               (N, 256, 7, 14)
+    Concat(skip2) + Res    (N, 128, 7, 14)
+    Upsample               (N, 128, 14, 28)
+    Concat(skip1) + Res    (N, 64, 14, 28)
+    Conv2d(64 -> 14)       (N, 14, 14, 28)   predicted vector field
+
+Parameter count estimate: 3 to 5 million trainable parameters.
+
+Building block types (one class per file per state-action separation
+standard):
+
+    Type Name                          Role              State or Action
+    ---------------------------------  ---------------   ---------------
+    UnetBaselineConfig                 configuration     pure state
+    UnetBaselineModel                  trainable params  pure state
+    UnetBaselineBuilder                builder logic     pure action
+    UnetBaselineForward                forward pass      pure action
+    SinusoidalTimeEmbeddingBuilder     builder           pure action
+    SinusoidalTimeEmbeddingForward     forward pass      pure action
+    ResidualConvBlockBuilder           builder           pure action
+    ResidualConvBlockForward           forward pass      pure action
+    DownsampleBlock                    downsample op     pure action
+    UpsampleBlock                      upsample op       pure action
+
+--------------------------------------------------------------------------------
+3.2 DIMENSION HANDLING
+--------------------------------------------------------------------------------
+
+The chunk dimensions 14x28 are not powers of 2. Two downsampling levels
+produce:
+
+    Level 0:   14 x 28
+    Level 1:   7 x 14
+    Level 2:   3 x 7 (after integer division, bottleneck)
+
+The Level 2 resolution uses integer floor division. Upsampling back to
+Level 1 uses nearest-neighbor scaling to 7x14, matching skip2. Upsampling
+to Level 0 scales to 14x28, matching skip1. No padding is required.
+
+If a third downsampling level were added, Level 3 would become 1x3, which
+is too small for meaningful convolutions. Iteration 2 can add padding
+(14x28 to 16x32) if deeper architectures become necessary.
+
+--------------------------------------------------------------------------------
+3.3 TIME EMBEDDING STRATEGY
+--------------------------------------------------------------------------------
+
+Time t is a scalar in [0, 1] passed as a tensor of shape (N,). The
+SinusoidalTimeEmbedding class converts t to a vector of shape
+(N, TimeEmbeddingDim) using fixed frequency sinusoids:
+
+    emb[2i]     = sin(t * 10000^(-2i/TimeEmbeddingDim))
+    emb[2i+1]   = cos(t * 10000^(-2i/TimeEmbeddingDim))
+
+The embedding is then projected through a two-layer MLP (SiLU activation)
+to produce a conditioning vector injected into each ResidualConvBlock
+via channel-wise addition after the first convolution.
+
+AdaGN injection is NOT used in Iteration 1 per scope limitation 2.2.
+
+
+================================================================================
+PART 4: EVALUATION CRITERIA
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 WHY METRICS COME FIRST
+--------------------------------------------------------------------------------
+
+Prof. Elder Directive 2 requires evaluation metrics to be defined and
+implemented BEFORE the baseline is measured. The rationale from the
+meeting transcript: a model can achieve high training accuracy and still
+be useless if the metrics do not reflect domain correctness.
+
+For game map generation, the domain correctness questions are:
+
+    Question 1: Do adjacent tiles respect physical rules? (local constraints)
+    Question 2: Does the map have playable structure? (global constraints)
+    Question 3: Does the model produce diverse outputs? (no mode collapse)
+    Question 4: Is generation fast enough to be practical? (efficiency)
+
+Training loss answers none of these questions directly. The MapEvaluationMetrics
+class must answer them quantitatively.
+
+--------------------------------------------------------------------------------
+4.2 METRICS FOR ITERATION 1
+--------------------------------------------------------------------------------
+
+Metric 1: Training loss
+    Name:        CfmTrainingLoss
+    Input:       none (measured during training)
+    Output:      float per training step
+    Purpose:     verify model is learning anything at all
+    Threshold:   decreasing trend over 1000+ steps indicates learning
+
+Metric 2: Local constraint violation rate
+    Name:        LocalConstraintViolationCounter
+    Input:       TileMap instance
+    Output:      int violation count, float violation rate per tile
+    Purpose:     measure whether tile adjacencies follow hard-coded rules
+    Rules (5 for Iteration 1):
+        Rule 1: PipeBodyLeft must be adjacent to PipeBodyRight horizontally
+        Rule 2: PipeTopLeft must have PipeBodyLeft directly below
+        Rule 3: PipeTopRight must have PipeBodyRight directly below
+        Rule 4: BulletBillLauncher must have BulletBillBody directly below
+        Rule 5: Enemy must have Solid directly below (no floating enemies)
+    Threshold:   rate < 0.1 indicates baseline is learning local structure
+
+Metric 3: Ground continuity score
+    Name:        GroundContinuityScore
+    Input:       TileMap instance
+    Output:      float in [0, 1] measuring fraction of bottom row that is
+                 Solid or PipeBody
+    Purpose:     simple playability heuristic -- Mario needs a floor
+    Threshold:   score > 0.7 indicates baseline produces traversable ground
+
+Metric 4: Visual diversity score
+    Name:        VisualDiversityScore
+    Input:       List of 100 generated TileMap instances
+    Output:      float average pairwise Hamming distance normalized by
+                 tile count
+    Purpose:     detect mode collapse (all outputs look the same)
+    Threshold:   score > 0.3 indicates reasonable diversity
+
+Metric 5: Generation speed
+    Name:        GenerationSpeedMeasurement
+    Input:       UnetBaselineModel, int NFE (5, 10, 20, 50)
+    Output:      wall-clock milliseconds per chunk, NFE count
+    Purpose:     measure sampling efficiency per TCC Section 3.5
+    Threshold:   under 100 ms per chunk at NFE=50 is acceptable baseline
+
+
+================================================================================
+PART 5: PHASE BREAKDOWN
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 PHASE 1 -- EVALUATION METRICS (DAY 1)
+--------------------------------------------------------------------------------
+
+Deliverable: assembly c2-pcg.flow-matching-eval with 5 metric types.
+
+Files to create:
+
+    c2-pcg.flow-matching/
+      c2-pcg.flow-matching-eval/
+        c2-pcg.flow-matching-eval.csproj
+        LocalConstraintViolationCounter.cs
+        GroundContinuityScore.cs
+        VisualDiversityScore.cs
+        GenerationSpeedMeasurement.cs
+        MapEvaluationResult.cs                 pure state result type
+
+Dependencies: c2-pcg.flow-matching-dataloader (for TileMap and TileTypeEnum).
+
+Output: PR opened and merged to main.
+
+--------------------------------------------------------------------------------
+5.2 PHASE 2 -- U-NET ARCHITECTURE (DAYS 2-4)
+--------------------------------------------------------------------------------
+
+Deliverable: assembly c2-pcg.flow-matching-model with UnetBaseline and
+supporting building blocks.
+
+Files to create:
+
+    c2-pcg.flow-matching/
+      c2-pcg.flow-matching-model/
+        c2-pcg.flow-matching-model.csproj
+        UnetBaselineConfig.cs                  pure state
+        UnetBaselineModel.cs                   pure state
+        UnetBaselineBuilder.cs                 builds network from config
+        UnetBaselineForward.cs                 forward pass x, t -> v
+        SinusoidalTimeEmbeddingBuilder.cs      time embedding construction
+        SinusoidalTimeEmbeddingForward.cs      time embedding forward pass
+        ResidualConvBlockBuilder.cs            residual block construction
+        ResidualConvBlockForward.cs            residual block forward pass
+        DownsampleBlock.cs                     strided conv downsample
+        UpsampleBlock.cs                       nearest-neighbor upsample
+
+Dependencies: TorchSharp (conditional CUDA Windows/Linux/CPU).
+
+Output: PR opened and merged.
+
+--------------------------------------------------------------------------------
+5.3 PHASE 3 -- CFM TRAINING LOOP (DAYS 5-6)
+--------------------------------------------------------------------------------
+
+Deliverable: assembly c2-pcg.flow-matching-training with CfmTrainingLoop
+and checkpoint writer.
+
+Files to create:
+
+    c2-pcg.flow-matching/
+      c2-pcg.flow-matching-training/
+        c2-pcg.flow-matching-training.csproj
+        CfmTrainingConfig.cs                   pure state
+        CfmTrainingState.cs                    pure state: step, loss history
+        CfmTrainingStep.cs                     single optimizer step
+        CfmTrainingLoop.cs                     outer loop over epochs
+        ModelCheckpointWriter.cs               save model weights
+        ModelCheckpointReader.cs               load model weights
+        TrainingLossLogger.cs                  append loss to file per step
+
+Training step pseudocode:
+
+    for each batch of x1 from dataset:
+        x0 = torch.randn_like(x1)
+        t  = torch.rand(batch_size)
+        xt = (1 - t) * x0 + t * x1
+        u_target = x1 - x0
+        u_predicted = UnetBaselineForward.Forward(unet, xt, t)
+        loss = ((u_predicted - u_target) ** 2).mean()
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+Dependencies: c2-pcg.flow-matching-dataloader, c2-pcg.flow-matching-model.
+
+Output: PR opened and merged.
+
+--------------------------------------------------------------------------------
+5.4 PHASE 4 -- EULER ODE SOLVER (DAY 7)
+--------------------------------------------------------------------------------
+
+Deliverable: assembly c2-pcg.flow-matching-inference with EulerOdeSolver.
+
+Files to create:
+
+    c2-pcg.flow-matching/
+      c2-pcg.flow-matching-inference/
+        c2-pcg.flow-matching-inference.csproj
+        EulerOdeSolverConfig.cs                pure state
+        EulerOdeSolver.cs                      iterative noise to map
+        MapGenerator.cs                        orchestrates full generation
+
+Generation pseudocode:
+
+    x = torch.randn(batch_size, 14, 14, 28)
+    N = config.NumberOfFunctionEvaluations        default 50
+    dt = 1.0 / N
+    for step in 0 to N-1:
+        t_value = step * dt
+        t = torch.full((batch_size,), t_value)
+        v = UnetBaselineForward.Forward(unet, x, t)
+        x = x + dt * v
+    return TileMapTensorConverter.FromOneHotTensor(x[0])
+
+Dependencies: c2-pcg.flow-matching-dataloader, c2-pcg.flow-matching-model.
+
+Output: PR opened and merged.
+
+--------------------------------------------------------------------------------
+5.5 PHASE 5 -- C4 ENTRY POINT INTEGRATION (DAY 8)
+--------------------------------------------------------------------------------
+
+Deliverable: extend c4-cmd.pcg-flow-matching with two new entry points.
+
+Files to create:
+
+    c4-cmd.pcg-flow-matching/
+      PcgFlowMatchingTrainEntryPoint.cs        args: train <vglc-path>
+      PcgFlowMatchingGenerateEntryPoint.cs     args: generate <checkpoint>
+
+Existing file (PcgFlowMatchingDataloaderEntryPoint.cs) keeps load mode.
+
+The .csproj file adds project references to the four new c2 assemblies.
+
+Output: PR opened and merged.
+
+--------------------------------------------------------------------------------
+5.6 PHASE 6 -- FIRST TRAINING RUN (DAYS 9-10)
+--------------------------------------------------------------------------------
+
+Run on the company devbox with 3x RTX 3090 Ti GPUs via SSH.
+
+    Step 1: SSH to devbox, pull latest main, build kcg-ml-csharp.sln
+    Step 2: Run train entry point with VGLC Mario Processed path
+    Step 3: Train for 5000 steps with batch size 32, learning rate 1e-4
+    Step 4: Save checkpoint every 500 steps
+    Step 5: Generate 100 sample chunks from final checkpoint
+    Step 6: Compute all 5 evaluation metrics on generated chunks
+    Step 7: Write metric results to b1.reports/ as a .txt file
+
+Expected output quality: generated chunks should look vaguely Mario-ish
+but with obvious violations (floating bricks, broken ground, impossible
+pipes). Prof. Elder Directive 1 accepts this as the baseline.
+
+--------------------------------------------------------------------------------
+5.7 PHASE 7 -- TCC CHAPTER 4 WRITING (DAYS 11-14)
+--------------------------------------------------------------------------------
+
+Per Prof. Elder Directive 4, document in parallel with implementation.
+Sections to write in TCC Chapter 4:
+
+    4.1 Data Preparation
+        References PR 3925 and the VGLC dataset details.
+
+    4.2 Evaluation Criteria
+        Describes each of the 5 metrics with justification.
+
+    4.3 Iteration 1 Architecture
+        U-Net structure, hyperparameters, dimension handling.
+
+    4.4 Iteration 1 Results
+        Loss curve, metric scores, sample output figures, analysis.
+
+
+================================================================================
+PART 6: ASSEMBLY STRUCTURE AFTER ITERATION 1
+================================================================================
+
+Expected repository layout after all 7 phases complete:
+
+    c2-pcg.flow-matching/
+      c2-pcg.flow-matching-dataloader/         EXISTS, merged
+        (7 files from PR 3925 + PR 4060)
+      c2-pcg.flow-matching-eval/               NEW in Phase 1
+        5 metric classes + csproj
+      c2-pcg.flow-matching-model/              NEW in Phase 2
+        10 neural network classes + csproj
+      c2-pcg.flow-matching-training/           NEW in Phase 3
+        7 training loop classes + csproj
+      c2-pcg.flow-matching-inference/          NEW in Phase 4
+        3 ODE solver classes + csproj
+
+    c4-cmd.pcg-flow-matching/                  EXISTS, merged
+      PcgFlowMatchingDataloaderEntryPoint.cs   EXISTS from PR 4240
+      PcgFlowMatchingTrainEntryPoint.cs        NEW in Phase 5
+      PcgFlowMatchingGenerateEntryPoint.cs     NEW in Phase 5
+      c4-cmd.pcg-flow-matching.csproj          UPDATED in Phase 5
+
+Total new files across all phases: 27 source files + 4 csproj files.
+
+
+================================================================================
+PART 7: TIMELINE AND DEADLINES
+================================================================================
+
+Aligned with Prof. Elder Directive 5 (two weeks per iteration) and the
+manuscript deadline of 2026-06-17.
+
+    Phase     Dates                   Workload
+    --------  ----------------------  ----------------------------------------
+    Phase 1   2026-04-20              Evaluation metrics assembly
+    Phase 2   2026-04-21 to 04-23     U-Net architecture assembly
+    Phase 3   2026-04-24 to 04-25     CFM training loop assembly
+    Phase 4   2026-04-26              Euler ODE solver assembly
+    Phase 5   2026-04-27              c4 entry point integration
+    Phase 6   2026-04-28 to 04-29     First training run + metric collection
+    Phase 7   2026-04-30 to 05-03     TCC Chapter 4 first draft
+
+Iteration 1 completes on 2026-05-03. Iteration 2 starts 2026-05-04.
+Manuscript freeze target: 2026-06-10 (one week buffer before 2026-06-17
+deadline).
+
+
+================================================================================
+PART 8: RISKS AND MITIGATIONS
+================================================================================
+
+Risk 1: TorchSharp API mismatch with PyTorch examples
+    Impact:     implementation delays in Phase 2 or Phase 3
+    Mitigation: reference existing TorchSharp usage in c2-ml.classifier
+                and c2-ml.neural assemblies before writing new code
+
+Risk 2: Dimension mismatch during U-Net upsampling
+    Impact:     runtime tensor shape errors
+    Mitigation: use integer floor division consistently, verify shapes
+                at each layer with tensor.shape prints during Phase 2
+
+Risk 3: Training loss does not decrease
+    Impact:     baseline fails to learn, blocks Phase 6 metrics
+    Mitigation: verify gradient flow with small test (10 steps on 1
+                batch), check learning rate (default 1e-4), check
+                loss scale (should start near 1.0 for unit-variance
+                noise)
+
+Risk 4: Generated chunks are pure noise (mode collapse or bad training)
+    Impact:     metric scores are uniformly bad
+    Mitigation: this is ACCEPTABLE per Prof. Elder Directive 1 for the
+                baseline. Iteration 2 addresses architecture and
+                hyperparameter issues. Document the failure mode in
+                TCC Section 4.4 as motivation for Iteration 2.
+
+Risk 5: Scope creep toward Iteration 3 features
+    Impact:     Iteration 1 exceeds two-week budget
+    Mitigation: strict adherence to Section 2.2 exclusions. If tempted
+                to add conditional vectors or the Constraint Manager,
+                reread Prof. Elder Directive 1 and defer.
+
+
+================================================================================
+END OF REPORT
+================================================================================

@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+build/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# User-specific environment
+*.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+packages/
+
+# VGLC dataset (not redistributed; cloned separately by user)
+TheVGLC/

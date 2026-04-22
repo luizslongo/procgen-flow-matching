@@ -1,0 +1,374 @@
+================================================================================
+TCC PROGRESS REPORT: CONDITIONAL FLOW MATCHING FOR PROCEDURAL MAP GENERATION
+================================================================================
+
+Author:     Luiz Gabriel Slongo
+Date:       2026-04-16
+Advisor:    Prof. Elder Rizzon Santos, Ph.D. (UFSC)
+Repository: kk-digital/kcg-ml-csharp
+
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Title: Procedural Generation of Game Maps as a Constraint Satisfaction Problem:
+       An Euler-based Conditional Flow Matching Approach
+
+The TCC trains a Conditional Flow Matching (CFM) neural network to generate
+2D tile-based game maps. The model learns implicit spatial constraints (tile
+adjacency rules, biome coherence, path connectivity) from a dataset of existing
+valid maps, then generates new maps that satisfy those constraints.
+
+The approach replaces manually-defined constraint rules (as used by Wave
+Function Collapse) with learned constraints from data, and replaces the slow
+iterative sampling of Diffusion Models with efficient Euler ODE integration.
+
+
+================================================================================
+2. TIMELINE AND DEADLINES
+================================================================================
+
+Agreed with Prof. Elder on 2026-03-10. Three iterative cycles, each producing
+both working code AND TCC chapter sections simultaneously.
+
+    Date              Milestone
+    ----------------  ----------------------------------------------------------
+    2026-03-10        Meeting with Prof. Elder -- agreed on iterative approach
+    2026-03-17        Dataset locked (VGLC / Super Mario Bros)
+    2026-03-28        Data loader implementation started
+    2026-04-01        PR #3925 merged: c2-pcg.flow-matching-dataloader (7 files)
+    2026-04-10        PR #4060 merged: standards violations fixed
+    2026-04-16        PR #4240 opened: c4-cmd.pcg-flow-matching entry point
+    2026-04-18        TARGET: Iteration 1 baseline model training
+    2026-05-01        TARGET: Iteration 2 improved model
+    2026-05-29        TARGET: Iteration 3 full system with comparisons
+    2026-06-17        MANUSCRIPT DEADLINE
+    Early July        SOUTENANCE (defense)
+
+
+================================================================================
+3. INFRASTRUCTURE
+================================================================================
+
+3.1 TRAINING HARDWARE
+
+    1x Devbox with 3x RTX 3090 Ti GPUs (provided by company)
+    - 24 GB GDDR6X VRAM per GPU (72 GB total)
+    - 40 TFLOPS FP32 per GPU
+    - SSH access configured, .NET 8 SDK + CUDA installed
+
+    Assessment: More than sufficient. Model uses approximately 2-4 GB VRAM.
+    Three GPUs allow three parallel experiments.
+
+3.2 DEVELOPMENT HARDWARE
+
+    Personal desktop: RTX 5060 (8 GB VRAM), i7-14700K, 32 GB DDR5
+    Used for development, debugging, and small test runs.
+
+3.3 SOFTWARE STACK
+
+    - Language: C# with .NET 8
+    - ML framework: TorchSharp 0.105.1 (C# binding for PyTorch)
+    - Build system: MSBuild via dotnet CLI
+    - Repository: kk-digital/kcg-ml-csharp (kcg-ml-csharp.sln)
+    - No proprietary dependencies (standalone, TorchSharp NuGet only)
+
+
+================================================================================
+4. DATASET
+================================================================================
+
+4.1 SOURCE
+
+    Video Game Level Corpus (VGLC)
+    URL: https://github.com/TheVGLC/TheVGLC
+    License: Free for research use
+
+4.2 CONTENTS
+
+    Super Mario Bros 1 (NES): 15 levels
+    All levels are 14 tiles tall, widths vary from 149 to 373 tiles.
+
+    Level dimensions:
+        mario-1-1.txt:   202 x 14
+        mario-1-2.txt:   158 x 14
+        mario-1-3.txt:   150 x 14
+        mario-2-1.txt:   197 x 14
+        mario-3-1.txt:   197 x 14
+        mario-3-3.txt:   149 x 14
+        mario-4-1.txt:   222 x 14
+        mario-4-2.txt:   187 x 14
+        mario-5-1.txt:   198 x 14
+        mario-5-3.txt:   150 x 14
+        mario-6-1.txt:   184 x 14
+        mario-6-2.txt:   215 x 14
+        mario-6-3.txt:   165 x 14
+        mario-7-1.txt:   176 x 14
+        mario-8-1.txt:   373 x 14
+
+4.3 TILE TYPES
+
+    14 categories (13 real tile types + Error=0):
+
+        Value  Name                Character   Description
+        -----  ------------------  ---------   ---------------------------
+        0      Error               (none)      Uninitialized / invalid
+        1      Empty               -           Air / sky
+        2      Solid               X           Solid ground block
+        3      Breakable           S           Breakable brick
+        4      QuestionFull        ?           Question block with item
+        5      QuestionEmpty       Q           Already-hit question block
+        6      Enemy               E           Enemy (Goomba)
+        7      PipeTopLeft         <           Pipe entrance left
+        8      PipeTopRight        >           Pipe entrance right
+        9      PipeBodyLeft        [           Pipe body left
+        10     PipeBodyRight       ]           Pipe body right
+        11     Coin                o           Collectible coin
+        12     BulletBillLauncher  B           Bullet bill cannon
+        13     BulletBillBody      b           Bullet bill column
+
+4.4 TRAINING DATA GENERATION
+
+    Sliding window of 28 tiles wide (one Mario screen) by 14 tiles tall
+    (full level height), stride 1 tile horizontally.
+
+    From 15 levels: 2518 training chunks extracted.
+    Each chunk is a one-hot tensor of shape (C=14, H=14, W=28).
+    Full batch tensor shape: (N=2518, C=14, H=14, W=28).
+
+4.5 SECONDARY DATASETS (not yet used)
+
+    Super Mario Bros 2 Japan (Lost Levels): 22 additional levels available
+    in VGLC. Would roughly double the training data if needed.
+
+    Super Metroid: Room extraction discussed with team (Synth, 2026-02-26).
+    Four validity rules defined: has doors, closed, any door reachable from
+    any other, cannot get stuck. Not yet extracted.
+
+
+================================================================================
+5. IMPLEMENTATION: DATA PIPELINE
+================================================================================
+
+5.1 ASSEMBLY STRUCTURE
+
+    Parent folder: c2-pcg.flow-matching/
+    Assembly:      c2-pcg.flow-matching-dataloader/
+    Namespace:     c2_pcg.flowMatchingDataloader
+    Layer:         c2 (domain implementation)
+
+    Entry point:   c4-cmd.pcg-flow-matching/
+    Namespace:     c4_cmd.pcgFlowMatching
+    Layer:         c4 (application)
+
+5.2 FILES AND RESPONSIBILITIES
+
+    c2-pcg.flow-matching-dataloader/ (7 files):
+
+    File                            Lines  Purpose
+    ------------------------------  -----  ------------------------------------
+    TileTypeEnum.cs                 22     Enum: 14 tile types, Error=0 first
+    TileMap.cs                      11     Pure state: Width, Height, Tiles[]
+    VglcTileCharMap.cs              131    Bidirectional char-to-enum mapping
+    VglcLevelParser.cs              83     Parse VGLC .txt files into TileMaps
+    TileMapChunker.cs               86     Sliding window chunk extraction
+    TileMapTensorConverter.cs       79     TileMap to/from TorchSharp tensors
+    c2-pcg.flow-matching-dataloader
+        .csproj                     17     Project file (TorchSharp, no xlib)
+
+    c4-cmd.pcg-flow-matching/ (2 files):
+
+    File                                    Lines  Purpose
+    --------------------------------------  -----  ----------------------------
+    PcgFlowMatchingDataloaderEntryPoint.cs  91     End-to-end pipeline test CLI
+    c4-cmd.pcg-flow-matching.csproj         17     Exe project file
+
+5.3 DATA FLOW
+
+    VGLC .txt files
+        |
+        v
+    VglcLevelParser.ParseDirectory()
+        |  reads text files, maps chars to TileTypeEnum
+        v
+    List<TileMap>  (15 maps, each 149-373 tiles wide, 14 tall)
+        |
+        v
+    TileMapChunker.ExtractChunksFromAll(maps, 28, 14)
+        |  sliding window, stride 1
+        v
+    List<TileMap>  (2518 chunks, each 28x14)
+        |
+        v
+    TileMapTensorConverter.ToBatchTensor(chunks)
+        |  one-hot encode each tile position
+        v
+    torch.Tensor  shape (2518, 14, 14, 28) = (N, C, H, W)
+        |
+        v
+    READY FOR U-NET TRAINING
+
+5.4 ONE-HOT ENCODING
+
+    Each tile position is represented as a 14-element vector where exactly
+    one element is 1.0 and all others are 0.0. The index of the 1.0 element
+    corresponds to the TileTypeEnum integer value.
+
+    Example: a Solid tile at position (x=5, y=13) sets:
+        tensor[2, 13, 5] = 1.0  (channel 2 = Solid)
+        all other channels at (13, 5) = 0.0
+
+    The reverse operation (FromOneHotTensor) takes argmax along the channel
+    dimension to recover the discrete tile type per position.
+
+5.5 VERIFICATION
+
+    End-to-end pipeline verified on 2026-04-16:
+    - 15 levels loaded from VGLC Super Mario Bros Processed directory
+    - 2518 chunks extracted
+    - Tensor shapes correct: (14, 14, 28) per chunk, (2518, 14, 14, 28) batch
+    - Round-trip test (text -> TileMap -> tensor -> TileMap -> text) produces
+      identical output to the original VGLC data
+
+
+================================================================================
+6. STANDARDS COMPLIANCE
+================================================================================
+
+6.1 STANDARDS APPLIED
+
+    - standard-enum-zero-is-error.txt: TileTypeEnum has Error=0
+    - standard-lexicographic-naming.txt: TileTypeEnum suffix, domain prefix
+    - standards-state-action-separation.txt: TileMap is pure state (no methods)
+    - standards-csharp-fields-accessors.txt: public fields, direct access only
+    - C006 RuleAlwaysUseBraces: all if blocks have braces
+    - C005 RuleSingleOperationPerLine: if and return on separate lines
+    - ImplicitUsings disabled, all using statements explicit
+    - No ternary operators, no var, no foreach, no properties
+    - No proprietary dependencies (no kcg-xlib references)
+
+6.2 STANDARDS FIX HISTORY
+
+    PR #3925 (2026-04-01): Initial implementation (had violations)
+    PR #4060 (2026-04-10): Fixed all violations:
+        - Renamed EnumTileType to TileTypeEnum (E1 suffix rule)
+        - Added Error=0 (standard-enum-zero-is-error.txt)
+        - Removed GetTile/SetTile/Create from TileMap (state-action separation)
+        - Changed TileTypeCount from mutable static to const
+        - Disabled ImplicitUsings, added explicit using statements
+        - Added braces to all if blocks
+        - Replaced ternary operator with explicit if block
+
+6.3 PROCESS IMPROVEMENT
+
+    The initial code was written without reading b0.standards/ first. This
+    caused 12 violations across 5 files that required a follow-up PR to fix.
+    Going forward: all relevant standards files must be read before writing
+    any new code.
+
+
+================================================================================
+7. PULL REQUESTS
+================================================================================
+
+    PR #     Date        Status  Description
+    ------   ----------  ------  -----------------------------------------------
+    #3925    2026-04-01  MERGED  add c2-pcg.flow-matching-dataloader (7 files)
+    #4060    2026-04-10  MERGED  fix dataloader standards violations
+    #4240    2026-04-16  OPEN    add c4-cmd.pcg-flow-matching entry point
+
+
+================================================================================
+8. NEXT STEPS
+================================================================================
+
+8.1 IMMEDIATE (this week)
+
+    1. Merge PR #4240 (entry point)
+    2. Implement basic U-Net neural network in TorchSharp
+       - 3-4 downsampling levels (14->64->128->256, then back)
+       - Skip connections between encoder and decoder
+       - Time embedding input (sinusoidal encoding of t in [0,1])
+       - Input/output shape: (N, 14, 14, 28)
+
+    3. Implement CFM training loop
+       - Linear interpolation: x_t = (1-t) * noise + t * x_1
+       - Target vector field: u_t = x_1 - noise
+       - Loss: MSE between predicted and target vector field
+       - Optimizer: Adam
+
+    4. Implement Euler ODE solver for inference
+       - Start from random noise tensor
+       - N steps: x_{t+dt} = x_t + dt * model(x_t, t)
+       - Argmax output to get discrete tile map
+
+8.2 ITERATION 1 DELIVERABLES (by April 18)
+
+    - Working baseline model that trains and generates maps
+    - Domain-specific evaluation metrics defined
+    - First training run results documented
+    - TCC Chapter 4 sections: data prep, architecture, evaluation criteria
+
+8.3 ITERATION 2 (by May 1)
+
+    - Architecture tuning based on Iteration 1 results
+    - Optimal Transport paths
+    - Hyperparameter experiments (batch size, learning rate, Euler steps)
+    - Comparative results vs baseline
+
+8.4 ITERATION 3 (by May 29)
+
+    - Conditional vectors (biome type, tile presence)
+    - Constraint Manager (formal CSP violation counting)
+    - WFC baseline comparison
+    - Literature-based DDPM comparison
+
+8.5 PAPER PUBLICATION (post-defense)
+
+    Prof. Elder confirmed publication potential on 2026-03-10.
+    Target venues: SBGames, BraSIS (formerly ENIA), IEEE CoG, FDG.
+    Timeline: write paper July-August 2026, submit September 2026.
+
+
+================================================================================
+9. KEY DECISIONS AND RATIONALE
+================================================================================
+
+9.1 DATASET: VGLC SUPER MARIO BROS (not Terraria, not Super Metroid)
+
+    Reason: VGLC is free, pre-processed, and ready to use immediately.
+    Published research (Volz et al. 2018, GECCO) trained a GAN on this
+    exact dataset, providing a direct baseline for comparison. Super Metroid
+    rooms were not yet extracted. Terraria maps had no clear validity rules.
+
+9.2 C# WITH TORCHSHARP (not Python with PyTorch)
+
+    Reason: Integrates with the company's existing C# ML codebase
+    (kcg-ml-csharp). The company supports the TCC and provides GPU access.
+    TorchSharp provides the same operations as PyTorch.
+
+9.3 NO XLIB DEPENDENCIES
+
+    Reason: The TCC must be deliverable as a standalone repository that
+    the UFSC banca can clone and build. kcg-xlib is proprietary company
+    code that cannot be redistributed. The only xlib usage (LibLog) was
+    replaced with Console.WriteLine.
+
+9.4 PURE STATE TILEMAP (no GetTile/SetTile methods)
+
+    Reason: kcg-ml-csharp standards require state-action separation.
+    TileMap is a pure data holder (Width, Height, Tiles[]). All callers
+    access the Tiles array directly: map.Tiles[y * map.Width + x].
+
+9.5 ERROR=0 IN TILETYPE ENUM (not None, not Unknown)
+
+    Reason: standard-enum-zero-is-error.txt mandates value 0 represents
+    an error state. C# initializes uninitialized enum fields to 0. If 0
+    were a valid tile type, uninitialized tiles would silently appear as
+    valid data instead of triggering an error.
+
+
+================================================================================
+END REPORT
+================================================================================

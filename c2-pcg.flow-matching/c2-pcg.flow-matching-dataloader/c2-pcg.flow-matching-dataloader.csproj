@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>c2_pcg.flowMatchingDataloader</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="TorchSharp-cuda-windows" Condition="'$(OS)' == 'Windows_NT' And '$(UseCPU)' != 'true'" />
+        <PackageReference Include="TorchSharp-cuda-linux" Condition="'$(OS)' != 'Windows_NT' And '$(UseCPU)' != 'true'" />
+        <PackageReference Include="TorchSharp-cpu" Condition="'$(UseCPU)' == 'true'"/>
+    </ItemGroup>
+
+</Project>
