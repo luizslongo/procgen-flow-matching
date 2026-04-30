@@ -8,6 +8,5 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
-        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-model/c2-pcg.flow-matching-model.csproj" />
     </ItemGroup>
 </Project>

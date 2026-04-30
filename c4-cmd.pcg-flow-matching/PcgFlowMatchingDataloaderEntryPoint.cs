@@ -14,14 +14,7 @@ public class PcgFlowMatchingDataloaderEntryPoint
         if (args.Length == 0)
         {
             Console.WriteLine("Usage: PcgFlowMatchingDataloaderEntryPoint <vglc-directory-path>");
-            Console.WriteLine("       PcgFlowMatchingDataloaderEntryPoint --test <vglc-directory-path>");
             Console.WriteLine("Example: dotnet run -- \"/path/to/TheVGLC/Super Mario Bros/Processed\"");
-            return;
-        }
-
-        if (args[0] == "--test" && args.Length >= 2)
-        {
-            FeatureTestRunner.RunAll(args[1]);
             return;
         }
 
