@@ -1,0 +1,178 @@
+TORCHSHARP BACKEND CONFIGURATION: OPTIONS REPORT
+==================================================
+Date: 2026-04-30
+Project: procgen-flow-matching
+
+
+1. CURRENT STATE
+================
+
+All 3 .csproj files contain identical duplicated TorchSharp backend selection logic:
+
+    c2-pcg.flow-matching-dataloader.csproj  (lines 12-14)
+    c2-pcg.flow-matching-model.csproj       (lines 13-15)
+    c4-cmd.pcg-flow-matching.csproj         (lines 14-16)
+
+Each file contains these 3 PackageReference entries:
+
+    TorchSharp-cuda-windows  Condition: OS==Windows_NT AND UseCPU!=true
+    TorchSharp-cuda-linux    Condition: OS!=Windows_NT AND UseCPU!=true
+    TorchSharp-cpu           Condition: UseCPU==true
+
+Directory.Packages.props pins all TorchSharp packages at version 0.105.1.
+
+Current default: CUDA. Requires passing -p:UseCPU=true on every build/run
+command for machines without CUDA. Forgetting this causes a runtime crash
+(missing native CUDA libraries).
+
+
+2. PROBLEMS
+===========
+
+P1. Triple duplication: same 3-line block repeated in 3 .csproj files.
+    Adding a new assembly requires copying the block again.
+
+P2. Unsafe default: CUDA is the default. On machines without CUDA (most dev
+    machines, CI, WSL2 without GPU passthrough), forgetting -p:UseCPU=true
+    produces a runtime error, not a build error. Silent failure.
+
+P3. No single control point: changing backend logic requires editing 3 files.
+
+
+3. OPTIONS
+==========
+
+OPTION A: Centralize in Directory.Build.props, keep CUDA default
+--------------------------------------------------------------------
+
+Create a new Directory.Build.props at the solution root with:
+
+    <Project>
+      <ItemGroup>
+        <PackageReference Include="TorchSharp-cuda-windows"
+            Condition="'$(OS)' == 'Windows_NT' And '$(UseCPU)' != 'true'" />
+        <PackageReference Include="TorchSharp-cuda-linux"
+            Condition="'$(OS)' != 'Windows_NT' And '$(UseCPU)' != 'true'" />
+        <PackageReference Include="TorchSharp-cpu"
+            Condition="'$(UseCPU)' == 'true'" />
+      </ItemGroup>
+    </Project>
+
+Remove the TorchSharp PackageReference blocks from all 3 .csproj files.
+
+    Pros:
+    + Fixes P1 (duplication) and P3 (single control point)
+    + Minimal change, same behavior as today
+    + New assemblies inherit backend automatically
+
+    Cons:
+    - Does NOT fix P2 (unsafe default). CUDA still default.
+    - Developers still must remember -p:UseCPU=true
+
+
+OPTION B: Centralize in Directory.Build.props, flip default to CPU
+----------------------------------------------------------------------
+
+Same as Option A, but invert the condition logic. CPU becomes the default.
+CUDA requires -p:UseCUDA=true.
+
+    <Project>
+      <ItemGroup>
+        <PackageReference Include="TorchSharp-cuda-windows"
+            Condition="'$(OS)' == 'Windows_NT' And '$(UseCUDA)' == 'true'" />
+        <PackageReference Include="TorchSharp-cuda-linux"
+            Condition="'$(OS)' != 'Windows_NT' And '$(UseCUDA)' == 'true'" />
+        <PackageReference Include="TorchSharp-cpu"
+            Condition="'$(UseCUDA)' != 'true'" />
+      </ItemGroup>
+    </Project>
+
+    Pros:
+    + Fixes all 3 problems (P1, P2, P3)
+    + Safe default: builds and runs everywhere without extra flags
+    + GPU users opt in explicitly with -p:UseCUDA=true
+    + New assemblies inherit backend automatically
+
+    Cons:
+    - Breaking change: anyone with existing scripts using -p:UseCPU=true
+      must switch to -p:UseCUDA=true (or just drop the flag entirely)
+    - Training runs on GPU machines must remember -p:UseCUDA=true
+
+
+OPTION C: Centralize + auto-detect CUDA availability
+--------------------------------------------------------
+
+Create a Directory.Build.props that checks for CUDA at build time using a
+custom MSBuild target that tests for nvcc or libtorch_cuda in known paths.
+
+    Pros:
+    + Zero flags needed, ever
+    + Fixes all 3 problems
+
+    Cons:
+    - Complex MSBuild scripting (custom targets, Exec tasks, property parsing)
+    - Fragile: CUDA install paths vary across systems
+    - Hard to debug when detection fails
+    - MSBuild Exec for detection slows every build
+    - Overkill for a 3-assembly TCC project
+
+
+OPTION D: Keep duplication, only flip default to CPU in each .csproj
+-----------------------------------------------------------------------
+
+Edit the 3 existing .csproj files to invert conditions (CPU default, CUDA
+opt-in) but do NOT centralize.
+
+    Pros:
+    + Fixes P2 (unsafe default)
+    + Smallest diff (change conditions in place)
+    + No new files
+
+    Cons:
+    - Does NOT fix P1 or P3 (still 3 copies of the same logic)
+    - Future assemblies must copy the block manually
+
+
+OPTION E: Centralize in Directory.Packages.props (existing file)
+-------------------------------------------------------------------
+
+Move the conditional PackageReference entries into the already-existing
+Directory.Packages.props instead of creating a new Directory.Build.props.
+
+    Note: Directory.Packages.props is designed for PackageVersion (version
+    pinning), not PackageReference (dependency declaration). MSBuild allows
+    PackageReference in Directory.Packages.props but it is unconventional
+    and may confuse developers or tooling (Visual Studio, Rider).
+
+    Pros:
+    + No new file; reuses existing Directory.Packages.props
+    + Fixes P1 and P3
+
+    Cons:
+    - Misuses Directory.Packages.props (intended for version pinning only)
+    - May confuse IDE tooling that expects only PackageVersion entries
+    - NuGet documentation discourages PackageReference in this file
+
+
+4. RECOMMENDATION
+=================
+
+RECOMMENDED: Option B (centralize + flip default to CPU)
+
+Rationale:
+- Fixes all 3 identified problems
+- 1 new file (Directory.Build.props) + 3 .csproj edits (remove blocks)
+- Safe default prevents runtime crashes on dev machines and CI
+- Consistent with the fact that this project already uses -p:UseCPU=true
+  in the current workflow (as demonstrated during testing in this session)
+- The flag rename from UseCPU to UseCUDA better communicates intent:
+  the opt-in action is enabling GPU, not disabling it
+
+
+5. FILES AFFECTED
+=================
+
+    New:     Directory.Build.props (solution root)
+    Modified: c2-pcg.flow-matching-dataloader.csproj (remove lines 12-14)
+    Modified: c2-pcg.flow-matching-model.csproj (remove lines 13-15)
+    Modified: c4-cmd.pcg-flow-matching.csproj (remove lines 14-16)
