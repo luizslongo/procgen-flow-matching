@@ -2,11 +2,12 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <RootNamespace>c4_cmd.pcgFlowMatching</RootNamespace>
+        <RootNamespace>c4_test.pcgFlowMatching</RootNamespace>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>disable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
+        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-model/c2-pcg.flow-matching-model.csproj" />
     </ItemGroup>
 </Project>

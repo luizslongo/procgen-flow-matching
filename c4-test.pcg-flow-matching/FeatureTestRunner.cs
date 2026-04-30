@@ -4,12 +4,24 @@ using TorchSharp;
 using c2_pcg.flowMatchingDataloader;
 using c2_pcg.flowMatchingModel;
 
-namespace c4_cmd.pcgFlowMatching;
+namespace c4_test.pcgFlowMatching;
 
 public class FeatureTestRunner
 {
     public static int Passed;
     public static int Failed;
+
+    public static void Main(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("Usage: FeatureTestRunner <vglc-directory-path>");
+            Console.WriteLine("Example: dotnet run -- \"/path/to/TheVGLC/Super Mario Bros/Processed\"");
+            return;
+        }
+
+        RunAll(args[0]);
+    }
 
     public static void Assert(bool condition, string testName)
     {

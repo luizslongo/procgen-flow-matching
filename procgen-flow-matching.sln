@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-model"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-cmd.pcg-flow-matching", "c4-cmd.pcg-flow-matching\c4-cmd.pcg-flow-matching.csproj", "{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-test.pcg-flow-matching", "c4-test.pcg-flow-matching\c4-test.pcg-flow-matching.csproj", "{A3A40248-9CEA-41D6-BC5C-F68B3E28F7D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCAED7C6-4DBE-4E89-BACA-D4E4BF88B7FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3A40248-9CEA-41D6-BC5C-F68B3E28F7D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3A40248-9CEA-41D6-BC5C-F68B3E28F7D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3A40248-9CEA-41D6-BC5C-F68B3E28F7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3A40248-9CEA-41D6-BC5C-F68B3E28F7D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A1577FA2-94E0-44EF-8442-878306DC9098} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
