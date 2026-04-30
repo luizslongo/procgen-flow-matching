@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="TorchSharp-cuda-windows" Condition="'$(OS)' == 'Windows_NT' And '$(UseCPU)' != 'true'" />
+    <PackageReference Include="TorchSharp-cuda-linux" Condition="'$(OS)' != 'Windows_NT' And '$(UseCPU)' != 'true'" />
+    <PackageReference Include="TorchSharp-cpu" Condition="'$(UseCPU)' == 'true'" />
+  </ItemGroup>
+</Project>
