@@ -553,6 +553,24 @@ public class FeatureTestRunner
         FailureModeAnalysisResult brokenTL = FailureModeAnalyzer.Analyze(brokenPipeTL);
         Assert(brokenTL.BrokenPipeTopLeftCount == 1, "Broken pipe top-left: 1 BrokenPipeTopLeft violation");
 
+        // CheckBrokenPipeTopRight: PipeTopRight above PipeBodyRight -> 0 violations
+        TileMap validPipeTR = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.PipeTopRight,
+            TileTypeEnum.PipeBodyRight,
+        });
+        FailureModeAnalysisResult validTR = FailureModeAnalyzer.Analyze(validPipeTR);
+        Assert(validTR.BrokenPipeTopRightCount == 0, "Valid pipe top-right: 0 BrokenPipeTopRight violations");
+
+        // CheckBrokenPipeTopRight: PipeTopRight above Empty -> 1 violation
+        TileMap brokenPipeTR = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.PipeTopRight,
+            TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult brokenTR = FailureModeAnalyzer.Analyze(brokenPipeTR);
+        Assert(brokenTR.BrokenPipeTopRightCount == 1, "Broken pipe top-right: 1 BrokenPipeTopRight violation");
+
         Console.WriteLine();
     }
 
