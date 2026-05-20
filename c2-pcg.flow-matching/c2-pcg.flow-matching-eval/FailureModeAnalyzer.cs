@@ -233,4 +233,26 @@ public class FailureModeAnalyzer
 
         return count;
     }
+
+    // Each Empty tile in the bottom row is a gap in the floor.
+    private static int CheckDiscontinuousGround(TileMap map, List<FailureModeViolation> violations)
+    {
+        int count = 0;
+        int bottomY = map.Height - 1;
+        for (int x = 0; x < map.Width; x++)
+        {
+            TileTypeEnum tile = map.Tiles[bottomY * map.Width + x];
+            if (tile == TileTypeEnum.Empty)
+            {
+                FailureModeViolation violation = new FailureModeViolation();
+                violation.X = x;
+                violation.Y = bottomY;
+                violation.Mode = FailureModeEnum.DiscontinuousGround;
+                violations.Add(violation);
+                count++;
+            }
+        }
+
+        return count;
+    }
 }
