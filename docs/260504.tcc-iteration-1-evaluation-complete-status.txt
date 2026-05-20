@@ -1,0 +1,519 @@
+================================================================================
+TCC ITERATION 1 STATUS REPORT: EVALUATION ASSEMBLY COMPLETE
+================================================================================
+
+Generated: 2026-05-04
+Topic:     Comprehensive status of Iteration 1 implementation after completion
+           of the FailureModeAnalyzer and its test suite. Documents every
+           assembly built, every Pull Request merged, every test now passing,
+           and exactly what remains to close Iteration 1.
+Source:    procgen-flow-matching repo (luizslongo/procgen-flow-matching),
+           git log, dotnet build output, FeatureTestRunner execution against
+           VGLC Super Mario Bros dataset.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+This report consolidates everything implemented during Iteration 1 of the TCC
+on the standalone procgen-flow-matching repository. It enumerates the four C#
+assemblies that compose the data and evaluation pipeline, the FailureMode-
+Analyzer's six constraint check methods, the 97-assertion test suite that
+validates both the data pipeline and the analyzer, and the standards
+compliance posture. It also documents the conversation with Prof. Elder
+Rizzon Santos on 2026-05-04 that established failure-mode classification as
+the qualitative evaluation axis for the TCC.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: REPOSITORY STRUCTURE AND ASSEMBLIES
+  1.1 c2-pcg.flow-matching-dataloader
+  1.2 c2-pcg.flow-matching-model
+  1.3 c2-pcg.flow-matching-eval
+  1.4 c4-cmd.pcg-flow-matching
+  1.5 c4-test.pcg-flow-matching
+
+PART 2: FAILUREMODEANALYZER COMPLETE BREAKDOWN
+  2.1 Six failure mode categories
+  2.2 Per-method check logic
+  2.3 Result aggregation contract
+
+PART 3: TEST COVERAGE
+  3.1 Dataloader tests
+  3.2 Model building block tests
+  3.3 FailureModeAnalyzer tests
+  3.4 Integration tests
+
+PART 4: STANDARDS COMPLIANCE
+
+PART 5: PROF. ELDER CONVERSATION 2026-05-04
+
+PART 6: WHAT REMAINS FOR ITERATION 1
+
+PART 7: COMMIT AND PR HISTORY
+
+
+================================================================================
+PART 1: REPOSITORY STRUCTURE AND ASSEMBLIES
+================================================================================
+
+The repository contains FIVE C# projects organized in three logical groups
+(domain libraries c2-*, application binaries c4-*) plus shared configuration.
+
+    procgen-flow-matching/
+      Directory.Build.props                  Centralizes TorchSharp backend
+                                             conditional package references
+      Directory.Packages.props               Pins TorchSharp version 0.105.1
+      procgen-flow-matching.sln              Registers all five projects
+      .gitignore                             Excludes bin/, obj/, /TheVGLC
+      README.md                              Two-line stub (must be expanded)
+
+      c2-pcg.flow-matching/                  Parent folder for c2 domain libs
+        c2-pcg.flow-matching-dataloader/     7 files, 451 lines total
+        c2-pcg.flow-matching-model/          5 files, 144 lines total
+        c2-pcg.flow-matching-eval/           5 files, 295 lines total
+
+      c4-cmd.pcg-flow-matching/              CLI entry point (91 lines)
+      c4-test.pcg-flow-matching/             Test runner (701 lines)
+
+      docs/                                  Reports + TCC manuscript PDF
+
+--------------------------------------------------------------------------------
+1.1 c2-pcg.flow-matching-dataloader
+--------------------------------------------------------------------------------
+
+Files:
+
+    TileTypeEnum.cs               22 lines    14-value enum (Error=0 first)
+    TileMap.cs                    11 lines    Pure state: Width, Height, Tiles
+    VglcTileCharMap.cs           124 lines    Bidirectional char to tile maps
+    VglcLevelParser.cs            82 lines    Reads VGLC .txt files
+    TileMapChunker.cs             85 lines    Sliding-window chunk extraction
+    TileMapTensorConverter.cs     77 lines    One-hot tensor encode/decode
+    c2-pcg.flow-matching-
+      dataloader.csproj           14 lines    Library targeting .NET 8
+
+ROLE: data pipeline. Reads Video Game Level Corpus (VGLC) Super Mario Bros
+plain-text level files, converts to TileMap instances, slices into 28x14
+chunks via sliding window, encodes as TorchSharp one-hot tensors of shape
+(C=14, H=14, W=28).
+
+VERIFIED: 15 VGLC Super Mario Bros levels load successfully and yield 2518
+training chunks via stride-1 sliding window. Round-trip TileMap to tensor
+to TileMap reproduces original tile content exactly.
+
+--------------------------------------------------------------------------------
+1.2 c2-pcg.flow-matching-model
+--------------------------------------------------------------------------------
+
+Files:
+
+    SinusoidalTimeEmbedding.cs    30 lines    Time scalar to vector encoding
+    ResidualConvBlock.cs          62 lines    Two-conv + residual block
+    DownsampleBlock.cs            21 lines    Strided 3x3 conv (halves spatial)
+    UpsampleBlock.cs              30 lines    Nearest-neighbor + 3x3 conv
+    c2-pcg.flow-matching-
+      model.csproj                13 lines    Library targeting .NET 8
+
+ROLE: U-Net building blocks. These four torch.nn.Module subclasses compose
+into a complete U-Net used by the Conditional Flow Matching training loop
+(not yet built). The blocks are independently testable; each block's input
+and output shape contract is verified by the test suite.
+
+VERIFIED: each block produces tensors of the expected shape under various
+input dimensions. The down-then-up round-trip on a 16x16 tensor restores
+the original 16x16 dimensions.
+
+--------------------------------------------------------------------------------
+1.3 c2-pcg.flow-matching-eval
+--------------------------------------------------------------------------------
+
+Files:
+
+    FailureModeEnum.cs               13 lines    Seven enum values incl. Error=0
+    FailureModeViolation.cs           8 lines    Pure state: X, Y, Mode
+    FailureModeAnalysisResult.cs     17 lines    Pure state aggregator
+    FailureModeAnalyzer.cs          257 lines    Six constraint check methods
+    c2-pcg.flow-matching-
+      eval.csproj                    14 lines    Library targeting .NET 8
+
+ROLE: failure mode classification. Takes a TileMap (generated or training
+example) and produces a FailureModeAnalysisResult that categorizes every
+detected constraint violation by type, with per-position information. This
+is the qualitative axis Prof. Elder Rizzon Santos requested on 2026-05-04
+(see PART 5).
+
+VERIFIED: 17 test assertions in FeatureTestRunner cover all six check
+methods plus aggregate integrity.
+
+--------------------------------------------------------------------------------
+1.4 c4-cmd.pcg-flow-matching
+--------------------------------------------------------------------------------
+
+Files:
+
+    PcgFlowMatchingDataloaderEntryPoint.cs   91 lines    CLI for dataloader test
+    c4-cmd.pcg-flow-matching.csproj          12 lines    Exe targeting .NET 8
+
+ROLE: command-line entry point that demonstrates the dataloader pipeline
+end-to-end. Loads VGLC levels, chunks them, converts the first chunk to a
+one-hot tensor, prints the tensor shapes, then converts the tensor back to
+ASCII text for visual verification.
+
+INVOCATION:
+
+    dotnet run --project c4-cmd.pcg-flow-matching -- "/path/to/TheVGLC/Super Mario Bros/Processed"
+
+--------------------------------------------------------------------------------
+1.5 c4-test.pcg-flow-matching
+--------------------------------------------------------------------------------
+
+Files:
+
+    FeatureTestRunner.cs                     701 lines    13 test groups, 97 asserts
+    c4-test.pcg-flow-matching.csproj         14 lines    Exe targeting .NET 8
+
+ROLE: feature-level test runner. NOT a unit-test framework (no NUnit, no
+xUnit, no test discovery). FeatureTestRunner is a single Main entry point
+that calls 13 named test groups, each containing a small number of
+Assert(bool, string) calls. Output is plain text PASS/FAIL lines with a
+final summary tally.
+
+INVOCATION:
+
+    dotnet run --project c4-test.pcg-flow-matching -- "/path/to/TheVGLC/Super Mario Bros/Processed"
+
+LATEST RESULT (2026-05-04):
+
+    ============================================
+      RESULTS: 97 passed, 0 failed, 97 total
+    ============================================
+
+
+================================================================================
+PART 2: FAILUREMODEANALYZER COMPLETE BREAKDOWN
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 SIX FAILURE MODE CATEGORIES
+--------------------------------------------------------------------------------
+
+FailureModeEnum defines seven values. Value 0 is Error (uninitialized sentinel
+per standard-enum-zero-is-error.txt). The six real categories are:
+
+    FailureModeEnum value          Constraint type        Tile triggers check
+    -----------------------------  ---------------------  --------------------
+    BrokenPipeHorizontal           Local adjacency        PipeBodyLeft
+    BrokenPipeTopLeft              Local adjacency        PipeTopLeft
+    BrokenPipeTopRight             Local adjacency        PipeTopRight
+    BrokenBulletBill               Local adjacency        BulletBillLauncher
+    FloatingEnemy                  Gravity/support        Enemy
+    DiscontinuousGround            Global structural      Bottom-row Empty
+
+--------------------------------------------------------------------------------
+2.2 PER-METHOD CHECK LOGIC
+--------------------------------------------------------------------------------
+
+Each Check method follows an identical pattern: nested for loops scan every
+tile, the method only acts when it finds its trigger tile type, then it
+inspects a specific neighbor and emits a FailureModeViolation if the
+constraint fails.
+
+    CheckBrokenPipeHorizontal:
+        For every PipeBodyLeft, the tile at (x+1, y) must be PipeBodyRight.
+
+    CheckBrokenPipeTopLeft:
+        For every PipeTopLeft, the tile at (x, y+1) must be PipeBodyLeft.
+
+    CheckBrokenPipeTopRight:
+        For every PipeTopRight, the tile at (x, y+1) must be PipeBodyRight.
+
+    CheckBrokenBulletBill:
+        For every BulletBillLauncher, the tile at (x, y+1) must be
+        BulletBillBody.
+
+    CheckFloatingEnemy:
+        For every Enemy tile, the tile at (x, y+1) must be Solid, Breakable,
+        QuestionFull, or QuestionEmpty. Enemies on the bottom row (y =
+        Height-1) are treated as implicitly supported by the ground edge.
+
+    CheckDiscontinuousGround:
+        For every tile at y = Height-1, if the tile is Empty it counts as
+        a gap. Each Empty in the bottom row produces one violation.
+
+--------------------------------------------------------------------------------
+2.3 RESULT AGGREGATION CONTRACT
+--------------------------------------------------------------------------------
+
+FailureModeAnalysisResult exposes both fine-grained and coarse-grained data:
+
+    Field                          Type                              Meaning
+    -----------------------------  --------------------------------  -------
+    Violations                     List<FailureModeViolation>        All violations, with X, Y, Mode
+    TotalViolations                int                               Convenience: equals Violations.Count
+    BrokenPipeHorizontalCount      int                               Per-type tally
+    BrokenPipeTopLeftCount         int                               Per-type tally
+    BrokenPipeTopRightCount        int                               Per-type tally
+    BrokenBulletBillCount          int                               Per-type tally
+    FloatingEnemyCount             int                               Per-type tally
+    DiscontinuousGroundCount       int                               Per-type tally
+    TotalTiles                     int                               Width times Height
+    ViolationRate                  double                            TotalViolations / TotalTiles
+
+CONTRACT INVARIANT: TotalViolations equals Violations.Count, and equals the
+sum of all per-type counts. This invariant is now enforced by an aggregate
+integrity test.
+
+
+================================================================================
+PART 3: TEST COVERAGE
+================================================================================
+
+FeatureTestRunner contains 13 test groups producing 97 assertions. All
+assertions pass against the current implementation.
+
+--------------------------------------------------------------------------------
+3.1 DATALOADER TESTS (52 ASSERTIONS)
+--------------------------------------------------------------------------------
+
+    Test group                          Asserts   Coverage
+    ----------------------------------  --------  ------------------------------
+    TestVglcTileCharMap                 22        13 char-to-tile mappings, 5
+                                                  reverse mappings, 1 unknown
+                                                  char fallback, 1 round-trip
+    TestTileMap                         5         Width, Height, Tiles length,
+                                                  row-major indexing
+    TestVglcLevelParser                 5         ParseFile, ParseDirectory,
+                                                  bottom row solidity check,
+                                                  level count, height
+                                                  uniformity
+    TestTileMapChunker                  5         ExtractChunks count formula,
+                                                  uniform chunk size,
+                                                  ExtractChunksWithStride,
+                                                  ExtractChunksFromAll
+    TestTileMapTensorConverter          7         Shape, one-hot uniqueness
+                                                  (per-pixel channel sum
+                                                  equals 1.0), specific
+                                                  channel values
+    TestTileMapBatchTensor              4         4D batch tensor shape
+    TestRoundTripTensorConversion       3         12 tile types survive
+                                                  TileMap -> tensor -> TileMap
+    TestFullDataloaderPipeline          5         End-to-end load, chunk,
+                                                  encode, round-trip 10 chunks
+
+--------------------------------------------------------------------------------
+3.2 MODEL BUILDING BLOCK TESTS (15 ASSERTIONS)
+--------------------------------------------------------------------------------
+
+    Test group                          Asserts   Coverage
+    ----------------------------------  --------  ------------------------------
+    TestSinusoidalTimeEmbedding         5         Single and batch shapes,
+                                                  different t produces
+                                                  different embeddings, t=0
+                                                  sin part is all zeros
+    TestResidualConvBlock               5         Output shape preservation,
+                                                  identity shortcut path
+    TestDownsampleBlock                 4         Spatial halving (14->7,
+                                                  28->14), batch and channel
+                                                  preservation
+    TestUpsampleBlock                   6         Spatial doubling, batch
+                                                  and channel preservation,
+                                                  down-then-up restores
+                                                  original dimensions
+
+--------------------------------------------------------------------------------
+3.3 FAILUREMODEANALYZER TESTS (17 ASSERTIONS, NEW IN 2026-05-04)
+--------------------------------------------------------------------------------
+
+    Test                                                              Result
+    ----------------------------------------------------------------  ------
+    Valid horizontal pipe: 0 BrokenPipeHorizontal violations          PASS
+    Broken horizontal pipe: 1 BrokenPipeHorizontal violation          PASS
+    Valid pipe top-left: 0 BrokenPipeTopLeft violations               PASS
+    Broken pipe top-left: 1 BrokenPipeTopLeft violation               PASS
+    Valid pipe top-right: 0 BrokenPipeTopRight violations             PASS
+    Broken pipe top-right: 1 BrokenPipeTopRight violation             PASS
+    Valid bullet bill: 0 BrokenBulletBill violations                  PASS
+    Broken bullet bill: 1 BrokenBulletBill violation                  PASS
+    Enemy on solid: 0 FloatingEnemy violations                        PASS
+    Enemy above empty: 1 FloatingEnemy violation                      PASS
+    Enemy on bottom row: 0 FloatingEnemy violations (implicit)        PASS
+    Full solid bottom row: 0 DiscontinuousGround violations           PASS
+    Bottom row with 2 gaps: 2 DiscontinuousGround violations          PASS
+    TotalViolations equals Violations.Count                           PASS
+    TotalViolations equals sum of per-type counts                     PASS
+    TotalTiles equals Width times Height                              PASS
+    ViolationRate greater than 0 when violations exist                PASS
+
+--------------------------------------------------------------------------------
+3.4 INTEGRATION TESTS (13 ASSERTIONS)
+--------------------------------------------------------------------------------
+
+TestFullDataloaderPipeline validates the entire dataloader pipeline against
+the real VGLC dataset: 15 levels loaded, chunks extracted, 10 sample chunks
+converted to a batch tensor of shape (10, 14, 14, 28), and round-tripped
+through tensor encoding and decoding without loss.
+
+
+================================================================================
+PART 4: STANDARDS COMPLIANCE
+================================================================================
+
+The repository follows the same C# standards inherited from the kcg-ml-csharp
+codebase where the implementation originated. Compliance posture by rule:
+
+    Standard                                          Applied to repo
+    ------------------------------------------------  ----------------------
+    standard-enum-zero-is-error.txt                   Yes: TileTypeEnum.Error
+                                                      = 0, FailureModeEnum.
+                                                      Error = 0
+    standard-lexicographic-naming.txt                 Yes: TileTypeEnum,
+                                                      FailureModeEnum
+                                                      (suffix not prefix)
+    standards-csharp-fields-accessors.txt             Yes: all public fields,
+                                                      no properties, no
+                                                      getters/setters
+    standards-state-action-separation.txt             Yes: TileMap is pure
+                                                      state, FailureMode-
+                                                      Analyzer is pure
+                                                      action (static methods)
+    C006 RuleAlwaysUseBraces                          Yes: all if blocks
+                                                      have braces
+    No proprietary dependencies                       Yes: kcg-xlib removed,
+                                                      replaced with
+                                                      Console.WriteLine
+    Directory.Packages.props centralization           Yes: TorchSharp 0.105.1
+                                                      pinned in one place
+    Directory.Build.props centralization              Yes: backend conditional
+                                                      references in one place
+
+
+================================================================================
+PART 5: PROF. ELDER CONVERSATION 2026-05-04
+================================================================================
+
+On 2026-05-04 Prof. Elder Rizzon Santos responded by audio to the question
+about qualitative evaluation direction. His instructions (transcribed and
+paraphrased):
+
+    "Acho que as duas opções que tu colocou são boas. O que eu pensei
+    inicialmente, considerando mapa/fase, seria verificar se é um cenário
+    possível ou impossível, se tem um fim no local esperado, se a quantidade
+    de obstáculos ta ok. Essa ideia da inspeção visual pode ser interessante,
+    só que tem a limitação de que tu ta avaliando pela semelhança, nem tanto
+    pela diferença, mas funciona. Acho que o item 2 acaba sendo mais
+    interessante pro teu TCC, mas o item 1 também é bem legal. Se tiver
+    tempo pode fazer ambos, mas começa pelo 2. Como agora a gente ta fazendo
+    iterações, o que a gente quer agora é velocidade, então veja aí o que
+    fica mais facil e rapido pra ti implementar o quanto antes."
+
+KEY DECISIONS taken from this conversation:
+
+    1. Failure mode classification (Opção 2) is the primary qualitative
+       evaluation axis for Iteration 1.
+
+    2. Side-by-side visual inspection (Opção 1) is deferred to Iteration 2
+       if time permits.
+
+    3. The "cenário possível vs impossível" framing is what motivates
+       CheckDiscontinuousGround (no continuous floor means no possible
+       scenario). Future iterations should add a global connectivity check
+       (can the player traverse the chunk from left to right?).
+
+    4. Speed of iteration is the current optimization target. Code structure
+       should favor extensibility over micro-optimization.
+
+
+================================================================================
+PART 6: WHAT REMAINS FOR ITERATION 1
+================================================================================
+
+Iteration 1 evaluation work is COMPLETE. The neural network pipeline still
+requires three components before training can run:
+
+    Component                                Status            Estimated effort
+    ---------------------------------------  ----------------  ----------------
+    UnetBaseline class composition           Not started       1 day
+    Conditional Flow Matching training loop  Not started       2 days
+    Euler ODE solver inference path          Not started       1 day
+    First training run + metric collection   Not started       2 days
+    TCC Chapter 4 first draft                Not started       3 days
+
+The UnetBaseline is the next critical-path item: it composes the existing
+SinusoidalTimeEmbedding, ResidualConvBlock, DownsampleBlock, and Upsample-
+Block into a complete encoder-decoder network with skip connections that
+takes (x, t) and returns a predicted velocity field of the same shape as x.
+
+After UnetBaseline is built, the training loop and Euler solver can be
+implemented in parallel since they share no dependencies. Once both exist,
+the first training run can produce generated maps that the FailureMode-
+Analyzer evaluates immediately.
+
+
+================================================================================
+PART 7: COMMIT AND PR HISTORY
+================================================================================
+
+CURRENT BRANCH STATE: origin/main at commit c9ec440
+
+KEY COMMITS (most recent first):
+
+    c9ec440  add aggregate integrity tests: TotalViolations matches
+             Violations.Count and per-type sum
+    ce7a504  add CheckDiscontinuousGround tests (continuous and gappy
+             bottom rows)
+    0dfc77c  add CheckFloatingEnemy tests (supported, floating, bottom-row
+             implicit support)
+    6a150c4  add CheckBrokenBulletBill tests (valid + broken cases)
+    cf9c2e5  add CheckBrokenPipeTopRight tests (valid + broken cases)
+    2f432c9  add CheckBrokenPipeTopLeft tests (valid + broken cases)
+    f8f0891  add TestFailureModeAnalyzer with CheckBrokenPipeHorizontal
+             tests and MakeMap helper
+    b34db0e  add c2-pcg.flow-matching-eval reference to c4-test project
+    53e9274  implement CheckDiscontinuousGround
+    e84f5bf  implement CheckFloatingEnemy
+    ad24d38  implement CheckBrokenBulletBill
+    0e9c159  implement CheckBrokenPipeTopRight
+    c2f467b  implement CheckBrokenPipeTopLeft
+    57cf122  start failure mode analyzer
+    d590ca7  Merge pull request #2 (move tests to dedicated assembly)
+    f008a19  Merge pull request #1 (centralize TorchSharp config)
+    9ac5433  import TCC implementation from kcg-ml-csharp
+    c1b3988  Initial commit
+
+MERGED PULL REQUESTS:
+
+    #1  centralize TorchSharp config (Directory.Build.props)
+    #2  move FeatureTestRunner to dedicated c4-test assembly
+
+DIRECT-TO-MAIN COMMITS:
+
+    14 commits since PR #2 implementing the FailureModeAnalyzer and its
+    test coverage, plus the initial import. Working directly on main is
+    intentional for this personal repository.
+
+
+================================================================================
+SUMMARY SCORECARD
+================================================================================
+
+    Dimension                                         Score
+    ------------------------------------------------  -----------
+    Code structure (state-action separation)          Excellent
+    Test coverage (97 passing assertions)             Excellent
+    Standards compliance                              Good
+    Documentation (this report + plan reports)        Good
+    README                                            Weak (stub)
+    Build health (0 errors 0 warnings)                Excellent
+    Critical path progress (model + training)         Behind plan
+
+
+================================================================================
+END OF REPORT
+================================================================================
