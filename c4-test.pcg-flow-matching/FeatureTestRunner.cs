@@ -589,6 +589,32 @@ public class FeatureTestRunner
         FailureModeAnalysisResult brokenBbResult = FailureModeAnalyzer.Analyze(brokenBb);
         Assert(brokenBbResult.BrokenBulletBillCount == 1, "Broken bullet bill: 1 BrokenBulletBill violation");
 
+        // CheckFloatingEnemy: Enemy above Solid -> 0 violations
+        TileMap supportedEnemy = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.Enemy,
+            TileTypeEnum.Solid,
+        });
+        FailureModeAnalysisResult supportedResult = FailureModeAnalyzer.Analyze(supportedEnemy);
+        Assert(supportedResult.FloatingEnemyCount == 0, "Enemy on solid: 0 FloatingEnemy violations");
+
+        // CheckFloatingEnemy: Enemy above Empty -> 1 violation
+        TileMap floatingEnemy = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.Enemy,
+            TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult floatingResult = FailureModeAnalyzer.Analyze(floatingEnemy);
+        Assert(floatingResult.FloatingEnemyCount == 1, "Enemy above empty: 1 FloatingEnemy violation");
+
+        // CheckFloatingEnemy: Enemy alone on bottom row -> 0 violations (implicit ground support)
+        TileMap bottomEnemy = MakeMap(1, 1, new TileTypeEnum[]
+        {
+            TileTypeEnum.Enemy,
+        });
+        FailureModeAnalysisResult bottomResult = FailureModeAnalyzer.Analyze(bottomEnemy);
+        Assert(bottomResult.FloatingEnemyCount == 0, "Enemy on bottom row: 0 FloatingEnemy violations (implicit support)");
+
         Console.WriteLine();
     }
 
