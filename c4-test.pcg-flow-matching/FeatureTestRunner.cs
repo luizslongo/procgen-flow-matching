@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TorchSharp;
 using c2_pcg.flowMatchingDataloader;
+using c2_pcg.flowMatchingEval;
 using c2_pcg.flowMatchingModel;
 
 namespace c4_test.pcgFlowMatching;
@@ -58,6 +59,7 @@ public class FeatureTestRunner
         TestResidualConvBlock();
         TestDownsampleBlock();
         TestUpsampleBlock();
+        TestFailureModeAnalyzer();
         TestFullDataloaderPipeline(vglcPath);
 
         Console.WriteLine();
@@ -498,6 +500,41 @@ public class FeatureTestRunner
         up.Dispose();
         ds.Dispose();
         us2.Dispose();
+        Console.WriteLine();
+    }
+
+    // ========== EVAL FEATURES ==========
+
+    // Build a small TileMap from a flat array of tile types.
+    static TileMap MakeMap(int width, int height, TileTypeEnum[] tiles)
+    {
+        TileMap map = new TileMap();
+        map.Width = width;
+        map.Height = height;
+        map.Tiles = tiles;
+        return map;
+    }
+
+    static void TestFailureModeAnalyzer()
+    {
+        Console.WriteLine("--- FailureModeAnalyzer ---");
+
+        // CheckBrokenPipeHorizontal: PipeBodyLeft followed by PipeBodyRight -> 0 violations
+        TileMap validPipeH = MakeMap(2, 1, new TileTypeEnum[]
+        {
+            TileTypeEnum.PipeBodyLeft, TileTypeEnum.PipeBodyRight,
+        });
+        FailureModeAnalysisResult validResult = FailureModeAnalyzer.Analyze(validPipeH);
+        Assert(validResult.BrokenPipeHorizontalCount == 0, "Valid horizontal pipe: 0 BrokenPipeHorizontal violations");
+
+        // CheckBrokenPipeHorizontal: PipeBodyLeft followed by Empty -> 1 violation
+        TileMap brokenPipeH = MakeMap(2, 1, new TileTypeEnum[]
+        {
+            TileTypeEnum.PipeBodyLeft, TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult brokenResult = FailureModeAnalyzer.Analyze(brokenPipeH);
+        Assert(brokenResult.BrokenPipeHorizontalCount == 1, "Broken horizontal pipe: 1 BrokenPipeHorizontal violation");
+
         Console.WriteLine();
     }
 
