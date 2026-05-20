@@ -615,6 +615,22 @@ public class FeatureTestRunner
         FailureModeAnalysisResult bottomResult = FailureModeAnalyzer.Analyze(bottomEnemy);
         Assert(bottomResult.FloatingEnemyCount == 0, "Enemy on bottom row: 0 FloatingEnemy violations (implicit support)");
 
+        // CheckDiscontinuousGround: full solid bottom row -> 0 violations
+        TileMap continuousGround = MakeMap(4, 1, new TileTypeEnum[]
+        {
+            TileTypeEnum.Solid, TileTypeEnum.Solid, TileTypeEnum.Solid, TileTypeEnum.Solid,
+        });
+        FailureModeAnalysisResult continuousResult = FailureModeAnalyzer.Analyze(continuousGround);
+        Assert(continuousResult.DiscontinuousGroundCount == 0, "Full solid bottom row: 0 DiscontinuousGround violations");
+
+        // CheckDiscontinuousGround: bottom row with gaps -> N violations (N = empty tiles)
+        TileMap gappyGround = MakeMap(4, 1, new TileTypeEnum[]
+        {
+            TileTypeEnum.Solid, TileTypeEnum.Empty, TileTypeEnum.Solid, TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult gappyResult = FailureModeAnalyzer.Analyze(gappyGround);
+        Assert(gappyResult.DiscontinuousGroundCount == 2, "Bottom row with 2 gaps: 2 DiscontinuousGround violations");
+
         Console.WriteLine();
     }
 
