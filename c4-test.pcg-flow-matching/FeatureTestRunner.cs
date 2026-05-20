@@ -571,6 +571,24 @@ public class FeatureTestRunner
         FailureModeAnalysisResult brokenTR = FailureModeAnalyzer.Analyze(brokenPipeTR);
         Assert(brokenTR.BrokenPipeTopRightCount == 1, "Broken pipe top-right: 1 BrokenPipeTopRight violation");
 
+        // CheckBrokenBulletBill: BulletBillLauncher above BulletBillBody -> 0 violations
+        TileMap validBb = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.BulletBillLauncher,
+            TileTypeEnum.BulletBillBody,
+        });
+        FailureModeAnalysisResult validBbResult = FailureModeAnalyzer.Analyze(validBb);
+        Assert(validBbResult.BrokenBulletBillCount == 0, "Valid bullet bill: 0 BrokenBulletBill violations");
+
+        // CheckBrokenBulletBill: BulletBillLauncher above Empty -> 1 violation
+        TileMap brokenBb = MakeMap(1, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.BulletBillLauncher,
+            TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult brokenBbResult = FailureModeAnalyzer.Analyze(brokenBb);
+        Assert(brokenBbResult.BrokenBulletBillCount == 1, "Broken bullet bill: 1 BrokenBulletBill violation");
+
         Console.WriteLine();
     }
 
