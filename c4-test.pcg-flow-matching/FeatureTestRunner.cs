@@ -631,6 +631,24 @@ public class FeatureTestRunner
         FailureModeAnalysisResult gappyResult = FailureModeAnalyzer.Analyze(gappyGround);
         Assert(gappyResult.DiscontinuousGroundCount == 2, "Bottom row with 2 gaps: 2 DiscontinuousGround violations");
 
+        // Aggregate integrity: TotalViolations equals Violations.Count, and equals sum of per-type counts
+        TileMap multiViolation = MakeMap(2, 2, new TileTypeEnum[]
+        {
+            TileTypeEnum.PipeTopLeft,    TileTypeEnum.Enemy,
+            TileTypeEnum.Empty,          TileTypeEnum.Empty,
+        });
+        FailureModeAnalysisResult aggResult = FailureModeAnalyzer.Analyze(multiViolation);
+        int sumOfCounts = aggResult.BrokenPipeHorizontalCount
+            + aggResult.BrokenPipeTopLeftCount
+            + aggResult.BrokenPipeTopRightCount
+            + aggResult.BrokenBulletBillCount
+            + aggResult.FloatingEnemyCount
+            + aggResult.DiscontinuousGroundCount;
+        Assert(aggResult.TotalViolations == aggResult.Violations.Count, "TotalViolations equals Violations.Count");
+        Assert(aggResult.TotalViolations == sumOfCounts, "TotalViolations equals sum of per-type counts");
+        Assert(aggResult.TotalTiles == 4, "TotalTiles == Width*Height (2*2 = 4)");
+        Assert(aggResult.ViolationRate > 0.0, "ViolationRate > 0 when violations exist");
+
         Console.WriteLine();
     }
 
