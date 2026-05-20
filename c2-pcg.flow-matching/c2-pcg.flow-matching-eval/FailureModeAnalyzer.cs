@@ -176,4 +176,61 @@ public class FailureModeAnalyzer
 
         return count;
     }
+
+    // An Enemy must have a supporting tile directly below it, or be on the
+    // bottom row. Solid, Breakable, and question blocks count as support.
+    private static int CheckFloatingEnemy(TileMap map, List<FailureModeViolation> violations)
+    {
+        int count = 0;
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                TileTypeEnum tile = map.Tiles[y * map.Width + x];
+                if (tile == TileTypeEnum.Enemy)
+                {
+                    bool hasSupportBelow = false;
+
+                    // An enemy on the bottom row is supported by the ground edge.
+                    if (y == map.Height - 1)
+                    {
+                        hasSupportBelow = true;
+                    }
+
+                    if (y + 1 < map.Height)
+                    {
+                        TileTypeEnum belowTile = map.Tiles[(y + 1) * map.Width + x];
+                        if (belowTile == TileTypeEnum.Solid)
+                        {
+                            hasSupportBelow = true;
+                        }
+                        if (belowTile == TileTypeEnum.Breakable)
+                        {
+                            hasSupportBelow = true;
+                        }
+                        if (belowTile == TileTypeEnum.QuestionFull)
+                        {
+                            hasSupportBelow = true;
+                        }
+                        if (belowTile == TileTypeEnum.QuestionEmpty)
+                        {
+                            hasSupportBelow = true;
+                        }
+                    }
+
+                    if (!hasSupportBelow)
+                    {
+                        FailureModeViolation violation = new FailureModeViolation();
+                        violation.X = x;
+                        violation.Y = y;
+                        violation.Mode = FailureModeEnum.FloatingEnemy;
+                        violations.Add(violation);
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
 }
