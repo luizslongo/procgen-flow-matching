@@ -94,6 +94,70 @@ public class UnetBaseline : torch.nn.Module
 
     public torch.Tensor Forward(torch.Tensor x, torch.Tensor t)
     {
-        return x;
+        // Encode time scalar to vector
+        // t: (N,) -> tEmb: (N, timeEmbeddingDim)
+        torch.Tensor tEmb = SinusoidalTimeEmbedding.Encode(t, TimeEmbeddingDim);
+
+        // Initial channel projection: 14 -> 64 channels
+        // x: (N, 14, 14, 28) -> h: (N, 64, 14, 28)
+        torch.Tensor h = InitConv.forward(x);
+
+        // === ENCODER LEVEL 0 ===
+        // Process at full resolution, save skip
+        // h: (N, 64, 14, 28) -> (N, 64, 14, 28)
+        h = EncoderResBlock0.Forward(h, tEmb);
+        torch.Tensor skip1 = h;
+
+        // Downsample to half resolution
+        // h: (N, 64, 14, 28) -> (N, 64, 7, 14)
+        h = EncoderDownsample0.Forward(h);
+
+        // === ENCODER LEVEL 1 ===
+        // Process at half resolution, save skip
+        // h: (N, 64, 7, 14) -> (N, 128, 7, 14)
+        h = EncoderResBlock1.Forward(h, tEmb);
+        torch.Tensor skip2 = h;
+
+        // Downsample to quarter resolution
+        // h: (N, 128, 7, 14) -> (N, 128, 3, 7)
+        h = EncoderDownsample1.Forward(h);
+
+        // === BOTTLENECK ===
+        // Deepest processing at smallest spatial size
+        // h: (N, 128, 3, 7) -> (N, 256, 3, 7)
+        h = BottleneckResBlock.Forward(h, tEmb);
+
+        // === DECODER LEVEL 1 ===
+        // Upsample to half resolution
+        // h: (N, 256, 3, 7) -> (N, 256, 7, 14)
+        h = DecoderUpsample1.Forward(h);
+
+        // Concat with skip2 along channel dim
+        // (N, 256, 7, 14) + (N, 128, 7, 14) -> (N, 384, 7, 14)
+        h = torch.cat(new torch.Tensor[] { h, skip2 }, dim: 1);
+
+        // Process the concatenated tensor
+        // h: (N, 384, 7, 14) -> (N, 128, 7, 14)
+        h = DecoderResBlock1.Forward(h, tEmb);
+
+        // === DECODER LEVEL 0 ===
+        // Upsample to full resolution
+        // h: (N, 128, 7, 14) -> (N, 128, 14, 28)
+        h = DecoderUpsample0.Forward(h);
+
+        // Concat with skip1 along channel dim
+        // (N, 128, 14, 28) + (N, 64, 14, 28) -> (N, 192, 14, 28)
+        h = torch.cat(new torch.Tensor[] { h, skip1 }, dim: 1);
+
+        // Process the concatenated tensor
+        // h: (N, 192, 14, 28) -> (N, 64, 14, 28)
+        h = DecoderResBlock0.Forward(h, tEmb);
+
+        // === OUTPUT ADAPTER ===
+        // Project back to tile-type space
+        // h: (N, 64, 14, 28) -> (N, 14, 14, 28)
+        torch.Tensor output = OutputConv.forward(h);
+
+        return output;
     }
 }
