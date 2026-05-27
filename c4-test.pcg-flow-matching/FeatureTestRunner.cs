@@ -59,6 +59,7 @@ public class FeatureTestRunner
         TestResidualConvBlock();
         TestDownsampleBlock();
         TestUpsampleBlock();
+        TestUnetBaseline();
         TestFailureModeAnalyzer();
         TestFullDataloaderPipeline(vglcPath);
 
@@ -500,6 +501,42 @@ public class FeatureTestRunner
         up.Dispose();
         ds.Dispose();
         us2.Dispose();
+        Console.WriteLine();
+    }
+
+    static void TestUnetBaseline()
+    {
+        Console.WriteLine("--- UnetBaseline ---");
+
+        int inChannels = 14;
+        int baseChannels = 64;
+        int timeEmbDim = 128;
+        int batchSize = 2;
+        int h = 14;
+        int w = 28;
+
+        UnetBaseline unet = new UnetBaseline(inChannels, baseChannels, timeEmbDim, "testUnetBaseline");
+        
+        // Construct synthetic batch: random noisy tile chunks + random t in [0, 1]
+        torch.Tensor x = torch.randn(batchSize, inChannels, h, w);
+        torch.Tensor t = torch.rand(batchSize);
+        
+        // Run forward pass
+        torch.Tensor output = unet.Forward(x, t);
+        
+        // Output must have exactly the same shape as input (velocity field)
+        Assert(output.shape[0] == batchSize, "UnetBaseline output batch dim == " + batchSize);
+        Assert(output.shape[1] == inChannels, "UnetBaseline output channels == " + inChannels + " (back to tile-type space)");
+        Assert(output.shape[2] == h, "UnetBaseline output height == " + h);
+        Assert(output.shape[3] == w, "UnetBaseline output width == " + w);
+        
+        // Sanity check: gradients flowable. If output requires grad, backprop is possible.
+        Assert(output.requires_grad == true, "UnetBaseline output supports gradients (training will work)");
+
+        x.Dispose();
+        t.Dispose();
+        output.Dispose();
+        unet.Dispose();
         Console.WriteLine();
     }
 

@@ -128,12 +128,20 @@ public class UnetBaseline : torch.nn.Module
         h = BottleneckResBlock.Forward(h, tEmb);
 
         // === DECODER LEVEL 1 ===
-        // Upsample to half resolution
-        // h: (N, 256, 3, 7) -> (N, 256, 7, 14)
+        // Upsample to half resolution.
+        // Strided downsample on odd dimensions (e.g. 7 -> 4) means simple
+        // 2x upsample produces 8 instead of 7; align to skip2's spatial
+        // dimensions explicitly before concatenation.
         h = DecoderUpsample1.Forward(h);
+        if (h.shape[2] != skip2.shape[2] || h.shape[3] != skip2.shape[3])
+        {
+            h = torch.nn.functional.interpolate(
+                h,
+                size: new long[] { skip2.shape[2], skip2.shape[3] },
+                mode: torch.InterpolationMode.Nearest);
+        }
 
         // Concat with skip2 along channel dim
-        // (N, 256, 7, 14) + (N, 128, 7, 14) -> (N, 384, 7, 14)
         h = torch.cat(new torch.Tensor[] { h, skip2 }, dim: 1);
 
         // Process the concatenated tensor
@@ -141,12 +149,17 @@ public class UnetBaseline : torch.nn.Module
         h = DecoderResBlock1.Forward(h, tEmb);
 
         // === DECODER LEVEL 0 ===
-        // Upsample to full resolution
-        // h: (N, 128, 7, 14) -> (N, 128, 14, 28)
+        // Upsample to full resolution. Same defensive alignment as decoder 1.
         h = DecoderUpsample0.Forward(h);
+        if (h.shape[2] != skip1.shape[2] || h.shape[3] != skip1.shape[3])
+        {
+            h = torch.nn.functional.interpolate(
+                h,
+                size: new long[] { skip1.shape[2], skip1.shape[3] },
+                mode: torch.InterpolationMode.Nearest);
+        }
 
         // Concat with skip1 along channel dim
-        // (N, 128, 14, 28) + (N, 64, 14, 28) -> (N, 192, 14, 28)
         h = torch.cat(new torch.Tensor[] { h, skip1 }, dim: 1);
 
         // Process the concatenated tensor
