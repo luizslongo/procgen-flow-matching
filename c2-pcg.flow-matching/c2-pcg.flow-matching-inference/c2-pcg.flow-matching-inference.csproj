@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>c2_pcg.flowMatchingInference</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="../c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
+        <ProjectReference Include="../c2-pcg.flow-matching-model/c2-pcg.flow-matching-model.csproj" />
+    </ItemGroup>
+</Project>

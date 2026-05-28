@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-traini
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-cmd.pcg-flow-matching-train", "c4-cmd.pcg-flow-matching-train\c4-cmd.pcg-flow-matching-train.csproj", "{A4DAB0E7-537F-470B-A190-AC1A295D831A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-inference", "c2-pcg.flow-matching\c2-pcg.flow-matching-inference\c2-pcg.flow-matching-inference.csproj", "{BEC39AB6-8054-4598-BBAA-FA15347335E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-cmd.pcg-flow-matching-generate", "c4-cmd.pcg-flow-matching-generate\c4-cmd.pcg-flow-matching-generate.csproj", "{DF641E13-C31A-4A86-8EAA-6D6517B310FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,11 +60,20 @@ Global
 		{A4DAB0E7-537F-470B-A190-AC1A295D831A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4DAB0E7-537F-470B-A190-AC1A295D831A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4DAB0E7-537F-470B-A190-AC1A295D831A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEC39AB6-8054-4598-BBAA-FA15347335E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEC39AB6-8054-4598-BBAA-FA15347335E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEC39AB6-8054-4598-BBAA-FA15347335E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEC39AB6-8054-4598-BBAA-FA15347335E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A1577FA2-94E0-44EF-8442-878306DC9098} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
 		{563E2AD3-BF00-414E-A695-5F0DB978C134} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
 		{38EC7136-BF18-4209-90BD-69CED6625ECB} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
 		{39A19AF8-BCDE-40C1-AE39-C889C3C57EB8} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
+		{BEC39AB6-8054-4598-BBAA-FA15347335E8} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
 	EndGlobalSection
 EndGlobal
