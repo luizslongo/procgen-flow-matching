@@ -57,47 +57,45 @@ public class CfmTrainingLoop
 
         for (int step = 0; step < config.NumSteps; step++)
         {
-            // Sample random batch with replacement.
-            List<TileMap> batchChunks = new List<TileMap>();
-            for (int i = 0; i < config.BatchSize; i++)
+            using (torch.NewDisposeScope())
             {
-                int idx = rng.Next(chunks.Count);
-                batchChunks.Add(chunks[idx]);
+                // Sample random batch with replacement.
+                List<TileMap> batchChunks = new List<TileMap>();
+                for (int i = 0; i < config.BatchSize; i++)
+                {
+                    int idx = rng.Next(chunks.Count);
+                    batchChunks.Add(chunks[idx]);
+                }
+
+                // Build batch tensor on the target device.
+                torch.Tensor x1 = TileMapTensorConverter.ToBatchTensor(batchChunks).to(device);
+
+                // Forward + loss.
+                torch.Tensor loss = CfmLossComputer.ComputeLoss(model, x1);
+
+                // Backward + optimizer step.
+                optimizer.zero_grad();
+                loss.backward();
+                optimizer.step();
+
+                // Log.
+                float lossValue = loss.item<float>();
+                if (step % config.LogEveryNSteps == 0)
+                {
+                    Console.WriteLine("Step " + step + " / " + config.NumSteps + " | Loss: " +
+                                      lossValue.ToString("F6"));
+                    lossLog.WriteLine(step + "," + lossValue);
+                    lossLog.Flush();
+                }
+
+                // Periodic checkpoint.
+                if (step > 0 && step % config.CheckpointEveryNSteps == 0)
+                {
+                    string checkpointFile = config.CheckpointOutputPath + ".step" + step;
+                    model.save(checkpointFile);
+                    Console.WriteLine("Saved checkpoint: " + checkpointFile);
+                }
             }
-
-            // Build batch tensor on the target device.
-            torch.Tensor x1Host = TileMapTensorConverter.ToBatchTensor(batchChunks);
-            torch.Tensor x1 = x1Host.to(device);
-            x1Host.Dispose();
-
-            // Forward + loss.
-            torch.Tensor loss = CfmLossComputer.ComputeLoss(model, x1);
-
-            // Backward + optimizer step.
-            optimizer.zero_grad();
-            loss.backward();
-            optimizer.step();
-
-            // Log.
-            float lossValue = loss.item<float>();
-            if (step % config.LogEveryNSteps == 0)
-            {
-                Console.WriteLine("Step " + step + " / " + config.NumSteps + " | Loss: " + lossValue.ToString("F6"));
-                lossLog.WriteLine(step + "," + lossValue);
-                lossLog.Flush();
-            }
-
-            // Periodic checkpoint.
-            if (step > 0 && step % config.CheckpointEveryNSteps == 0)
-            {
-                string checkpointFile = config.CheckpointOutputPath + ".step" + step;
-                model.save(checkpointFile);
-                Console.WriteLine("Saved checkpoint: " + checkpointFile);
-            }
-
-            // Release intermediate tensors so VRAM does not grow over time.
-            x1.Dispose();
-            loss.Dispose();
         }
 
         // Final checkpoint after the last step.
