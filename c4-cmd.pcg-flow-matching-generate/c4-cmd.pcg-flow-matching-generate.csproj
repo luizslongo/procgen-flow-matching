@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>c4_cmd.pcgFlowMatchingGenerate</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
+        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-inference/c2-pcg.flow-matching-inference.csproj" />
+        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj" />
+    </ItemGroup>
+</Project>
