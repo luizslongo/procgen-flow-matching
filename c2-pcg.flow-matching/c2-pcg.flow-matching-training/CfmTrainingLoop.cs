@@ -13,6 +13,7 @@ public class CfmTrainingLoop
 {
     public static void Run(CfmTrainingConfig config)
     {
+        torch.manual_seed(42); 
         // === DEVICE ===
         bool cudaAvailable = torch.cuda.is_available();
         torch.Device device;
