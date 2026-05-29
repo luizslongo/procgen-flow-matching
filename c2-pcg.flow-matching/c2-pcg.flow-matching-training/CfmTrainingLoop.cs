@@ -13,6 +13,7 @@ public class CfmTrainingLoop
 {
     public static void Run(CfmTrainingConfig config)
     {
+        torch.manual_seed(42); 
         // === DEVICE ===
         bool cudaAvailable = torch.cuda.is_available();
         torch.Device device;
@@ -76,6 +77,7 @@ public class CfmTrainingLoop
                 // Backward + optimizer step.
                 optimizer.zero_grad();
                 loss.backward();
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm: 0.5);
                 optimizer.step();
 
                 // Log.
