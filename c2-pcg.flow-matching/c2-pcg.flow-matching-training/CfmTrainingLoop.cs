@@ -77,6 +77,7 @@ public class CfmTrainingLoop
                 // Backward + optimizer step.
                 optimizer.zero_grad();
                 loss.backward();
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm: 0.5);
                 optimizer.step();
 
                 // Log.
