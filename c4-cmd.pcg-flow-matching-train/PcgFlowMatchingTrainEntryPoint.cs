@@ -19,7 +19,7 @@ public class PcgFlowMatchingTrainEntryPoint
         }
 
         CfmTrainingConfig config = new CfmTrainingConfig();
-        config.LearningRate = 0.0001f;
+        config.LearningRate = 0.00005f;
         config.BatchSize = 32;
         config.NumSteps = 2000;
         config.BaseChannels = 64;
