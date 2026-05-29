@@ -1,0 +1,300 @@
+================================================================================
+TCC ITERATION 1: FIRST END-TO-END RESULT
+================================================================================
+
+Generated: 2026-05-29
+Topic:     First successful end-to-end training and generation run of the
+           Conditional Flow Matching model. Documents the training stability
+           issues encountered, the corrections applied, the trained checkpoint
+           characteristics, and the failure-mode distribution observed in the
+           first generated chunks. Marks the mechanical completion of
+           Iteration 1.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           training and generation runs executed locally on CPU on 2026-05-29.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+This report documents the first complete end-to-end execution of the
+implemented pipeline: training a Conditional Flow Matching model on the VGLC
+Super Mario Bros dataset, generating chunks from a trained checkpoint using
+the Euler ODE solver, and measuring per-type failure rates with the
+FailureModeAnalyzer. It records the training stability issue (NaN
+divergence) encountered, the two corrections applied (gradient clipping and
+fixed seed), and the first quantitative results from the trained baseline.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: COMPONENTS COMPLETED SINCE 2026-05-04
+PART 2: TRAINING STABILITY INCIDENT AND CORRECTIONS
+PART 3: SUCCESSFUL TRAINING RUN
+PART 4: FIRST GENERATION RESULTS
+PART 5: FAILURE-MODE DISTRIBUTION ANALYSIS
+PART 6: WHAT REMAINS FOR ITERATION 1
+
+
+================================================================================
+PART 1: COMPONENTS COMPLETED SINCE 2026-05-04
+================================================================================
+
+Since the last status report (260504), four new assemblies and two
+entrypoints were added, completing the mechanical scope of Iteration 1.
+
+    Assembly                                       Role                 Status
+    ---------------------------------------------  -------------------  ------
+    c2-pcg.flow-matching-model UnetBaseline class  full U-Net           Merged
+    c2-pcg.flow-matching-training                  CFM training loop    Merged
+    c2-pcg.flow-matching-inference                 Euler ODE solver     Merged
+    c4-cmd.pcg-flow-matching-train                 training entrypoint  Merged
+    c4-cmd.pcg-flow-matching-generate              generation entrypoint Merged
+
+Test count: still 102 assertions passing (test suite covers dataloader,
+model building blocks, UnetBaseline shape verification, and
+FailureModeAnalyzer per-type checks).
+
+
+================================================================================
+PART 2: TRAINING STABILITY INCIDENT AND CORRECTIONS
+================================================================================
+
+First training attempts (2026-05-29) on the locally implemented
+CfmTrainingLoop with hyperparameters LearningRate=1e-4, BatchSize=32,
+NumSteps=2000 exhibited two failure modes across separate runs:
+
+    Run A: loss descended from 1.07 at step 0 to 0.69 at step 200 (healthy)
+           before being interrupted.
+
+    Run B: loss was NaN at step 0 and remained NaN through the entire run.
+
+Root cause analysis: training was unstable because there was no gradient
+clipping and no random seed. The varying initial model weights between
+runs produced different gradient magnitudes; some initializations resulted
+in immediate gradient explosion and NaN values, others were temporarily
+stable but oscillated near the loss floor.
+
+Three corrections were applied to CfmTrainingLoop:
+
+    1. torch.manual_seed(42) at the start of Run, before model construction.
+       Makes the entire run deterministic for debugging and reproducibility.
+
+    2. torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm: 0.5)
+       between loss.backward() and optimizer.step(). Caps the global
+       gradient norm so no optimizer step can drive weights to infinity.
+
+    3. LearningRate lowered from 1e-4 to 5e-5 in PcgFlowMatchingTrainEntryPoint.
+       Smaller per-step updates reduce the chance of overshoot on top of the
+       gradient clipping.
+
+These three changes together produced the first stable training run
+described in Part 3.
+
+
+================================================================================
+PART 3: SUCCESSFUL TRAINING RUN
+================================================================================
+
+Training executed locally on CPU. Mario VGLC Processed dataset.
+
+    Dataset:                  15 levels, 2518 chunks of shape (14, 14, 28)
+    Hyperparameters:          LearningRate 5e-5, BatchSize 32, NumSteps 2000
+                              BaseChannels 64, TimeEmbeddingDim 128
+                              Gradient clip max_norm 0.5, seed 42
+
+Loss trajectory (sampled every 250 steps):
+
+    Step     Loss     Comment
+    -----    -----    --------------------------------------------------------
+    0        1.081    initial (random weights)
+    250      0.810    learning rapidly
+    500      0.618    first checkpoint saved
+    750      0.287    descending sharply
+    1000     0.277    second checkpoint saved
+    1250     0.238    minor oscillation begins
+    1500     0.253    third checkpoint saved
+    1750     0.253
+    1950     0.143    final value
+
+Final checkpoint written to unet-baseline-checkpoint.bin. No NaN values
+were observed throughout the run. The 87 percent reduction in loss
+(1.08 to 0.14) confirms the entire pipeline (data preparation, U-Net
+forward pass, CFM loss, backpropagation, gradient clipping, optimizer
+update) is correctly wired.
+
+
+================================================================================
+PART 4: FIRST GENERATION RESULTS
+================================================================================
+
+Using c4-cmd.pcg-flow-matching-generate with the final checkpoint:
+
+    NumSteps (NFE):           50
+    NumSamples:               10
+    Total generation time:    a few seconds on CPU
+
+Example outputs (selected by quality):
+
+CHUNK 9 (best quality, 1 violation, rate 0.0026):
+
+    --------------------?-------
+    ----------------------------
+    ----------------------------
+    ----------------------------
+    ----------------------------
+    ----------------------------
+    ---------------------------o
+    ---------------------------E
+    ----------------------------
+    X-----------S-S-------------
+    ----------------------------
+    S---]--X------------------XX
+    ----SSE----------E--------X-
+    SXEXXXXXXXXXXXXXXXXXXXXXSXX]
+
+CHUNK 7 (representative, 8 violations, rate 0.0204):
+
+    -------------E------S------b
+    ---------------------------E
+    ----------------------------
+    ----------------------------
+    ----------------------------
+    ----------------------------
+    --S--S-XX-------------------
+    ----------------------------
+    ?--X-------------------X----
+    ---S--E---------------------
+    --X---SX---------------X-XSX
+    -----------------------S----
+    -------XE-------------X-----
+    XXXXXXXXXX-]X--X[?-X-X>XXXXX
+
+Qualitative observations:
+
+    - Horizontal ground (XXX...) appears at the bottom row of every chunk:
+      the model has learned the basic "ground is at the bottom" prior.
+
+    - The upper rows are mostly Empty (sparse decorations): the model has
+      learned the "sky is mostly empty" prior.
+
+    - Bricks (S), question blocks (?), coins (o), enemies (E), and pipes
+      (>, <, [, ]) appear correctly as discrete tile types.
+
+    - Multi-tile structures (full pipes, bullet bills) are reproduced
+      incompletely: the model recognizes the pieces but does not
+      consistently assemble them into valid arrangements.
+
+    - The range of quality across chunks is wide: chunk 9 has only 1
+      violation, while chunk 8 has 12. This suggests the model is capable
+      of producing near-valid outputs but is not yet consistent. Longer
+      training is expected to reduce this variance.
+
+
+================================================================================
+PART 5: FAILURE-MODE DISTRIBUTION ANALYSIS
+================================================================================
+
+Aggregated counts across all 10 generated chunks (3920 tile positions):
+
+    Failure mode                Count  Percentage   Comment
+    -------------------------   -----  -----------  ------------------------
+    DiscontinuousGround         46     59.7         dominant
+    FloatingEnemy               12     15.6
+    BrokenPipeHorizontal        6      7.8
+    BrokenPipeTopLeft           6      7.8
+    BrokenPipeTopRight          4      5.2
+    BrokenBulletBill            3      3.9          rare
+    Total                       77     100.0
+
+Mean violations per chunk:     7.7
+Mean violation rate per tile:  1.96 percent
+
+Interpretation:
+
+    1. DiscontinuousGround is the dominant failure mode (60 percent of
+       violations). The model knows there should be a ground row but does
+       not consistently fill every column. Future iterations should target
+       this specifically.
+
+    2. FloatingEnemy is the second most frequent. The model places enemies
+       where they look plausible (next to ground or near platforms) but
+       sometimes drops them in the air without a supporting tile below.
+
+    3. Pipe-related failures (top-left, top-right, horizontal) appear at
+       similar rates, suggesting the model has not learned the multi-tile
+       pipe structure as a unified concept.
+
+    4. BulletBill failures are rare. Either the model handles them well or
+       BulletBill tiles are rare in the training data (the latter is more
+       likely; bullet bills only appear in late Mario levels).
+
+These observations satisfy the qualitative evaluation direction (Opcao 2)
+chosen with Prof. Elder Rizzon Santos on 2026-05-04: classify failure
+types rather than count a single violation total. The data above gives
+direct material for Chapter 4 of the manuscript.
+
+
+================================================================================
+PART 6: WHAT REMAINS FOR ITERATION 1
+================================================================================
+
+Mechanical work for Iteration 1 is COMPLETE. The remaining work is
+documentation and a higher-quality training run.
+
+    1. Longer training on the devbox (3x RTX 3090 Ti)
+       Plan: run 10000 or 20000 steps to obtain a better checkpoint than
+       the current 2000-step baseline. The local CPU run took several
+       minutes for 2000 steps; the same run on GPU should complete in
+       under a minute, making longer runs cheap. The architecture and
+       training code are unchanged; only NumSteps in the entrypoint
+       differs.
+
+    2. Manuscript Chapter 4 first draft
+       Sections:
+         4.1 Data preparation (already documented in 260416 and 260419)
+         4.2 Evaluation criteria (failure-mode classification chosen
+             after Prof. Elder feedback 2026-05-04)
+         4.3 Iteration 1 architecture (U-Net composition, CFM training,
+             Euler inference, with stability corrections noted)
+         4.4 Iteration 1 results (the numbers from Parts 3-5 of this
+             report; example chunk outputs from Part 4; failure-mode
+             distribution chart from Part 5)
+
+    3. Optional polish for Iteration 2 (if time permits)
+       Possible improvements: longer training, Optimal Transport paths
+       (replacing linear interpolation), AdaGN time embedding injection,
+       conditional vectors for biome control (TCC objective O4).
+
+Timeline:
+
+    Today is 2026-05-29. The manuscript deadline is 2026-06-17. That
+    leaves 19 days. Plan:
+      29 May to 02 June: longer training on devbox; final checkpoint
+      02 June to 10 June: draft Chapter 4
+      10 June to 17 June: revision and submission
+
+The path to submission is now clear and short.
+
+
+================================================================================
+SUMMARY SCORECARD
+================================================================================
+
+    Dimension                                  Status
+    -----------------------------------------  -----------------
+    Pipeline mechanical correctness            Confirmed
+    Training stability                         Achieved with fixes
+    Generation pipeline                        Confirmed
+    Failure-mode quantification                Producing data
+    Time to manuscript deadline                19 days remaining
+    Risk of missing deadline                   Low
+
+
+================================================================================
+END OF REPORT
+================================================================================
