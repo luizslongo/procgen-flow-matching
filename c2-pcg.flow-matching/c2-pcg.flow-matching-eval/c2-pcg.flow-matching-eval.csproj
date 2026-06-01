@@ -12,4 +12,8 @@
         <ProjectReference Include="../c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="SixLabors.ImageSharp" />
+    </ItemGroup>
+
 </Project>

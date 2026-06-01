@@ -7,5 +7,6 @@
     <PackageVersion Include="TorchSharp-cpu" Version="0.105.1" />
     <PackageVersion Include="TorchSharp-cuda-linux" Version="0.105.1" />
     <PackageVersion Include="TorchSharp-cuda-windows" Version="0.105.1" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 </Project>
