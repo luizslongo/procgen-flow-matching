@@ -20,5 +20,20 @@ packages/
 # VGLC dataset (not redistributed; cloned separately by user)
 TheVGLC/
 
+# Sprites extracted from VGLC (regenerated locally via scripts/extract-sprites.py)
+sprites/
+
+# Per-run generation artifacts (PNGs, checkpoints, loss logs)
+generated-png/
+*.bin
+*.bin.step*
+loss-log.csv
+loss-curve*.png
+
+# Python virtual environment (created locally via `python3 -m venv .venv`)
+.venv/
+__pycache__/
+*.pyc
+
 # Core dumps
 core.*
