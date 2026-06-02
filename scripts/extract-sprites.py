@@ -53,22 +53,48 @@ TILE_PIXELS = 16
 # VGLC vertical alignment: txt has one more row at the top than the png.
 TXT_TO_PNG_ROW_OFFSET = -1
 
+# Per-tile-type pixel offsets to compensate for NES sprite alignment.
+# Background tiles (ground, bricks, pipes, blocks) live in the PPU nametable
+# and are strictly tile-grid-aligned -- they need no offset. Sprite-like
+# entities (Goombas, Koopas) are drawn via OAM at arbitrary pixel positions
+# and may be off-grid in the rendered screenshot. The Goomba in mario-1-1.png
+# at the bottom-most enemy position (txt row 12 col 21) is drawn 7 pixels
+# left of its txt-implied tile boundary; offset -7 centers the Goomba within
+# the 16x16 crop. Values from -6 to -10 were inspected; -7 minimizes both
+# horizontal whitespace and edge truncation.
+TILE_X_OFFSET = {
+    'Enemy': -7,
+}
 
-def crop_tile(png, txt_row, txt_col):
-    """Crops a 16x16 sprite at the position implied by a (txt_row, txt_col).
+# Per-tile-type level skip list. Used when a tile type would otherwise be
+# extracted from a level whose palette does not match the canonical
+# sky-blue background most generated chunks are intended to render against.
+# Coin extraction skips underground levels (teal background) so we fall
+# through to mario-1-3 (treetop, sky-blue) for the canonical coin sprite.
+TILE_SKIP_LEVELS = {
+    'Coin': {'mario-1-2', 'mario-4-2'},
+}
 
+
+def crop_tile(png, txt_row, txt_col, tile_name):
+    """Crops a 16x16 sprite at the position implied by (txt_row, txt_col).
+
+    Applies a per-tile-type x-offset to compensate for off-grid NES sprites.
     Returns None if the implied PNG position falls outside the image.
     """
     png_row = txt_row + TXT_TO_PNG_ROW_OFFSET
     if png_row < 0:
         return None
     width, height = png.size
-    if (png_row + 1) * TILE_PIXELS > height:
-        return None
-    if (txt_col + 1) * TILE_PIXELS > width:
-        return None
-    left = txt_col * TILE_PIXELS
+    x_offset = TILE_X_OFFSET.get(tile_name, 0)
+    left = txt_col * TILE_PIXELS + x_offset
     upper = png_row * TILE_PIXELS
+    if left < 0 or upper < 0:
+        return None
+    if left + TILE_PIXELS > width:
+        return None
+    if upper + TILE_PIXELS > height:
+        return None
     return png.crop((left, upper, left + TILE_PIXELS, upper + TILE_PIXELS))
 
 
@@ -90,17 +116,20 @@ def scan_level(txt_path, png_path, found):
     with open(txt_path, 'r', encoding='utf-8') as f:
         rows = [line.rstrip('\r\n') for line in f]
     png = Image.open(png_path).convert('RGBA')
+    level_stem = txt_path.stem
     for txt_row in range(len(rows) - 1, -1, -1):
         row_str = rows[txt_row]
         for txt_col, ch in enumerate(row_str):
             tile_name = CHAR_TO_TILE.get(ch)
             if tile_name is None or tile_name in found:
                 continue
-            sprite = crop_tile(png, txt_row, txt_col)
+            if level_stem in TILE_SKIP_LEVELS.get(tile_name, set()):
+                continue
+            sprite = crop_tile(png, txt_row, txt_col, tile_name)
             if sprite is None:
                 continue
             found[tile_name] = sprite
-            print(f"  found {ch!r} -> {tile_name} ({txt_path.stem} row={txt_row} col={txt_col})")
+            print(f"  found {ch!r} -> {tile_name} ({level_stem} row={txt_row} col={txt_col})")
 
 
 def main():
