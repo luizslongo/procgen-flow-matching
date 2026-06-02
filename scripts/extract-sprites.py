@@ -53,22 +53,39 @@ TILE_PIXELS = 16
 # VGLC vertical alignment: txt has one more row at the top than the png.
 TXT_TO_PNG_ROW_OFFSET = -1
 
+# Per-tile-type pixel offsets to compensate for NES sprite alignment.
+# Background tiles (ground, bricks, pipes, blocks) live in the PPU nametable
+# and are strictly tile-grid-aligned -- they need no offset. Sprite-like
+# entities (Goombas, Koopas) are drawn via OAM at arbitrary pixel positions
+# and may be off-grid in the rendered screenshot. The Goomba in mario-1-1.png
+# at the bottom-most enemy position (txt row 12 col 21) is drawn 7 pixels
+# left of its txt-implied tile boundary; offset -7 centers the Goomba within
+# the 16x16 crop. Values from -6 to -10 were inspected; -7 minimizes both
+# horizontal whitespace and edge truncation.
+TILE_X_OFFSET = {
+    'Enemy': -7,
+}
 
-def crop_tile(png, txt_row, txt_col):
-    """Crops a 16x16 sprite at the position implied by a (txt_row, txt_col).
 
+def crop_tile(png, txt_row, txt_col, tile_name):
+    """Crops a 16x16 sprite at the position implied by (txt_row, txt_col).
+
+    Applies a per-tile-type x-offset to compensate for off-grid NES sprites.
     Returns None if the implied PNG position falls outside the image.
     """
     png_row = txt_row + TXT_TO_PNG_ROW_OFFSET
     if png_row < 0:
         return None
     width, height = png.size
-    if (png_row + 1) * TILE_PIXELS > height:
-        return None
-    if (txt_col + 1) * TILE_PIXELS > width:
-        return None
-    left = txt_col * TILE_PIXELS
+    x_offset = TILE_X_OFFSET.get(tile_name, 0)
+    left = txt_col * TILE_PIXELS + x_offset
     upper = png_row * TILE_PIXELS
+    if left < 0 or upper < 0:
+        return None
+    if left + TILE_PIXELS > width:
+        return None
+    if upper + TILE_PIXELS > height:
+        return None
     return png.crop((left, upper, left + TILE_PIXELS, upper + TILE_PIXELS))
 
 
@@ -96,7 +113,7 @@ def scan_level(txt_path, png_path, found):
             tile_name = CHAR_TO_TILE.get(ch)
             if tile_name is None or tile_name in found:
                 continue
-            sprite = crop_tile(png, txt_row, txt_col)
+            sprite = crop_tile(png, txt_row, txt_col, tile_name)
             if sprite is None:
                 continue
             found[tile_name] = sprite
