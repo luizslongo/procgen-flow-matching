@@ -1,0 +1,550 @@
+================================================================================
+TCC ITERATION 2 EXPERIMENT B RESULT REPORT
+================================================================================
+
+Generated: 2026-06-02
+Topic:     Per-chunk qualitative analysis of the output produced by the
+           Iteration 2 Experiment B run (raw inverse-frequency class-
+           balanced CFM loss). Documents what each of the 10 generated
+           chunks looks like, identifies the dominant new failure mode
+           introduced by the loss change, compares the result against
+           the Iteration 1 20k-step unweighted baseline, and proposes
+           the specific remediation to attempt next.
+Source:    procgen-flow-matching repository
+           (luizslongo/procgen-flow-matching). Training run executed on
+           2026-06-02 using BaseChannels = 64, BatchSize = 32,
+           NumSteps = 20000, LearningRate = 5e-5, manual seed 42,
+           gradient clip max_norm = 0.5, on the local RTX 5060 (Blackwell
+           sm_120). Checkpoint at unet-class-balanced-checkpoint.bin.
+           PNG chunks rendered to generated-png/chunk-001.png through
+           chunk-010.png on 2026-06-02 at 18:13.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Experiment B as planned in docs/260602.iteration-2-plan.txt Part 3
+proposed multiplying the per-position CFM squared-error contribution by
+an inverse-frequency weight indexed by the target tile type. The
+intent was to address two Iteration 1 failure modes simultaneously:
+the dominant DiscontinuousGround pattern (62% of all Iteration 1
+violations) and the rare-tile failure modes (BulletBill-related
+fragments, isolated PipeTop pieces, FloatingEnemy positions).
+
+This report documents what actually happened when the change was
+implemented and run. Spoiler: the change produced one substantial
+improvement (continuous ground rows in every chunk) but introduced a
+new dominant failure mode (Breakable-brick over-prediction that
+saturates most of every chunk). Per-chunk evidence follows.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: METHOD
+PART 2: PER-CHUNK QUALITATIVE ANALYSIS
+PART 3: AGGREGATE FAILURE PATTERNS
+PART 4: COMPARISON WITH ITERATION 1 BASELINE
+PART 5: ROOT CAUSE HYPOTHESIS
+PART 6: PROPOSED REMEDIATION
+
+
+================================================================================
+PART 1: METHOD
+================================================================================
+
+Two new code elements were introduced in
+c2-pcg.flow-matching-training:
+
+  TileTypeFrequencyComputer.CountTileOccurrences(List<TileMap>)
+      Returns a length-14 array indexed by TileTypeEnum value, where
+      each entry is the total number of times that tile type appears
+      across all loaded chunks. Across the 2518 chunks of size 28 by
+      14, the total occupied tile count is 987056. The distribution
+      (chunk-level, not raw-level):
+
+        TileType              Count    Frequency
+        --------------------  -------  ------------
+        Empty                 850570   86.17 percent
+        Solid                  83322    8.44 percent
+        Breakable              23529    2.38 percent
+        Enemy                   7265    0.74 percent
+        PipeBodyLeft            4966    0.50 percent
+        PipeBodyRight           4963    0.50 percent
+        Coin                    4502    0.46 percent
+        PipeTopLeft             2310    0.23 percent
+        PipeTopRight            2309    0.23 percent
+        QuestionEmpty           1788    0.18 percent
+        QuestionFull             768    0.08 percent
+        BulletBillLauncher       421    0.04 percent
+        BulletBillBody           343    0.03 percent
+
+  TileTypeFrequencyComputer.BuildInverseFrequencyWeightTensor(counts, device)
+      Returns a 1D tensor on the training device where weight[i] =
+      total_tiles / (counts[i] * 13). The 13 in the denominator is the
+      count of nonzero tile types and normalizes the dataset-weighted
+      mean of the weights to exactly 1.0. The actual weights produced
+      from the training data:
+
+        TileType              Weight
+        --------------------  --------
+        Empty                  0.089
+        Solid                  0.911
+        Breakable              3.227
+        Enemy                 10.451
+        PipeBodyLeft          15.289
+        PipeBodyRight         15.299
+        Coin                  16.865
+        PipeTopLeft           32.869
+        PipeTopRight          32.883
+        QuestionEmpty         42.465
+        QuestionFull          98.864
+        BulletBillLauncher   180.350
+        BulletBillBody       221.363
+
+One new loss method was added to CfmLossComputer:
+
+  ComputeWeightedLoss(model, x1, classWeights)
+      Same as ComputeLoss except the per-element squared error
+      tensor is multiplied by a per-position weight tensor extracted
+      from the one-hot target tensor via channel-wise sum
+      (x1 * classWeights.reshape(1, NumTileTypes, 1, 1)).sum(dim=1),
+      and the result is reduced by mean.
+
+CfmTrainingLoop was modified to compute the weight tensor once after
+chunk loading and to call ComputeWeightedLoss inside the per-step
+training loop instead of ComputeLoss.
+
+The training entrypoint was changed to write checkpoints to
+unet-class-balanced-checkpoint.bin and loss logs to
+loss-log-class-balanced.csv so the ablation does not overwrite the
+Iteration 1 baseline at unet-baseline-checkpoint.bin and loss-log.csv.
+
+Training ran on the same dataset, same architecture, same optimizer,
+same seed, same step count as the Iteration 1 20k baseline. The only
+difference between the two runs is the per-position weighting of the
+squared error.
+
+
+================================================================================
+PART 2: PER-CHUNK QUALITATIVE ANALYSIS
+================================================================================
+
+Each chunk has dimensions 28 columns by 14 rows of tile cells, rendered
+at 16 by 16 pixels per cell (final PNG size 448 by 224 pixels). The
+inspection upscaled each PNG by a factor of 2 (to 896 by 448) for
+visual clarity. Tile types are described using their TileTypeEnum
+names from c2-pcg.flow-matching-dataloader/TileTypeEnum.cs.
+
+2.1 CHUNK 001 (generated-png/chunk-001.png)
+
+    Dominant content: Breakable brick mass occupying approximately 65
+    percent of the visible area. The Breakable rows are organized as
+    four roughly-horizontal bands separated by narrow strips of Empty
+    (sky) tiles 1 to 2 rows tall.
+
+    Other tile observations:
+      - BulletBillLauncher tile at the very top row, plus two more
+        BulletBillLauncher tiles also at the top. None of these have a
+        BulletBillBody tile below them; they appear as isolated cannon
+        tops floating in the topmost sky band.
+      - QuestionFull and QuestionEmpty tiles scattered approximately
+        10 to 12 times across the brick mass, with no apparent spatial
+        structure.
+      - Coin tiles arranged as one horizontal line of about 9 coins
+        across the middle of the chunk, plus 5 to 6 more coins
+        embedded inside brick rows.
+      - Enemy (Goomba) tiles count approximately 12, distributed
+        throughout the brick mass. Most are embedded INSIDE the brick
+        rows rather than walking on top of a Solid tile; this is the
+        FloatingEnemy failure mode.
+      - PipeBodyLeft and PipeBodyRight tile pieces appear about 6 to
+        8 times each, as scattered vertical green strips at the left
+        edge. Only one of these forms a 2-tile-tall pipe with a
+        PipeTop above; the rest are fragmented body pieces.
+      - Solid (ground) tiles form a continuous horizontal row at the
+        bottom of the chunk, no visible gaps.
+
+2.2 CHUNK 002 (generated-png/chunk-002.png)
+
+    Dominant content: Breakable brick mass occupying approximately 75
+    percent of the visible area. The Breakable area is denser and less
+    horizontally-banded than chunk 001; the sky region is reduced to
+    roughly the top 2 rows only.
+
+    Other tile observations:
+      - Two BulletBillLauncher tiles at the top center, side by side,
+        again without BulletBillBody tiles below them.
+      - One Breakable tile placed in the sky between the two
+        BulletBillLauncher tiles.
+      - PipeTopLeft + PipeTopRight pair visible at the upper left
+        (col 0 to 1), followed by PipeBodyLeft + PipeBodyRight below.
+        This is a structurally-valid 2-wide pipe of 2 tiles tall, ONE
+        of the better-structured generations in the whole batch.
+      - QuestionFull tiles form a row of about 7 in the middle of the
+        chunk.
+      - Coin tiles in a single horizontal line of 8, also in the
+        middle.
+      - Enemy tiles count approximately 4, embedded in the bricks.
+      - Solid ground continuous at the bottom row.
+
+2.3 CHUNK 003 (generated-png/chunk-003.png)
+
+    Dominant content: Breakable brick mass occupying approximately 70
+    percent of the area. Many vertical green PipeBody strips appear
+    irregularly across the chunk, especially in the lower-center area
+    where 4 to 6 pipe body pieces form a quasi-pipe-tower with no
+    clear top.
+
+    Other tile observations:
+      - BulletBillLauncher at top center.
+      - QuestionFull tiles approximately 6, scattered.
+      - Coin tiles in approximately 4 separate horizontal groupings,
+        some inside brick rows.
+      - Enemy tiles approximately 8, several floating without floor
+        support.
+      - Pipe parts are fragmented: PipeBodyLeft tiles appear without
+        PipeBodyRight neighbors, breaking the standard 2-wide pipe
+        structure.
+      - Solid ground continuous at the bottom.
+
+2.4 CHUNK 004 (generated-png/chunk-004.png)
+
+    Dominant content: Breakable brick mass at roughly 70 percent.
+    Horizontal band structure with sky strips between brick rows.
+
+    Other tile observations:
+      - Two BulletBillLauncher tiles in the upper area.
+      - One PipeTopLeft + PipeBodyLeft column at the upper left,
+        forming a 2-tile pipe.
+      - QuestionFull tiles approximately 8 scattered.
+      - Coin pairs (2-tile coin groupings) at multiple positions
+        embedded inside brick rows.
+      - Enemy tiles approximately 10, several floating, several
+        embedded in bricks.
+      - Solid ground continuous at the bottom.
+
+2.5 CHUNK 005 (generated-png/chunk-005.png)
+
+    Dominant content: Breakable brick mass at approximately 70
+    percent. Sky strip at the top is slightly wider than other chunks,
+    about 3 rows.
+
+    Other tile observations:
+      - Three BulletBillLauncher tiles in the top sky band.
+      - PipeTopLeft + PipeBodyLeft column visible at the right side,
+        forming a 2-tile vertical structure.
+      - QuestionFull approximately 5, scattered.
+      - Coin pairs approximately 6, both inside bricks and in sky.
+      - Enemy tiles approximately 8, most floating.
+      - Solid ground continuous at the bottom.
+
+2.6 CHUNK 006 (generated-png/chunk-006.png)
+
+    Dominant content: Breakable mass at approximately 70 percent.
+    Many vertical PipeBody fragments (6 or more) scattered in the
+    middle and right portions.
+
+    Other tile observations:
+      - BulletBillLauncher at upper right, plus QuestionFull and
+        BulletBillLauncher in a tight cluster in the top sky band.
+      - QuestionFull approximately 8.
+      - Coin pairs in a horizontal line of 4, plus scattered.
+      - Enemy tiles approximately 14 in a dense cluster at the
+        middle-left.
+      - Pipe pieces: one valid PipeTop + PipeBody column at the upper
+        right; the rest are PipeBody fragments without tops.
+      - Solid ground continuous at the bottom.
+
+2.7 CHUNK 007 (generated-png/chunk-007.png)
+
+    Dominant content: Breakable mass at approximately 75 percent.
+    Several short horizontal coin lines and a horizontal row of
+    QuestionFull tiles.
+
+    Other tile observations:
+      - One BulletBillLauncher visible in the top center.
+      - QuestionFull tiles form a row of 4 in the middle.
+      - Coin pairs in 3 separate horizontal groupings.
+      - Enemy tiles approximately 6.
+      - Single PipeBodyLeft tile at far right with no PipeTop or
+        PipeBodyRight neighbor.
+      - Solid ground continuous at the bottom.
+
+2.8 CHUNK 008 (generated-png/chunk-008.png)
+
+    Dominant content: Breakable mass at approximately 65 percent.
+    Has a dense Enemy cluster (about 10 Enemies packed together) in
+    the middle area.
+
+    Other tile observations:
+      - BulletBillLauncher at the upper right.
+      - PipeTopLeft + PipeBodyLeft column at the upper left (one
+        valid 2-tile pipe).
+      - QuestionFull approximately 8.
+      - Coin pairs scattered, approximately 4.
+      - Enemy tiles approximately 14, most in the middle cluster.
+      - Solid ground continuous at the bottom.
+
+2.9 CHUNK 009 (generated-png/chunk-009.png)
+
+    Dominant content: Breakable mass at approximately 65 percent.
+    More PipeBody fragments than other chunks (8 or more vertical
+    green pieces).
+
+    Other tile observations:
+      - One BulletBillLauncher at upper left.
+      - PipeTopLeft at upper left + a column of PipeBody tiles below,
+        forming a multi-tile pipe (rare but here).
+      - QuestionFull approximately 6.
+      - Coin pairs approximately 5.
+      - Enemy tiles approximately 10.
+      - Solid ground continuous at the bottom.
+
+2.10 CHUNK 010 (generated-png/chunk-010.png)
+
+    Dominant content: Breakable mass at approximately 70 percent.
+    Sky strip wider at top than most other chunks (about 3 to 4 rows).
+
+    Other tile observations:
+      - BulletBillLauncher tiles at the top right.
+      - QuestionFull row of 4 in the middle.
+      - Coin pairs in 3 horizontal groupings.
+      - Enemy tiles approximately 8.
+      - PipeBodyLeft + PipeBodyRight columns appear approximately 3
+        times in the upper area.
+      - Solid ground continuous at the bottom.
+
+
+================================================================================
+PART 3: AGGREGATE FAILURE PATTERNS
+================================================================================
+
+Across all 10 chunks the following patterns hold consistently:
+
+3.1 Breakable saturation
+    Every chunk has Breakable tile occupancy between 65 percent and
+    75 percent of the visible area. In the training data Breakable
+    accounts for only 2.38 percent of all tile positions. The model
+    is therefore over-predicting Breakable by a factor of roughly
+    27 to 32 relative to the empirical training distribution.
+
+3.2 Empty (sky) under-prediction
+    Empty occupies only a 1-to-3-row band at the top of each chunk
+    plus narrow horizontal strips between brick bands. Estimated
+    Empty fraction per chunk: 12 to 20 percent. Training data Empty
+    fraction: 86 percent. The model is under-predicting Empty by a
+    factor of roughly 4 to 7.
+
+3.3 Solid ground continuity (positive finding)
+    Every chunk has a continuous Solid tile row at the bottom with
+    visually zero gaps. This is the single dominant failure mode of
+    Iteration 1 (DiscontinuousGround, 62 percent of all Iteration 1
+    violations) and it is essentially solved by this Experiment B
+    variant.
+
+3.4 BulletBill misplacement
+    All 10 chunks contain at least 1 BulletBillLauncher tile, and
+    most contain 2 or 3. Every observed BulletBillLauncher tile is
+    positioned in the top sky band of the chunk rather than at the
+    bottom on top of a brick platform, where Mario 5-1 and Mario 7-1
+    place them in the training data. None of the observed
+    BulletBillLauncher tiles in the 10 chunks has a BulletBillBody
+    tile in the cell directly below it; all are isolated. The model
+    has learned that BulletBill tiles must appear (because of the
+    high weight) but has not learned where they should appear or
+    what they should connect to.
+
+3.5 FloatingEnemy persists
+    Most Enemy tiles in the 10 chunks are embedded inside the
+    Breakable brick mass rather than standing on top of a Solid tile.
+    This is the same FloatingEnemy failure mode observed in
+    Iteration 1, made worse by the new pattern of Enemies being
+    placed inside brick regions where Mario can never reach them.
+
+3.6 Pipe structure occasionally valid
+    Approximately 5 of the 10 chunks contain at least one
+    structurally-valid 2-wide pipe (PipeTopLeft + PipeTopRight on
+    one row, PipeBodyLeft + PipeBodyRight on the row below). The
+    remaining pipe pieces are isolated fragments. This is a slight
+    improvement over Iteration 1 where complete pipes were rare.
+
+3.7 QuestionFull over-prediction
+    Each chunk contains 5 to 12 QuestionFull tiles. Training data
+    QuestionFull fraction is 0.08 percent (768 of 987056). The
+    weight for QuestionFull was 98.864. The empirical generation
+    rate for QuestionFull in the chunks is roughly 1.5 to 3 percent,
+    so over-prediction by a factor of ~20 to 40.
+
+3.8 Coin clustering into horizontal lines (correct pattern)
+    Every chunk has at least one horizontal line of 4 to 9 adjacent
+    coin tiles. This is the canonical Mario coin layout, so the
+    model has learned a real spatial pattern here. However the model
+    ALSO embeds coins inside brick masses, which is not a valid
+    NES Mario configuration. So the pattern is partially learned.
+
+
+================================================================================
+PART 4: COMPARISON WITH ITERATION 1 BASELINE
+================================================================================
+
+The Iteration 1 20k-step unweighted baseline produced chunks with
+mean total violations of 8.2 per chunk and a violation distribution
+dominated by DiscontinuousGround (62 percent of all violations).
+The visual character of those chunks was sparse: mostly Empty sky
+with isolated brick fragments and a discontinuous ground row.
+
+Iteration 2 Experiment B (raw inverse-frequency) produces chunks
+with the opposite character: dense Breakable mass with a thin sky
+band, continuous ground row, and over-represented rare tile types.
+
+Side-by-side comparison of qualitative properties:
+
+    Property                 Iteration 1    Iteration 2 Exp B v1
+    ------------------------ -------------- ----------------------
+    Ground continuity        Poor           Excellent
+    Sky preservation         Good           Poor (compressed)
+    Breakable population     Reasonable     Massive over-prediction
+    QuestionFull population  Rare           Over-predicted
+    BulletBill structure     Missing        Present but misplaced
+    Pipe structure           Mostly broken  Sometimes valid
+    Enemy placement          Often floating Even more often floating
+                                            (inside bricks)
+    Overall recognizability  Sparse Mario   Dense brick maze with
+                                            Mario elements
+
+Neither variant produces chunks that pass a "is this a real Mario
+level" visual inspection. They fail in different ways: Iteration 1
+fails by under-generation (most positions stay close to Empty);
+Iteration 2 Experiment B v1 fails by over-generation (most positions
+become Breakable or another upweighted type).
+
+
+================================================================================
+PART 5: ROOT CAUSE HYPOTHESIS
+================================================================================
+
+The raw inverse-frequency weighting in
+TileTypeFrequencyComputer.BuildInverseFrequencyWeightTensor produces
+weights with a ratio of 2487 between the highest (BulletBillBody at
+221.363) and the lowest nonzero (Empty at 0.089). This 2487:1 ratio
+exists in a system where the loss is mean squared error over the
+one-hot velocity prediction.
+
+The hypothesis for the over-prediction effect:
+
+  1. During training, the gradient at a position where the target
+     is Empty contributes 0.089 to the loss. The gradient at a
+     position where the target is Breakable contributes 3.227 to
+     the loss, BulletBill contributes 221.363.
+
+  2. The model has limited capacity (BaseChannels = 64, approximately
+     3 million parameters). It cannot perfectly predict the spatial
+     distribution of every tile type. When it makes prediction
+     errors, the gradient pulls it toward whichever class would
+     reduce the loss most.
+
+  3. With Empty at weight 0.089, the cost of falsely predicting
+     non-Empty at an Empty position is small. With Breakable at
+     weight 3.227, the cost of falsely predicting Breakable at a
+     Breakable position is moderate but the benefit of correctly
+     predicting Breakable is also moderate. With BulletBill at 221,
+     correctly predicting it is highly rewarded but falsely
+     predicting non-BulletBill at a BulletBill position is severely
+     penalized.
+
+  4. The Nash equilibrium that the optimizer finds is: predict
+     non-Empty tiles much more often than warranted by the training
+     distribution. The cheapest way to avoid the severe penalty for
+     missing a BulletBill or QuestionFull is to occasionally predict
+     these rare types, even in positions where they do not belong.
+     The cheapest way to avoid penalties on Breakable positions is
+     to predict Breakable broadly. The penalty for predicting any of
+     these in an actually-Empty position is small (0.089 weight on
+     Empty positions), so the model is not punished much for spam.
+
+  5. The result: the model becomes a non-Empty-tile spammer. The
+     specific tile it spams most (Breakable) is the one that has a
+     moderate weight (3.227) and moderate training frequency, so
+     it is the "cheapest spam." Less spam of BulletBill and
+     QuestionFull because their weight is so high that spamming
+     them is risky (high penalty for false negatives in any of the
+     few real BulletBill/QuestionFull positions).
+
+This is a well-documented failure mode of raw class-balanced loss in
+the segmentation literature. See Eigen and Fergus 2015 (their
+median-frequency balancing), Cui et al. 2019 (effective number of
+samples), and Lin et al. 2017 (focal loss) for canonical
+remediations.
+
+
+================================================================================
+PART 6: PROPOSED REMEDIATION
+================================================================================
+
+Three remediations are candidate, in order of effort:
+
+6.1 Square-root inverse-frequency weighting (smallest change)
+
+    Replace the linear inverse-frequency formula with its square
+    root. This compresses both the upweighting of rare types and
+    the downweighting of common types, capping the dynamic range of
+    the weights at approximately 50:1 instead of 2487:1.
+
+    Expected weights after sqrt:
+      Empty               0.298  (was 0.089)
+      Solid               0.954  (was 0.911)
+      Breakable           1.797  (was 3.227)
+      Enemy               3.232  (was 10.451)
+      Coin                4.108  (was 16.865)
+      QuestionFull        9.943  (was 98.864)
+      BulletBillBody     14.879  (was 221.363)
+      BulletBillLauncher 13.431  (was 180.350)
+
+    Effort: one new method in TileTypeFrequencyComputer (already
+    drafted in the iteration-2-class-balanced-loss branch), one
+    line change in CfmTrainingLoop. Build, train 20k steps,
+    regenerate, evaluate.
+
+6.2 Effective Number of Samples weighting (more principled)
+
+    Implement the Cui et al. 2019 effective-number weighting where
+    weight[i] = (1 - beta) / (1 - beta^count[i]) with beta close to
+    1 (typical 0.9999). This gives diminishing-returns weight to
+    additional samples of a class and produces a more conservative
+    weight distribution than sqrt-inverse.
+
+    Effort: one new method in TileTypeFrequencyComputer, one line
+    change in CfmTrainingLoop. Slightly more arithmetic but no
+    architectural change.
+
+6.3 Focal loss (replace MSE)
+
+    Replace the per-pixel squared error with a focal loss that
+    down-weights easy examples (positions the model already
+    predicts correctly) and up-weights hard ones. This is the
+    Lin et al. 2017 approach and is generally considered the
+    state-of-the-art for class-imbalanced classification.
+    Implementation is more involved because the current CFM
+    objective is MSE-on-velocity rather than cross-entropy-on-
+    class-probabilities, so the focal modification has to be
+    adapted to the velocity prediction.
+
+    Effort: substantial. Multiple sessions of focused work.
+
+Recommended next step: Experiment B v2 = sqrt-inverse-frequency
+(Option 6.1). The code is mostly written already on the current
+branch; finalize, build, train, regenerate, compare against this
+result. If the sqrt variant produces something between the
+Iteration 1 sparse failure and the Experiment B v1 dense failure,
+the experiment is on a productive track and can be iterated
+further. If not, escalate to Option 6.2.
+
+
+================================================================================
+END OF REPORT
+================================================================================
