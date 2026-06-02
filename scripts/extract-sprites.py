@@ -66,6 +66,15 @@ TILE_X_OFFSET = {
     'Enemy': -7,
 }
 
+# Per-tile-type level skip list. Used when a tile type would otherwise be
+# extracted from a level whose palette does not match the canonical
+# sky-blue background most generated chunks are intended to render against.
+# Coin extraction skips underground levels (teal background) so we fall
+# through to mario-1-3 (treetop, sky-blue) for the canonical coin sprite.
+TILE_SKIP_LEVELS = {
+    'Coin': {'mario-1-2', 'mario-4-2'},
+}
+
 
 def crop_tile(png, txt_row, txt_col, tile_name):
     """Crops a 16x16 sprite at the position implied by (txt_row, txt_col).
@@ -107,17 +116,20 @@ def scan_level(txt_path, png_path, found):
     with open(txt_path, 'r', encoding='utf-8') as f:
         rows = [line.rstrip('\r\n') for line in f]
     png = Image.open(png_path).convert('RGBA')
+    level_stem = txt_path.stem
     for txt_row in range(len(rows) - 1, -1, -1):
         row_str = rows[txt_row]
         for txt_col, ch in enumerate(row_str):
             tile_name = CHAR_TO_TILE.get(ch)
             if tile_name is None or tile_name in found:
                 continue
+            if level_stem in TILE_SKIP_LEVELS.get(tile_name, set()):
+                continue
             sprite = crop_tile(png, txt_row, txt_col, tile_name)
             if sprite is None:
                 continue
             found[tile_name] = sprite
-            print(f"  found {ch!r} -> {tile_name} ({txt_path.stem} row={txt_row} col={txt_col})")
+            print(f"  found {ch!r} -> {tile_name} ({level_stem} row={txt_row} col={txt_col})")
 
 
 def main():
