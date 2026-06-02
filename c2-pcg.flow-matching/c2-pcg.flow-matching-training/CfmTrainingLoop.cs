@@ -33,6 +33,30 @@ public class CfmTrainingLoop
         List<TileMap> chunks = TileMapChunker.ExtractChunksFromAll(levels, 28, 14);
         Console.WriteLine("Loaded " + levels.Count + " levels, extracted " + chunks.Count + " chunks");
 
+        // === CLASS WEIGHTS FOR BALANCED LOSS ===
+        // Square-root inverse-frequency weights moderate the gradient
+        // contribution of rare tile types (BulletBill at ~0.07% of training
+        // tiles) without pushing common types (Empty, Solid) to near-zero
+        // weight. The straight inverse form was tried first and produced
+        // models that over-predict rare and mid-rare tiles at inference
+        // (e.g. 90% of generated tiles became Breakable bricks). The
+        // sqrt variant is the standard remediation; see
+        // docs/260602.iteration-2-plan.txt Part 3 for the rationale.
+        long[] tileCounts = TileTypeFrequencyComputer.CountTileOccurrences(chunks);
+        torch.Tensor classWeights =
+            TileTypeFrequencyComputer.BuildSqrtInverseFrequencyWeightTensor(tileCounts, device);
+        Console.WriteLine("Class-balanced weights (normalized to mean=1 over training distribution):");
+        for (int i = 0; i < tileCounts.Length; i++)
+        {
+            if (tileCounts[i] > 0)
+            {
+                float w = classWeights[i].item<float>();
+                Console.WriteLine("  " + ((TileTypeEnum)i).ToString().PadRight(20) +
+                                  " count=" + tileCounts[i].ToString().PadLeft(6) +
+                                  "  weight=" + w.ToString("F3"));
+            }
+        }
+
         // === MODEL ===
         int numTileTypes = 14;
         UnetBaseline model = new UnetBaseline(
@@ -71,8 +95,11 @@ public class CfmTrainingLoop
                 // Build batch tensor on the target device.
                 torch.Tensor x1 = TileMapTensorConverter.ToBatchTensor(batchChunks).to(device);
 
-                // Forward + loss.
-                torch.Tensor loss = CfmLossComputer.ComputeLoss(model, x1);
+                // Forward + loss. Class-balanced variant: rare tile types
+                // (BulletBill, Coin) contribute proportionally more gradient
+                // than common ones (Empty, Solid). See PR #11 / Iteration 2
+                // Experiment B in docs/260602.iteration-2-plan.txt.
+                torch.Tensor loss = CfmLossComputer.ComputeWeightedLoss(model, x1, classWeights);
 
                 // Backward + optimizer step.
                 optimizer.zero_grad();

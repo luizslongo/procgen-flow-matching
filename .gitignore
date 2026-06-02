@@ -27,7 +27,7 @@ sprites/
 generated-png/
 *.bin
 *.bin.step*
-loss-log.csv
+loss-log*.csv
 loss-curve*.png
 
 # Python virtual environment (created locally via `python3 -m venv .venv`)

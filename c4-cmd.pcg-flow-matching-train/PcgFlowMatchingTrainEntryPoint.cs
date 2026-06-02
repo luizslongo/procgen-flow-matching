@@ -27,8 +27,13 @@ public class PcgFlowMatchingTrainEntryPoint
         config.LogEveryNSteps = 50;
         config.CheckpointEveryNSteps = 500;
         config.VglcDataPath = args[0];
-        config.CheckpointOutputPath = "unet-baseline-checkpoint.bin";
-        config.LossLogOutputPath = "loss-log.csv";
+        // Distinct output names per ablation variant so each is preserved:
+        //   unet-baseline-checkpoint.bin         - Iteration 1, unweighted (kept)
+        //   unet-class-balanced-checkpoint.bin   - Iter 2 Exp B v1: raw 1/freq
+        //                                          (kept as failure-mode example)
+        //   unet-sqrt-balanced-checkpoint.bin    - Iter 2 Exp B v2: sqrt(1/freq)
+        config.CheckpointOutputPath = "unet-sqrt-balanced-checkpoint.bin";
+        config.LossLogOutputPath = "loss-log-sqrt-balanced.csv";
 
         CfmTrainingLoop.Run(config);
     }
