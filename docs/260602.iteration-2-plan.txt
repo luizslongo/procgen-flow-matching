@@ -1,0 +1,420 @@
+================================================================================
+TCC ITERATION 2 PLAN
+================================================================================
+
+Generated: 2026-06-02
+Topic:     Plan for the second iteration of the Conditional Flow Matching
+           pipeline. Documents the limitations observed in Iteration 1, the
+           specific experiments proposed to address each limitation, the
+           priority order, and the success criteria. This report is a
+           living document; it should be revised as experiments complete
+           and new findings emerge.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           Iteration 1 results documented in
+           docs/260529.tcc-iteration-1-first-end-to-end-result.txt;
+           GPU enablement and Blackwell support documented in PR #8 and #9.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Iteration 1 produced a mechanically complete pipeline: VGLC data loader,
+U-Net architecture, Conditional Flow Matching (CFM) training loop, Euler
+ODE solver for inference, FailureModeAnalyzer for evaluation, and a PNG
+renderer with sprites extracted from the VGLC level images. The pipeline
+trained successfully on CPU (2k steps, loss 1.08 -> 0.14) and on RTX 5060
+GPU (20k steps, loss 1.07 -> 0.028).
+
+The qualitative output of Iteration 1 has known limitations: generated
+chunks exhibit discontinuous ground rows, broken pipe structures,
+floating enemies that are not supported by tiles below them, and almost
+no structurally-valid bullet bill cannons. A 5x reduction in the CFM
+loss (from the 2k-step CPU baseline to the 20k-step GPU run) did not
+produce a proportional improvement in the spatial coherence of the
+generated samples.
+
+Iteration 2 targets these qualitative limitations. Each planned
+experiment in this document corresponds to one specific hypothesis about
+why Iteration 1 underperforms qualitatively, with a planned change and
+a measurable success criterion.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: LIMITATIONS OBSERVED IN ITERATION 1
+PART 2: EXPERIMENT A - LARGER MODEL CAPACITY
+PART 3: EXPERIMENT B - LONG-TAIL TILE TYPES VIA CLASS-BALANCED LOSS
+PART 4: EXPERIMENT C - DISCRETE FLOW MATCHING FOR CATEGORICAL DATA
+PART 5: EXPERIMENT D - CONDITIONAL GENERATION (TCC OBJECTIVE O4)
+PART 6: PRIORITY ORDER AND TIMELINE
+PART 7: SUCCESS CRITERIA AND EVALUATION PROTOCOL
+
+
+================================================================================
+PART 1: LIMITATIONS OBSERVED IN ITERATION 1
+================================================================================
+
+The Iteration 1 20k-step model exhibits four distinct failure patterns
+when generating 10 chunks at NumSteps (NFE) = 50.
+
+1.1 DISCONTINUOUS GROUND
+
+    The bottom row of the generated chunk is intended to be continuous
+    Solid (X) tiles. The model produces ground rows with 4-10 gaps per
+    chunk on average. This is the dominant failure mode, accounting for
+    62% of all FailureModeAnalyzer violations in the 20k-step run.
+
+1.2 BROKEN PIPE STRUCTURES
+
+    Pipes in the VGLC encoding are 2 tiles wide and 2+ tiles tall:
+    PipeTopLeft (<) + PipeTopRight (>) on the top row, PipeBodyLeft ([)
+    + PipeBodyRight (]) on the body rows. The model frequently produces
+    isolated < tiles without a matching >, or [ tiles without a top, or
+    horizontally-flipped arrangements (> on the left, < on the right).
+    The model has learned that pipe tiles exist but has not learned the
+    structural constraint that pipe parts must form a contiguous,
+    correctly-oriented 2-wide column.
+
+1.3 FLOATING ENEMIES
+
+    The Enemy (E) tile represents a Goomba walking on a surface. The
+    canonical placement in the training data is on top of a Solid (X)
+    tile. The model frequently emits E tiles that float in the sky with
+    no Solid tile immediately below. This is the FloatingEnemy failure
+    mode.
+
+1.4 ABSENT OR FRAGMENTED BULLET BILLS
+
+    BulletBillLauncher (B) and BulletBillBody (b) account for only 29
+    tiles out of 41,132 in the entire training corpus, a frequency of
+    0.07%. They appear in only 2 levels out of 32 (mario-5-1 with 6
+    tiles, mario-7-1 with 23 tiles). The 20k-step model produces B and
+    b tiles at approximately the right marginal frequency but rarely
+    composes them into a valid B-on-top-of-b cannon structure.
+    Aggregate BrokenBulletBill violations: 11 across 10 chunks.
+
+
+--------------------------------------------------------------------------------
+PART 2: EXPERIMENT A - LARGER MODEL CAPACITY
+================================================================================
+
+2.1 HYPOTHESIS
+
+    The U-Net architecture used in Iteration 1 has BaseChannels = 64.
+    The total parameter count is approximately 3 million. This may be
+    insufficient to encode the long-range spatial dependencies required
+    to produce continuous ground rows of 28 tiles or correctly-stacked
+    multi-tile pipe structures.
+
+2.2 EMPIRICAL FINDING (2026-06-02)
+
+    Attempted to increase BaseChannels from 64 to 256, then to 128,
+    keeping all other hyperparameters (LearningRate 5e-5, BatchSize 32,
+    NumSteps 20000, manual seed 42, gradient clip max_norm 0.5) fixed.
+
+    Both attempts produced training loss equal to positive infinity at
+    step 0, with NaN at all subsequent steps. Step 0 is computed BEFORE
+    any optimizer update, so this is a forward-pass numerical issue
+    caused by the initial random weights, not a gradient explosion that
+    a smaller learning rate or more aggressive gradient clipping could
+    fix.
+
+    Root cause analysis: the UnetBaseline architecture in
+    c2-pcg.flow-matching-model places GroupNorm layers inside the
+    ResidualConvBlock hidden path but adds an UN-normalized shortcut
+    (Identity or 1x1 Conv) to the result. Across 5 residual blocks,
+    the activation variance compounds. At BaseChannels = 64 the
+    compounded variance happens to stay within the FP32 representable
+    range; at BaseChannels = 128 or higher it overflows on the first
+    forward pass with the seed-42 weight initialization.
+
+2.3 PROPOSED ARCHITECTURAL FIX
+
+    To enable BaseChannels > 64 stably, the ResidualConvBlock needs
+    one of the following changes:
+
+      Option 1: Zero-initialize the SecondConv weights of every
+        ResidualConvBlock. At init each block computes result = 0 +
+        shortcut = identity. Variance does not compound. This is the
+        canonical fix used by Stable Diffusion, FLUX, and other large
+        U-Net based generative models. Effort: approximately 5 lines
+        of code in ResidualConvBlock.cs plus optional fix to other
+        blocks. No change to forward-pass logic.
+
+      Option 2: Add a normalization layer on the shortcut path. The
+        shortcut becomes Norm(Shortcut(x)) instead of Shortcut(x).
+        Stops variance compounding by normalizing every shortcut
+        addition. Effort: approximately 10 lines.
+
+      Option 3: Scale the residual addition by 1/sqrt(2). The
+        forward returns hidden / sqrt(2) + shortcut / sqrt(2). Keeps
+        the variance at 1.0 instead of doubling per block. Effort:
+        approximately 3 lines.
+
+    Recommended option for Iteration 2: Option 1 (zero-init
+    SecondConv). Standard pattern, minimal code change, no behavioral
+    surprises at convergence time.
+
+2.4 PLANNED CHANGE (DEFERRED)
+
+    Once the architectural fix is implemented, increase BaseChannels
+    to 128 first. Verify training is stable. Then attempt 256.
+
+    Field changes (after architectural fix):
+      ResidualConvBlock.cs: zero-init SecondConv
+      PcgFlowMatchingTrainEntryPoint.cs:    BaseChannels = 128 then 256
+      PcgFlowMatchingGenerateEntryPoint.cs: same
+
+    BatchSize remains 32.
+
+2.5 STATUS
+
+    BLOCKED on architectural fix. Reverted BaseChannels to 64 on the
+    iteration-2-bigger-model branch on 2026-06-02 to unblock other
+    experiments. Re-priority: Experiment B (Part 3) is now Priority 1.
+
+
+================================================================================
+PART 3: EXPERIMENT B - LONG-TAIL TILE TYPES VIA CLASS-BALANCED LOSS
+================================================================================
+
+3.1 HYPOTHESIS
+
+    The current CfmLossComputer computes a Mean Squared Error (MSE)
+    between predicted and target velocity tensors over all 14 one-hot
+    channels and all 28 by 14 spatial positions. Because rare tile
+    types (BulletBillLauncher, BulletBillBody) account for 0.07% of
+    training pixels, the per-pixel loss provides almost no gradient
+    signal for correctly modeling rare tiles. The model is effectively
+    rewarded the same for ignoring rare tile types as for producing
+    them correctly.
+
+3.2 PLANNED CHANGE
+
+    Modify CfmLossComputer.ComputeLoss to weight the per-pixel MSE
+    contribution by the inverse frequency of the target tile type.
+
+    Concrete implementation sketch:
+      1. Precompute tile frequency array F[TileType] from the training
+         set. Bullet bills have F approximately 0.0007; Solid has F
+         approximately 0.0875.
+      2. Compute inverse-frequency weights W[TileType] = 1 / F[TileType]
+         normalized so that the average weight is 1.
+      3. In ComputeLoss, take the argmax of x1 (the one-hot target) to
+         get the tile type at each position. Multiply the squared error
+         contribution at that position by W[tile_type_at_position].
+      4. Reduce by mean as before.
+
+    This is a small change to one file (CfmLossComputer.cs) and one
+    new precomputed file (tile-frequencies.csv) extracted from the
+    VGLC training data.
+
+3.3 MEASURABLE OUTCOME
+
+    BulletBill-related violations should drop from the current 11 per
+    10 chunks to under 4 per 10 chunks. Other rare-tile failure modes
+    (FloatingEnemy in particular) may also improve.
+
+3.4 EFFORT AND TIMING
+
+    Code change: approximately 30 lines in CfmLossComputer plus a small
+    helper to compute tile frequencies.
+    Training time: same as Experiment A (model size unchanged).
+    Total elapsed wall-clock: under 2 hours including precomputation
+    and verification.
+
+
+================================================================================
+PART 4: EXPERIMENT C - DISCRETE FLOW MATCHING FOR CATEGORICAL DATA
+================================================================================
+
+4.1 HYPOTHESIS
+
+    Tile maps are inherently categorical: each position is exactly one
+    of 14 discrete tile types. Iteration 1 encodes this as a one-hot
+    tensor and applies continuous CFM, then takes argmax at inference
+    time to discretize. This is a known suboptimal pairing of objective
+    and data type. Mixtures of tile types are valid intermediate states
+    during the Euler integration but have no physical meaning in the
+    tile-map domain.
+
+    Discrete Flow Matching (Campbell et al., 2024) is a recently
+    published variant of flow matching designed specifically for
+    categorical data. It replaces the continuous interpolation path
+    with a probabilistic mixture along the categorical simplex, and
+    replaces the MSE objective with a categorical cross-entropy
+    objective.
+
+4.2 PLANNED CHANGE
+
+    Replace CfmLossComputer with a new DiscreteCfmLossComputer that
+    implements the Campbell et al. (2024) objective. Replace
+    EulerOdeSolver with a categorical sampling procedure that
+    integrates the discrete-time Markov chain implied by the trained
+    velocity field.
+
+    Reference: Campbell et al., "Generative Flows on Discrete State
+    Spaces: Enabling Multimodal Flows with Applications to Protein
+    Co-Design," 2024.
+
+    This is the most ambitious experiment in the Iteration 2 plan and
+    is documented as an option rather than a commitment.
+
+4.3 MEASURABLE OUTCOME
+
+    All four failure modes (DiscontinuousGround, BrokenPipe*,
+    FloatingEnemy, BrokenBulletBill) should show improvement because
+    the model is now optimized over the correct objective for the data
+    type. The per-chunk total violation count should drop substantially
+    from the current 8.2 mean.
+
+4.4 EFFORT AND TIMING
+
+    Code change: approximately 200 to 400 lines spread across
+    CfmLossComputer, EulerOdeSolver, and possibly the U-Net output
+    head. Includes implementing and verifying the discrete sampling
+    procedure.
+    Training time: similar to Iteration 1.
+    Total elapsed wall-clock: 2 to 3 days of focused work, including
+    reading the paper, implementation, debugging, and verification.
+
+
+================================================================================
+PART 5: EXPERIMENT D - CONDITIONAL GENERATION (TCC OBJECTIVE O4)
+================================================================================
+
+5.1 HYPOTHESIS
+
+    The original TCC objective O4 specifies that the model should
+    accept a conditional input describing the desired biome or level
+    type (overworld, underground, treetop, castle, etc.) and produce
+    a chunk matching that condition. Iteration 1 generates from
+    unconditional noise; the output biome is not controllable.
+
+5.2 PLANNED CHANGE
+
+    Add a conditional embedding vector (length to be determined; a
+    reasonable default is 64) to the U-Net forward path. The
+    conditional vector is concatenated with the time embedding before
+    being injected into each ResidualConvBlock.
+
+    The conditional label is derived from the VGLC level name during
+    training (mario-1-1 -> overworld, mario-1-2 -> underground, etc.)
+    and provided as input at inference time.
+
+    For TCC scope, support 4 biome labels:
+      0 = overworld
+      1 = underground
+      2 = treetop
+      3 = castle
+
+5.3 MEASURABLE OUTCOME
+
+    Generated samples for a given biome label should visually match
+    the expected biome's tile statistics. A treetop chunk should
+    contain elevated platforms; an underground chunk should contain
+    pipes and few open-sky regions; a castle chunk should contain
+    BulletBill structures.
+
+    A quantitative biome-classifier metric can be added to
+    FailureModeAnalyzer, comparing the predicted biome of a generated
+    chunk to its requested biome label.
+
+5.4 EFFORT AND TIMING
+
+    Code change: U-Net forward signature change, embedding lookup
+    addition, training loop modification to pass labels. Approximately
+    100 lines.
+    Training time: similar to Iteration 1.
+    Total elapsed wall-clock: 1 to 2 days of focused work.
+
+
+================================================================================
+PART 6: PRIORITY ORDER AND TIMELINE
+================================================================================
+
+Today is 2026-06-02. The TCC manuscript deadline is 2026-06-17. That
+leaves 15 days. Experiments are ranked by expected impact per unit
+effort, lowest effort first.
+
+  Priority 1 (this week): Experiment B (class-balanced loss)
+    Reason: targets the long-tail problem identified quantitatively
+    in Part 1. Small code change to CfmLossComputer. Independent of
+    the architectural fix Experiment A needs. Most direct way to
+    improve bullet bill and rare-tile generation without touching the
+    architecture.
+
+  Priority 2 (next week): Experiment D (conditional generation)
+    Reason: satisfies the original TCC objective O4 (biome control),
+    which is part of the agreed manuscript scope. Independent of
+    Experiment A.
+
+  Priority 3 (when time permits): Experiment A (BaseChannels scale-up)
+    Reason: requires the architectural fix described in Part 2.3
+    (zero-init SecondConv) BEFORE the channel bump can be attempted.
+    Then small code change + 30 minute training run. Estimated total
+    effort: 2 hours including verification.
+
+  Priority 4 (only if A, B, D are insufficient): Experiment C
+  (discrete flow matching)
+    Reason: largest implementation effort. Should only be undertaken
+    if simpler interventions have been exhausted, because the time
+    cost is high relative to the remaining TCC deadline window.
+
+
+================================================================================
+PART 7: SUCCESS CRITERIA AND EVALUATION PROTOCOL
+================================================================================
+
+7.1 PER-EXPERIMENT REPORTING
+
+    Every completed experiment produces a paired result report in
+    docs/ named YYMMDD.iteration-2-exp-X-result.txt, where X is the
+    experiment letter and YYMMDD is the completion date. Each report
+    contains:
+      - Configuration: hyperparameters used
+      - Loss trajectory: initial, final, plateau step
+      - 10 generated chunks: ASCII + PNG renderings
+      - FailureModeAnalyzer aggregate counts
+      - Comparison against the Iteration 1 baseline
+      - Qualitative observations
+      - Conclusion: does this experiment proceed to manuscript, or
+        was it superseded by a later experiment
+
+7.2 ITERATION 2 OVERALL SUCCESS CRITERION
+
+    Iteration 2 is complete when the best-configured model produces
+    chunks with the following aggregate metrics over 10 generated
+    samples at NumSteps = 50, fixed seed:
+
+      Mean total violations per chunk:  under 4.0
+        (Iteration 1 baseline: 8.2)
+      DiscontinuousGround per chunk:    under 2.0
+        (Iteration 1 baseline: 5.1)
+      BrokenPipe (any type) per chunk:  under 1.5
+        (Iteration 1 baseline: 2.0)
+
+    These targets are derived from the Iteration 1 measurements and
+    represent a 50% reduction in dominant failure modes.
+
+7.3 MANUSCRIPT INCORPORATION
+
+    The Iteration 2 results form the core of Chapter 4 of the
+    manuscript. The structure proposed is:
+      4.1 Iteration 1 baseline (already drafted from
+          docs/260529.tcc-iteration-1-first-end-to-end-result.txt)
+      4.2 Identified limitations (Part 1 of this document)
+      4.3 Iteration 2 experiments (one section per completed
+          experiment, drawing from the corresponding result report)
+      4.4 Final results and comparison
+      4.5 Discussion of remaining limitations and future work
+
+
+================================================================================
+END OF REPORT
+================================================================================
