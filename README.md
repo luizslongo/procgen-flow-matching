@@ -123,16 +123,26 @@ Here `<vglc>/..` is the parent of the VGLC `Processed` directory, i.e. the `Supe
 
 ### Generate chunks and evaluate
 
+The recommended checkpoint for inference is `unet-conditional-checkpoint.bin` (Iteration 2 Experiment D), which supports per-biome generation. The earlier checkpoints (`unet-baseline-checkpoint.bin`, `unet-class-balanced-checkpoint.bin`, `unet-sqrt-balanced-checkpoint.bin`) are retained for ablation comparisons but produce mixed-biome outputs.
+
 ```bash
-dotnet run --project c4-cmd.pcg-flow-matching-generate -- unet-baseline-checkpoint.bin
+# Overworld generation (default biome)
+dotnet run --project c4-cmd.pcg-flow-matching-generate -- unet-conditional-checkpoint.bin --biome overworld
+
+# Underground (cave-style chunks with Breakable ceiling)
+dotnet run --project c4-cmd.pcg-flow-matching-generate -- unet-conditional-checkpoint.bin --biome underground --png-dir generated-png-underground
+
+# Treetop (floating platforms with coin trails)
+dotnet run --project c4-cmd.pcg-flow-matching-generate -- unet-conditional-checkpoint.bin --biome treetop --png-dir generated-png-treetop
 ```
 
 Produces:
 - 10 ASCII-rendered generated chunks printed to stdout
 - Per-type violation counts from the `FailureModeAnalyzer`
-- 10 PNG files in `./generated-png/` (`chunk-001.png` to `chunk-010.png`) at 16×16 px per tile, using the sprites in `./sprites/`
+- 10 PNG files in the `--png-dir` directory (default `./generated-png/`) at 16×16 px per tile, using the sprites in `./sprites/`
 
 Flags:
+- `--biome <name>` — `overworld` (default) | `underground` | `treetop`; selects the biome to condition generation on
 - `--no-render-png` — skip PNG output (ASCII + analysis only)
 - `--png-dir <path>` — override the PNG output directory
 - `--sprite-dir <path>` — override the sprite source directory
@@ -143,7 +153,20 @@ If the sprite directory is missing the command prints a warning and continues wi
 
 The Iteration 1 baseline (2000 training steps on CPU, single seed) drops the loss from **1.08 to 0.14** and produces generated chunks with an average of **7.7 violations per chunk**. The dominant failure mode is **discontinuous ground** (60% of all violations).
 
-The full report for Iteration 1 is in [`docs/260529.tcc-iteration-1-first-end-to-end-result.txt`](docs/260529.tcc-iteration-1-first-end-to-end-result.txt). Earlier progress reports and the Iteration 1 implementation plan live in [`docs/`](docs/).
+The final Iteration 2 configuration is **biome-conditional CFM with sqrt inverse-frequency class weighting** (`unet-conditional-checkpoint.bin`). It produces biome-clean per-biome outputs: overworld chunks have no cave ceiling; underground chunks have a cave ceiling on every chunk; treetop chunks have floating platforms with coin trails. Per-biome chunk analysis in [`docs/260603.iteration-2-exp-d-biome-conditional-results.txt`](docs/260603.iteration-2-exp-d-biome-conditional-results.txt).
+
+All progress reports for both iterations are in [`docs/`](docs/), with the four ablation checkpoints (baseline / class-balanced / sqrt-balanced / biome-conditional) preserved as evidence of the iterative narrative.
+
+## Dataset Scope and Known Limitations
+
+The model is trained on the **Video Game Level Corpus (VGLC)** Super Mario Bros levels (Summerville et al. 2016). VGLC uses a **structural encoding** of 13 tile types that captures gameplay-relevant elements only. The following Mario elements are present in the original NES PNGs but **are not encoded by VGLC and therefore cannot appear in generated chunks**:
+
+- **Decorations**: clouds, bushes, hills, castle, flagpole, beanstalk vines
+- **Runtime-emerged items**: mushrooms, fire flowers, star powerups, piranha plants, bullet projectiles
+- **Distinct enemy varieties**: Koopa Troopa (turtle), Lakitu, Spiny, and Bullet Bill projectile are all collapsed into a single `E` (Enemy) character; the renderer always draws Goombas
+- **Distinct solid blocks**: the indestructible 3D cube block is encoded as the same character `X` as the flat ground floor
+
+This is not a bug in the model — it is a property of the dataset encoding. A pixel-perfect-fidelity model would require a different dataset (e.g., per-NES-tile classification with approximately 200 classes instead of VGLC's 13 structural classes); that is out of scope for this thesis. Chapter 4 of the manuscript bounds the claim accordingly to "structurally-valid Mario chunks within the VGLC vocabulary."
 
 ## Citation
 
