@@ -25,6 +25,7 @@ public class PcgFlowMatchingGenerateEntryPoint
         bool renderPng = true;
         string pngOutputDir = "./generated-png";
         string spriteDir = "./sprites";
+        BiomeTypeEnum biome = BiomeTypeEnum.Overworld;
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -42,7 +43,21 @@ public class PcgFlowMatchingGenerateEntryPoint
                 spriteDir = args[i + 1];
                 i++;
             }
+            else if (args[i] == "--biome" && i + 1 < args.Length)
+            {
+                string biomeArg = args[i + 1].ToLowerInvariant();
+                if (biomeArg == "overworld") biome = BiomeTypeEnum.Overworld;
+                else if (biomeArg == "underground") biome = BiomeTypeEnum.Underground;
+                else if (biomeArg == "treetop") biome = BiomeTypeEnum.Treetop;
+                else
+                {
+                    Console.WriteLine("Unknown biome: " + args[i + 1] + ". Expected overworld|underground|treetop.");
+                    return;
+                }
+                i++;
+            }
         }
+        Console.WriteLine("Conditioning generation on biome: " + biome);
 
         // === RENDERING SETUP ===
         if (renderPng && !Directory.Exists(spriteDir))
@@ -68,6 +83,8 @@ public class PcgFlowMatchingGenerateEntryPoint
         config.NumSamples = 10;
         config.BaseChannels = 64;
         config.TimeEmbeddingDim = 128;
+        config.NumBiomes = 4;
+        config.BiomeLabel = biome;
         config.CheckpointPath = checkpointPath;
 
         Console.WriteLine("Generating " + config.NumSamples + " chunks with NFE=" + config.NumSteps);
@@ -134,8 +151,9 @@ public class PcgFlowMatchingGenerateEntryPoint
         Console.WriteLine("  --no-render-png        Skip PNG rendering (ASCII + analysis only)");
         Console.WriteLine("  --png-dir <path>       Output directory for PNGs (default: ./generated-png)");
         Console.WriteLine("  --sprite-dir <path>    Sprite source directory (default: ./sprites)");
+        Console.WriteLine("  --biome <name>         Biome to condition on: overworld|underground|treetop (default: overworld)");
         Console.WriteLine();
-        Console.WriteLine("Example: dotnet run -- unet-baseline-checkpoint.bin");
+        Console.WriteLine("Example: dotnet run -- unet-conditional-checkpoint.bin --biome underground");
     }
 
     // Renders a TileMap as ASCII using the VGLC character mapping.
