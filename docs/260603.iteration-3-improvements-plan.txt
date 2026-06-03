@@ -56,8 +56,9 @@ PART 2: IMPROVEMENT A - RANDOMIZED ENEMY SPRITE RENDERING
 PART 3: IMPROVEMENT B - BIOME-AWARE FailureModeAnalyzer
 PART 4: IMPROVEMENT C - LARGER MODEL (DEPENDS ON CHANNELS FIX)
 PART 5: IMPROVEMENT D - LONGER TRAINING
-PART 6: OUT-OF-SCOPE IMPROVEMENTS NOTED FOR FUTURE WORK
-PART 7: PRIORITY ORDER AND TIMELINE FIT
+PART 6: IMPROVEMENT E - MARIO AI PLAYABILITY EVALUATION
+PART 7: OUT-OF-SCOPE IMPROVEMENTS NOTED FOR FUTURE WORK
+PART 8: PRIORITY ORDER AND TIMELINE FIT
 
 
 ================================================================================
@@ -179,6 +180,30 @@ the specific Improvement in later parts that proposes to address them.
     biome.
 
     Addressable by: Improvement B (biome-aware analyzer).
+
+1.8 EVALUATION IS STRUCTURAL-ONLY, NOT PLAYABILITY-BASED
+
+    The current FailureModeAnalyzer counts STRUCTURAL violations
+    (broken pipes, floating enemies, discontinuous ground). It
+    does NOT measure whether the chunk is actually beatable by
+    a Mario player. A chunk could pass all structural checks AND
+    still be unbeatable (an unreachable goal due to gaps that
+    exceed Mario's jump range, enemies in positions that block
+    forward progress, brick walls without traversable openings).
+    Conversely, a chunk with a few structural violations might
+    still be perfectly playable if the violations are in regions
+    the player skips over.
+
+    The canonical PCG-via-ML literature (Summerville and Mateas
+    2016, Volz et al. 2018) reports the "percent of generated
+    levels completed by an A* agent" as the gold-standard
+    quantitative metric. This is what Synth proposed on
+    2026-06-02 in response to the Experiment D sample
+    screenshots. The metric measures GAMEPLAY correctness, which
+    is what game designers ultimately care about.
+
+    Addressable by: Improvement E (Mario AI playability
+    evaluation).
 
 
 ================================================================================
@@ -393,13 +418,146 @@ PART 5: IMPROVEMENT D - LONGER TRAINING
 
 
 ================================================================================
-PART 6: OUT-OF-SCOPE IMPROVEMENTS NOTED FOR FUTURE WORK
+PART 6: IMPROVEMENT E - MARIO AI PLAYABILITY EVALUATION
+================================================================================
+
+6.1 GAP IT ADDRESSES
+
+    1.8 (evaluation is structural-only, not playability-based).
+
+    Suggested by Synth (Iosys) on 2026-06-02 after viewing the
+    Experiment D sample screenshots. Quote: "you can do mario and
+    have play, there is ai, and see if level or screen is beatable
+    if they can get to end of level or not." This matches the
+    canonical evaluation protocol in the PCG-via-ML literature
+    (Summerville and Mateas 2016, Volz et al. 2018,
+    Karakovskiy and Togelius 2012).
+
+6.2 PROPOSED CHANGE
+
+    Integrate the Mario AI Framework (Robin Baumgarten's A* agent
+    plus the Karakovskiy-Togelius level format), run the A* agent
+    over each generated chunk, and report the percentage of chunks
+    that the agent completes from left edge to right edge.
+
+    Source repository:
+      https://github.com/amidos2006/Mario-AI-Framework
+    Reference implementation language: Java.
+    Reference papers:
+      Karakovskiy and Togelius (2012) The Mario AI Benchmark and
+        Competitions
+      Summerville and Mateas (2016) Super Mario as a String:
+        Platformer Level Generation Via LSTMs
+      Volz et al. (2018) Evolving Mario Levels in the Latent Space
+        of a Deep Convolutional Generative Adversarial Network
+
+    Concrete implementation steps:
+
+      1. Clone Mario AI Framework locally. Install Java JDK 8+ if
+         not already present on the development machine. Verify by
+         running the framework's bundled example level through the
+         A* agent.
+
+      2. Add a new C# action class
+         c2-pcg.flow-matching-eval/MarioAiFrameworkExporter.cs
+         that writes a TileMap to the Mario AI Framework level
+         format. The framework expects 16 rows by N columns of
+         characters where each character maps to the framework's
+         own tile vocabulary. VGLC-to-MAF character mapping:
+           Empty (-)               -> "-" (passable)
+           Solid (X)               -> "X" (solid ground)
+           Breakable (S)           -> "S" (breakable brick)
+           QuestionFull (?)        -> "?" (question with item)
+           QuestionEmpty (Q)       -> "Q" (empty question)
+           Enemy (E)               -> "g" (Goomba) or "k" (Koopa);
+                                     pick by random or always "g"
+                                     for determinism
+           PipeTopLeft (<)         -> "<" (pipe top left)
+           PipeTopRight (>)        -> ">" (pipe top right)
+           PipeBodyLeft ([)        -> "[" (pipe body left)
+           PipeBodyRight (])       -> "]" (pipe body right)
+           Coin (o)                -> "o" (coin)
+           BulletBillLauncher (B)  -> "B" (Bullet Bill cannon top)
+           BulletBillBody (b)      -> "b" (Bullet Bill cannon body)
+         The MAF format is a 14-row level with an added padding
+         row at the top and bottom (so 16 rows total) plus a
+         specific Mario start position character at the left edge.
+
+      3. Add a new C# action class
+         c2-pcg.flow-matching-eval/MarioAiPlayabilityRunner.cs
+         that, given a directory of TileMaps, exports each to MAF
+         format, invokes the MAF A* agent via Process.Start on the
+         framework JAR, captures the agent output (completed /
+         died-at-position), and writes a CSV with one row per
+         chunk:
+           biome,chunk_id,completed,death_x,death_y,duration_seconds
+
+      4. Add a new c4-cmd.pcg-flow-matching-playability assembly
+         that runs the playability evaluation across all 30
+         Experiment D biome-conditional chunks plus all 10
+         Experiment B v2 chunks, and prints the aggregate
+         percentages per biome:
+
+           Iter 1 baseline:      X percent completed
+           Exp B v1:             X percent completed
+           Exp B v2:             X percent completed
+           Exp D overworld:      X percent completed
+           Exp D underground:    X percent completed
+           Exp D treetop:        X percent completed
+
+      5. Optional: generate 50 to 100 fresh chunks per biome from
+         the Exp D checkpoint to get a statistically robust
+         per-biome percentage rather than the noisy estimate from
+         only 10 samples.
+
+6.3 EFFORT
+
+    Medium to large (estimated 1 to 2 days total).
+      2 hours: clone MAF, install Java, verify A* on example level.
+      3 to 4 hours: implement MarioAiFrameworkExporter with the
+                    VGLC-to-MAF tile character mapping.
+      2 to 3 hours: implement MarioAiPlayabilityRunner with
+                    Process.Start invocation and result parsing.
+      1 hour: implement the c4-cmd.pcg-flow-matching-playability
+              entrypoint and aggregate reporting.
+      1 hour: run the evaluation, capture CSV output, generate
+              per-biome aggregate table.
+      Optional 1 hour: generate 50 to 100 chunks per biome for
+                       statistical robustness.
+
+6.4 IMPACT
+
+    LARGE. The "percent beatable" metric is the canonical PCG-
+    via-ML evaluation. Reporting it for our biome-conditional
+    model gives the TCC manuscript:
+      - A directly-comparable quantitative metric against
+        published baselines (Summerville LSTM, Volz GAN).
+      - A gameplay-correctness measurement that complements the
+        structural FailureModeAnalyzer counts.
+      - Implicit positioning of the work within the PCG-via-ML
+        research community frame.
+
+    Reviewers and the manuscript banca will recognize the
+    methodology immediately. Synth's suggestion to use this metric
+    is consistent with the field's standard practice.
+
+6.5 SCOPE
+
+    STRONGLY RECOMMENDED. This is the single most valuable
+    in-scope improvement remaining for the TCC manuscript.
+    Recommended priority is just below Improvement B (biome-aware
+    analyzer) because B is required first to report meaningful
+    biome-specific counts alongside the playability percentages.
+
+
+================================================================================
+PART 7: OUT-OF-SCOPE IMPROVEMENTS NOTED FOR FUTURE WORK
 ================================================================================
 
 These improvements are documented here as ideas worth pursuing in a
 future paper, but are not recommended for the TCC manuscript timeline.
 
-6.1 SUB-BIOME LABELS
+7.1 SUB-BIOME LABELS
 
     Replace the 3-class biome label (Overworld / Underground /
     Treetop) with finer-grained labels (overworld-pipe-heavy /
@@ -410,7 +568,7 @@ future paper, but are not recommended for the TCC manuscript timeline.
     sub-biome granularity, plus retraining.
     Out-of-scope: estimated 1 to 2 days of focused work.
 
-6.2 CLASSIFIER-FREE GUIDANCE
+7.2 CLASSIFIER-FREE GUIDANCE
 
     Train with biome-dropout (e.g., 10 percent of the time pass
     BiomeTypeEnum.Error as the label, training the model to also
@@ -423,7 +581,7 @@ future paper, but are not recommended for the TCC manuscript timeline.
     strong biome differentiation.
     Out-of-scope: estimated 1 day of focused work.
 
-6.3 DISCRETE FLOW MATCHING
+7.3 DISCRETE FLOW MATCHING
 
     Replace the continuous CFM objective with a discrete flow
     matching objective (Campbell et al. 2024) designed
@@ -436,7 +594,7 @@ future paper, but are not recommended for the TCC manuscript timeline.
     paper reading. Mentioned in
     docs/260602.iteration-2-plan.txt Part 4 as Experiment C.
 
-6.4 LONGER GENERATION SEQUENCES
+7.4 LONGER GENERATION SEQUENCES
 
     Currently the generator produces standalone 28-by-14 chunks.
     Real Mario levels are 200+ tiles wide. A future paper could
@@ -446,7 +604,7 @@ future paper, but are not recommended for the TCC manuscript timeline.
     Out-of-scope: requires a different model formulation (e.g.,
     autoregressive or conditional-on-context).
 
-6.5 CONDITIONAL GENERATION ON GAMEPLAY PROPERTIES
+7.5 CONDITIONAL GENERATION ON GAMEPLAY PROPERTIES
 
     Extend biome conditioning to additional axes such as
     difficulty (easy / medium / hard), enemy density (low / med /
@@ -456,7 +614,7 @@ future paper, but are not recommended for the TCC manuscript timeline.
 
 
 ================================================================================
-PART 7: PRIORITY ORDER AND TIMELINE FIT
+PART 8: PRIORITY ORDER AND TIMELINE FIT
 ================================================================================
 
 Today is 2026-06-03. The TCC manuscript deadline is 2026-06-17. That
@@ -465,38 +623,49 @@ improvements.
 
 Recommended sequencing for the remaining 14 days:
 
-  Days 1 to 3 (2026-06-04 to 2026-06-06)
+  Days 1 to 4 (2026-06-04 to 2026-06-07)
     Implement Improvement A (randomized enemy rendering): 1 hour
     Implement Improvement B (biome-aware FailureModeAnalyzer): 3 to 4
       hours
-    Regenerate the 30 biome-conditional chunks under the improved
-      renderer and analyzer for the manuscript's "best results"
-      figure.
+    Implement Improvement E (Mario AI Framework playability eval):
+      1 to 2 days. This is the highest-impact in-scope improvement
+      and the one Synth suggested.
+    Regenerate the 30 biome-conditional chunks (and optionally 50
+      to 100 fresh chunks per biome) under the improved renderer
+      and analyzer; run the A* agent over all of them; record per-
+      biome percentage beatable.
 
-  Days 4 to 6 (2026-06-07 to 2026-06-09)
+  Days 5 to 7 (2026-06-08 to 2026-06-10)
     Implement the channels fix per docs/260603.unetbaseline-channels-
       scaling-fix-plan.txt: 1 to 2 hours.
     Run Improvement C (larger model at BaseChannels = 128 or 192)
       and Improvement D (longer training combined): 1 to 2 hours.
-    If results visibly improve over the current Experiment D
-      checkpoint, retain the larger model as the final Iteration 2
-      configuration.
+    Re-run Improvement E on the larger-model chunks for
+      direct comparison: 1 hour.
+    If the larger model produces visibly better chunks AND higher
+      percentage beatable, retain it as the final configuration.
 
-  Days 7 to 14 (2026-06-10 to 2026-06-17)
-    Draft Chapter 4 of the manuscript from the four ablation
-      reports.
+  Days 8 to 14 (2026-06-11 to 2026-06-17)
+    Draft Chapter 4 of the manuscript from the five ablation
+      reports (Iter 1, Exp B v1, Exp B v2, Exp D, plus the
+      Improvement-E playability table).
     Final polish, figures, references, submission.
 
-If time pressure rises before day 7, the optional items in days 1 to 6
-can be skipped without compromising the core thesis: the Experiment D
-configuration documented in
-docs/260603.iteration-2-exp-d-biome-conditional-results.txt is
-already a complete, defensible result.
+If time pressure rises before day 8, drop the optional items
+(Improvement A, D, and the larger-model C experiments) without
+compromising the core thesis. The MINIMAL must-have set for the
+manuscript is:
+  - Experiment D biome-conditional results
+  - Biome-aware FailureModeAnalyzer counts (Improvement B)
+  - Mario AI Framework percent-beatable per biome (Improvement E)
+
+This minimal set takes approximately 2 days of focused work and
+produces a defensible Chapter 4.
 
 Decision matrix for the user:
 
   Improvement                    Effort   Impact  TCC scope
-  -----------------------------  -------  ------  -----------
+  -----------------------------  -------  ------  -------------------
   A: Randomized enemy sprites    Small    Small   Optional
                                                   (visual polish)
   B: Biome-aware analyzer        Medium   Medium  Recommended
@@ -504,10 +673,13 @@ Decision matrix for the user:
   C: Larger model                Medium*  Large   Recommended
                                                   (after channels fix)
   D: Longer training             Small    Small   Optional
-  E: Sub-biome labels            Large    Medium  Out-of-scope
-  F: Classifier-free guidance    Large    Medium  Out-of-scope
-  G: Discrete flow matching      Large    Large   Out-of-scope
-  H: Longer generation           Out-of-  Large   Out-of-scope
+  E: Mario AI playability eval   Medium-  Large   Strongly recommended
+                                 Large            (Synth's suggestion;
+                                                  canonical PCG metric)
+  F: Sub-biome labels            Large    Medium  Out-of-scope
+  G: Classifier-free guidance    Large    Medium  Out-of-scope
+  H: Discrete flow matching      Large    Large   Out-of-scope
+  I: Longer generation           Out-of-  Large   Out-of-scope
                                  scope
 
   * Effort for C is Medium because it depends on the channels fix
