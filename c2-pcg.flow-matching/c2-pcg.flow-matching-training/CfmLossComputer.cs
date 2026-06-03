@@ -12,8 +12,10 @@ public class CfmLossComputer
     // Computes the CFM loss for a batch of real chunks.
     // model: the U-Net that predicts the velocity field.
     // x1: real data batch (N, C, H, W) one-hot encoded chunks.
+    // biomeLabels: int64 tensor of shape (N,) with BiomeTypeEnum value
+    //   per sample, on the same device as x1.
     // Returns: scalar loss tensor (MSE between predicted and target velocity).
-    public static torch.Tensor ComputeLoss(UnetBaseline model, torch.Tensor x1)
+    public static torch.Tensor ComputeLoss(UnetBaseline model, torch.Tensor x1, torch.Tensor biomeLabels)
     {
         long batchSize = x1.shape[0];
 
@@ -36,7 +38,7 @@ public class CfmLossComputer
         torch.Tensor target = x1 - x0;
 
         // Step 5: predict the velocity field with the U-Net.
-        torch.Tensor prediction = model.Forward(xt, t);
+        torch.Tensor prediction = model.Forward(xt, t, biomeLabels);
 
         // Step 6: mean squared error between predicted and target velocity.
         torch.Tensor diff = prediction - target;
@@ -56,7 +58,7 @@ public class CfmLossComputer
     // classWeights: 1D tensor of shape (NumTileTypes,) on the same device
     //   as x1, produced by TileTypeFrequencyComputer.BuildInverseFrequencyWeightTensor.
     public static torch.Tensor ComputeWeightedLoss(
-        UnetBaseline model, torch.Tensor x1, torch.Tensor classWeights)
+        UnetBaseline model, torch.Tensor x1, torch.Tensor biomeLabels, torch.Tensor classWeights)
     {
         long batchSize = x1.shape[0];
 
@@ -65,7 +67,7 @@ public class CfmLossComputer
         torch.Tensor tExpanded = t.view(batchSize, 1, 1, 1);
         torch.Tensor xt = (1.0f - tExpanded) * x0 + tExpanded * x1;
         torch.Tensor target = x1 - x0;
-        torch.Tensor prediction = model.Forward(xt, t);
+        torch.Tensor prediction = model.Forward(xt, t, biomeLabels);
         torch.Tensor diff = prediction - target;
         torch.Tensor sqErr = diff * diff;
 
