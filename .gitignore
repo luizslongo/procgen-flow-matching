@@ -24,7 +24,7 @@ TheVGLC/
 sprites/
 
 # Per-run generation artifacts (PNGs, checkpoints, loss logs)
-generated-png/
+generated-png*/
 *.bin
 *.bin.step*
 loss-log*.csv
