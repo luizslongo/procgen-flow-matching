@@ -37,6 +37,11 @@ public class VglcLevelParser
         map.Width = width;
         map.Height = height;
         map.Tiles = new TileTypeEnum[width * height];
+        // Biome derived from the file name stem so chunks inherit it via
+        // TileMapChunker. Used as the conditioning input by the
+        // biome-conditional UnetBaseline (Experiment D).
+        string fileStem = Path.GetFileNameWithoutExtension(filePath);
+        map.BiomeLabel = BiomeFromVglcLevelName.BiomeOfLevel(fileStem);
 
         for (int y = 0; y < height; y++)
         {

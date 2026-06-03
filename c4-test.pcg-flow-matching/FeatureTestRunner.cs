@@ -515,26 +515,29 @@ public class FeatureTestRunner
         int h = 14;
         int w = 28;
 
-        UnetBaseline unet = new UnetBaseline(inChannels, baseChannels, timeEmbDim, "testUnetBaseline");
-        
-        // Construct synthetic batch: random noisy tile chunks + random t in [0, 1]
+        int numBiomes = 4;
+        UnetBaseline unet = new UnetBaseline(inChannels, baseChannels, timeEmbDim, numBiomes, "testUnetBaseline");
+
+        // Construct synthetic batch: random noisy tile chunks + random t in [0, 1] + random biome label
         torch.Tensor x = torch.randn(batchSize, inChannels, h, w);
         torch.Tensor t = torch.rand(batchSize);
-        
+        torch.Tensor biomeLabels = torch.ones(batchSize, dtype: torch.int64); // Overworld = 1
+
         // Run forward pass
-        torch.Tensor output = unet.Forward(x, t);
-        
+        torch.Tensor output = unet.Forward(x, t, biomeLabels);
+
         // Output must have exactly the same shape as input (velocity field)
         Assert(output.shape[0] == batchSize, "UnetBaseline output batch dim == " + batchSize);
         Assert(output.shape[1] == inChannels, "UnetBaseline output channels == " + inChannels + " (back to tile-type space)");
         Assert(output.shape[2] == h, "UnetBaseline output height == " + h);
         Assert(output.shape[3] == w, "UnetBaseline output width == " + w);
-        
+
         // Sanity check: gradients flowable. If output requires grad, backprop is possible.
         Assert(output.requires_grad == true, "UnetBaseline output supports gradients (training will work)");
 
         x.Dispose();
         t.Dispose();
+        biomeLabels.Dispose();
         output.Dispose();
         unet.Dispose();
         Console.WriteLine();

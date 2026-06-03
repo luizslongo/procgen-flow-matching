@@ -12,9 +12,12 @@ public class EulerOdeSolver
     // Integrates the ODE dx/dt = v(x, t) from t=0 to t=1.
     // model: trained U-Net predicting the velocity field.
     // x0: initial noise (N, C, H, W).
+    // biomeLabels: int64 tensor of shape (N,) with BiomeTypeEnum value
+    //   per sample, on the same device as x0. Conditions generation on
+    //   the desired biome.
     // numSteps: NFE, the number of Euler steps.
     // Returns: x1 (N, C, H, W), the generated continuous data.
-    public static torch.Tensor Solve(UnetBaseline model, torch.Tensor x0, int numSteps)
+    public static torch.Tensor Solve(UnetBaseline model, torch.Tensor x0, torch.Tensor biomeLabels, int numSteps)
     {
         // Inference: gradients are not needed, so disable autograd.
         using (torch.no_grad())
@@ -34,7 +37,7 @@ public class EulerOdeSolver
                     torch.Tensor t = torch.full(new long[] { batchSize }, tValue).to(x.device);
 
                     // Predict the velocity field at the current state and time.
-                    torch.Tensor v = model.Forward(x, t);
+                    torch.Tensor v = model.Forward(x, t, biomeLabels);
 
                     // Euler step: x <- x + v * dt
                     torch.Tensor xNext = x + v * dt;

@@ -32,6 +32,7 @@ public class MapGenerator
             numTileTypes,
             config.BaseChannels,
             config.TimeEmbeddingDim,
+            config.NumBiomes,
             "unetBaseline");
         model.load(config.CheckpointPath);
         model.to(device);
@@ -44,8 +45,17 @@ public class MapGenerator
         torch.Tensor x0 = torch.randn(
             new long[] { config.NumSamples, numTileTypes, chunkHeight, chunkWidth }).to(device);
 
+        // === BIOME LABELS ===
+        // Same biome value for every sample in the batch.
+        long[] biomeLabelData = new long[config.NumSamples];
+        for (int i = 0; i < config.NumSamples; i++)
+        {
+            biomeLabelData[i] = (long)config.BiomeLabel;
+        }
+        torch.Tensor biomeLabels = torch.tensor(biomeLabelData, dtype: torch.int64).to(device);
+
         // === SOLVE ===
-        torch.Tensor generated = EulerOdeSolver.Solve(model, x0, config.NumSteps);
+        torch.Tensor generated = EulerOdeSolver.Solve(model, x0, biomeLabels, config.NumSteps);
 
         // === DISCRETIZE ===
         // Move to CPU, then convert each sample to a TileMap via per-pixel argmax.
@@ -60,6 +70,7 @@ public class MapGenerator
 
         // Cleanup.
         x0.Dispose();
+        biomeLabels.Dispose();
         generated.Dispose();
         generatedCpu.Dispose();
 

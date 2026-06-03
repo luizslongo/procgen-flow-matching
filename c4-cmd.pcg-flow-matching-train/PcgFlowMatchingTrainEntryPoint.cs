@@ -32,8 +32,11 @@ public class PcgFlowMatchingTrainEntryPoint
         //   unet-class-balanced-checkpoint.bin   - Iter 2 Exp B v1: raw 1/freq
         //                                          (kept as failure-mode example)
         //   unet-sqrt-balanced-checkpoint.bin    - Iter 2 Exp B v2: sqrt(1/freq)
-        config.CheckpointOutputPath = "unet-sqrt-balanced-checkpoint.bin";
-        config.LossLogOutputPath = "loss-log-sqrt-balanced.csv";
+        //                                          (kept; first viable balanced loss)
+        //   unet-conditional-checkpoint.bin      - Iter 2 Exp D: biome-conditional
+        //                                          (sqrt loss + biome embedding)
+        config.CheckpointOutputPath = "unet-conditional-checkpoint.bin";
+        config.LossLogOutputPath = "loss-log-conditional.csv";
 
         CfmTrainingLoop.Run(config);
     }

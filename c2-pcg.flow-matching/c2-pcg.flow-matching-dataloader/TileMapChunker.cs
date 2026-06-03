@@ -21,6 +21,9 @@ public class TileMapChunker
                 chunk.Width = chunkWidth;
                 chunk.Height = chunkHeight;
                 chunk.Tiles = new TileTypeEnum[chunkWidth * chunkHeight];
+                // Inherit biome from the source level so chunks carry the
+                // conditioning label through the training pipeline.
+                chunk.BiomeLabel = source.BiomeLabel;
 
                 for (int y = 0; y < chunkHeight; y++)
                 {
@@ -67,6 +70,9 @@ public class TileMapChunker
                 chunk.Width = chunkWidth;
                 chunk.Height = chunkHeight;
                 chunk.Tiles = new TileTypeEnum[chunkWidth * chunkHeight];
+                // Inherit biome from the source level so chunks carry the
+                // conditioning label through the training pipeline.
+                chunk.BiomeLabel = source.BiomeLabel;
 
                 for (int y = 0; y < chunkHeight; y++)
                 {

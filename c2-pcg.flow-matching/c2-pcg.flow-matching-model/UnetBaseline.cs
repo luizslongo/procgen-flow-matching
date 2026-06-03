@@ -10,6 +10,14 @@ public class UnetBaseline : torch.nn.Module
     public int InChannels;
     public int BaseChannels;
     public int TimeEmbeddingDim;
+    public int NumBiomes;
+
+    // Biome conditioning. Looks up a learnable vector of length
+    // TimeEmbeddingDim per biome label. The biome embedding is ADDED to
+    // the sinusoidal time embedding before injection into each
+    // ResidualConvBlock, giving every residual block both temporal and
+    // biome conditioning at no architectural cost.
+    public Embedding BiomeEmbedding;
 
     // Initial channel adapter: (N, 14, H, W) -> (N, 64, H, W)
     public Conv2d InitConv;
@@ -36,15 +44,23 @@ public class UnetBaseline : torch.nn.Module
     // Output channel adapter: (N, 64, H, W) -> (N, 14, H, W)
     public Conv2d OutputConv;
 
-    public UnetBaseline(int inChannels, int baseChannels, int timeEmbeddingDim, string name) : base(name)
+    public UnetBaseline(int inChannels, int baseChannels, int timeEmbeddingDim, int numBiomes, string name) : base(name)
     {
         InChannels = inChannels;
         BaseChannels = baseChannels;
         TimeEmbeddingDim = timeEmbeddingDim;
+        NumBiomes = numBiomes;
 
         int channels0 = baseChannels;              // 64
         int channels1 = baseChannels * 2;          // 128
         int channelsBottleneck = baseChannels * 4; // 256
+
+        // Biome embedding: lookup of a learnable timeEmbeddingDim vector
+        // per biome label. NumBiomes is typically 4 to cover Error +
+        // Overworld + Underground + Treetop; index 0 (Error) is never
+        // used at training time.
+        BiomeEmbedding = torch.nn.Embedding(numBiomes, timeEmbeddingDim);
+        register_module("biomeEmbedding", BiomeEmbedding);
 
         // Channel adapter: tile-type space (14) -> feature space (64)
         InitConv = torch.nn.Conv2d(inChannels, channels0, kernel_size: 3, padding: 1);
@@ -92,11 +108,21 @@ public class UnetBaseline : torch.nn.Module
         register_module("outputConv", OutputConv);
     }
 
-    public torch.Tensor Forward(torch.Tensor x, torch.Tensor t)
+    public torch.Tensor Forward(torch.Tensor x, torch.Tensor t, torch.Tensor biomeLabels)
     {
         // Encode time scalar to vector
-        // t: (N,) -> tEmb: (N, timeEmbeddingDim)
-        torch.Tensor tEmb = SinusoidalTimeEmbedding.Encode(t, TimeEmbeddingDim);
+        // t: (N,) -> tEmbRaw: (N, timeEmbeddingDim)
+        torch.Tensor tEmbRaw = SinusoidalTimeEmbedding.Encode(t, TimeEmbeddingDim);
+
+        // Look up biome embedding per sample.
+        // biomeLabels: (N,) int64 -> biomeEmb: (N, timeEmbeddingDim)
+        torch.Tensor biomeEmb = BiomeEmbedding.forward(biomeLabels);
+
+        // Combine time and biome conditioning by summation. Both vectors
+        // share the same length, so the residual blocks receive a single
+        // conditioning vector that encodes (current diffusion time, target
+        // biome) jointly.
+        torch.Tensor tEmb = tEmbRaw + biomeEmb;
 
         // Initial channel projection: 14 -> 64 channels
         // x: (N, 14, 14, 28) -> h: (N, 64, 14, 28)
