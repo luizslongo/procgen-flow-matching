@@ -1,0 +1,380 @@
+================================================================================
+TCC ITERATION 2 EXPERIMENT B v2 RESULT + BIOME-AVERAGING FINDING
+================================================================================
+
+Generated: 2026-06-03
+Topic:     Per-chunk qualitative analysis of the output produced by the
+           Iteration 2 Experiment B v2 run (square-root inverse-frequency
+           class-balanced CFM loss). Establishes the comparison between
+           the three CFM loss variants run so far (Iteration 1
+           unweighted, Experiment B v1 raw inverse-frequency, Experiment
+           B v2 sqrt inverse-frequency). Documents a new structural
+           finding that the unconditional model averages across the
+           biomes present in the VGLC training data, producing
+           generated chunks that combine features from incompatible
+           biomes (notably an underground-style cave ceiling appearing
+           in nearly every generated sample). Closes Experiment B and
+           proposes Experiment D (conditional generation by biome
+           label) as the necessary next step for the TCC.
+Source:    procgen-flow-matching repository
+           (luizslongo/procgen-flow-matching). v2 training executed on
+           2026-06-02 to 2026-06-03 with BaseChannels = 64,
+           BatchSize = 32, NumSteps = 20000, LearningRate = 5e-5,
+           manual seed 42, gradient clip max_norm = 0.5, sqrt
+           inverse-frequency weights on RTX 5060. Checkpoint at
+           unet-sqrt-balanced-checkpoint.bin. Chunks at
+           generated-png/chunk-001.png through chunk-010.png.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Experiment B v1 (raw inverse-frequency class-balanced loss) produced
+chunks with massive Breakable over-prediction (65 to 75 percent of
+every chunk), documented in
+docs/260602.iteration-2-exp-b-class-balanced-results.txt. The
+proposed remediation was to replace the raw inverse with its square
+root, compressing the weight dynamic range from 2487:1 to
+approximately 50:1.
+
+This report documents what v2 actually produced. Three things to
+establish: (1) per-chunk qualitative inventory; (2) head-to-head
+comparison among Iteration 1, v1, and v2; (3) a new structural
+finding about how the unconditional model handles a multi-biome
+training set. The finding closes Experiment B and motivates the
+biome-conditional generation work documented as Experiment D in
+docs/260602.iteration-2-plan.txt Part 5.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: v2 CONFIGURATION
+PART 2: v2 PER-CHUNK ANALYSIS
+PART 3: THREE-WAY COMPARISON (ITER 1 / EXP B v1 / EXP B v2)
+PART 4: THE BIOME-AVERAGING FINDING
+PART 5: WHY CLASS-BALANCED LOSS CANNOT FIX THE BIOME AVERAGING
+PART 6: CLOSING EXPERIMENT B AND MOTIVATING EXPERIMENT D
+
+
+================================================================================
+PART 1: v2 CONFIGURATION
+================================================================================
+
+v2 weights were computed by
+TileTypeFrequencyComputer.BuildSqrtInverseFrequencyWeightTensor and
+normalized so the dataset-weighted mean equals 1.0. Computed from the
+2518 training chunks, the actual weights printed at training startup:
+
+    TileType              Count    v2 Weight    v1 Weight (for comparison)
+    --------------------  -------  -----------  ----------------------------
+    Empty                 850570    0.575        0.089
+    Solid                  83322    1.836        0.911
+    Breakable              23529    3.455        3.227
+    QuestionFull             768   19.121       98.864
+    QuestionEmpty           1788   12.532       42.465
+    Enemy                   7265    6.217       10.451
+    PipeTopLeft             2310   11.025       32.869
+    PipeTopRight            2309   11.028       32.883
+    PipeBodyLeft            4966    7.520       15.289
+    PipeBodyRight           4963    7.522       15.299
+    Coin                    4502    7.898       16.865
+    BulletBillLauncher       421   25.826      180.350
+    BulletBillBody           343   28.612      221.363
+
+Dynamic range (highest weight divided by lowest nonzero weight):
+
+    v1: 221.363 / 0.089 = 2487:1
+    v2:  28.612 / 0.575 =   50:1
+
+Loss trajectory: started at 1.033 at step 0 (very close to the
+Iteration 1 baseline 1.07, confirming the normalization is correct),
+descended through ~0.5 by step 1000, ~0.15 by step 5000, and settled
+at oscillating values in the range 0.06 to 0.10 from step 8000
+onward. Final value at step 19950 was 0.088. No NaN or infinity
+observed in 20000 steps.
+
+
+================================================================================
+PART 2: v2 PER-CHUNK ANALYSIS
+================================================================================
+
+The 10 generated chunks were rendered to generated-png/chunk-001.png
+through chunk-010.png on 2026-06-03 using the same generation config
+as previous runs (NumSamples = 10, NumSteps = 50, BaseChannels = 64,
+TimeEmbeddingDim = 128, no fixed seed for the noise sampling).
+
+2.1 CHUNK 001
+    Two horizontal Breakable rows visible: one near the top (rows 1
+    to 2) and one in the lower middle (rows 6 to 7). Both rows have
+    crenellation-like gaps that look like partial brick platforms.
+    Empty (sky) is the dominant tile in the upper third and between
+    the brick rows. Two Enemy tiles visible. Three QuestionFull
+    tiles form a horizontal triplet on the lower brick row. Solid
+    ground continuous at the bottom row.
+
+2.2 CHUNK 002
+    Long Breakable row at the top (rows 1 to 2, mostly continuous
+    across the chunk width). Sky immediately below. Then several
+    brick platform fragments. Three vertical green Pipe structures
+    visible, including one structurally valid 2-tile-tall pipe with
+    PipeTopLeft + PipeTopRight on the top row and PipeBodyLeft +
+    PipeBodyRight on the row below. Two Enemy tiles on top of brick
+    platforms (correctly placed, not floating). One Coin pair.
+    Solid ground continuous at the bottom row. THIS IS THE BEST
+    CHUNK in the v2 batch by qualitative inspection: it visibly
+    resembles a Mario level section.
+
+2.3 CHUNK 003
+    Long Breakable row at the top with crenellation gaps. Sky
+    below. Multiple brick platforms in the middle and lower
+    portions. One vertical green PipeBody column. One small brick
+    staircase on the right side. One Enemy at ground level. Solid
+    ground continuous at the bottom.
+
+2.4 CHUNK 004
+    Two Breakable rows stacked at the top with gaps. Sky in the
+    middle band. Two horizontal triplets of QuestionFull tiles
+    embedded at different heights. Brick platform fragments. Two
+    Enemy tiles, one floating in mid-air. Solid ground continuous
+    at the bottom.
+
+2.5 CHUNK 005
+    Two long Breakable rows stacked near the top (rows 1 to 4),
+    forming a thick ceiling. Sky immediately below. Brick platforms
+    in the middle. Five Coin tiles in a horizontal line. Two Enemy
+    tiles at ground level. Solid ground continuous at the bottom.
+
+2.6 CHUNK 006
+    Massive Breakable row at the top with prominent crenellations
+    (looks like a castle parapet). Sky below. Many brick platform
+    fragments scattered in the middle. Multiple Coin pairs. One
+    Enemy at the bottom right. Solid ground continuous at the
+    bottom row but with one visible gap.
+
+2.7 CHUNK 007
+    Short Breakable row at the top left. Large diagonal cluster of
+    Breakable tiles forming a "staircase" in the middle (the only
+    chunk in v2 with this irregular shape). Two vertical green
+    Pipe columns. One QuestionFull tile. One Enemy at the bottom
+    right. Sparsest chunk in v2 by Breakable coverage.
+
+2.8 CHUNK 008
+    Two long Breakable rows stacked at the top (rows 1 to 3). Sky
+    below. Brick platforms in the middle. Three Enemy tiles
+    embedded inside brick rows (FloatingEnemy pattern). One Coin
+    pair. One small green Pipe column with no top. Solid ground
+    continuous at the bottom.
+
+2.9 CHUNK 009
+    Long Breakable row at the top. Brick platforms with
+    QuestionFull tiles embedded. Four Coin tiles in a horizontal
+    line. Four Enemy tiles, mix of grounded and floating. Solid
+    ground continuous at the bottom.
+
+2.10 CHUNK 010
+    Long Breakable row at the top with crenellation gaps. Several
+    brick platforms in the middle with eight Coin tiles in a long
+    horizontal line. Two Enemy tiles. Solid ground continuous at
+    the bottom.
+
+
+================================================================================
+PART 3: THREE-WAY COMPARISON
+================================================================================
+
+Side by side qualitative comparison of the three variants:
+
+    Property                  Iteration 1     Exp B v1         Exp B v2
+                              (unweighted)    (raw inverse)    (sqrt inverse)
+    ------------------------  --------------  ---------------  --------------
+    Mean Breakable coverage   ~5%             ~70%             ~25-35%
+    Mean Empty coverage       ~85%            ~15%             ~50-60%
+    Ground continuity         Poor (gaps)     Perfect          Good (1 gap)
+    Top-region content        Mostly sky      Brick + cannons  Brick row
+    Pipe structures           Rare and broken Sometimes valid  Sometimes valid
+    Floating enemies          Common          Very common      Some
+    Question blocks           Rare            Over-spammed     Reasonable
+    Visual recognizability    Sparse Mario    Dense brick maze Mixed-biome
+                                                               Mario
+    Overall verdict           Underfit        Over-spamming    Partial success
+                              with structure  rare classes     with biome-
+                              missing                          averaging bug
+
+The three variants form a clean parameter sweep over class-balancing
+aggressiveness:
+
+    Aggressiveness                Visual outcome
+    ----------------------------  ------------------------------------------
+    None (unweighted)             Sparse, ground-failure-dominated
+    Maximum (raw 1/freq)          Rare-class spam, lost sky
+    Intermediate (sqrt(1/freq))   Best balance among the three variants
+
+v2 is the qualitatively best of the three by visual inspection. It is
+the only variant that preserves a meaningful sky region AND produces
+continuous ground AND occasionally produces structurally valid pipes.
+However, v2 still has a systemic problem documented in Part 4.
+
+
+================================================================================
+PART 4: THE BIOME-AVERAGING FINDING
+================================================================================
+
+8 of the 10 v2 chunks have a near-continuous horizontal Breakable row
+in the upper portion (rows 1 to 3). Investigation traced this pattern
+to a property of the training data:
+
+    Level distribution of Breakable in the top 3 rows (computed by
+    counting characters in rows 0 to 2 of each .txt file):
+
+      Level           Top-3-row tiles    Empty    Breakable
+      --------------  -----------------  -------  ----------
+      mario-1-1            609            606         0
+      mario-1-2            477            341       132
+      mario-1-3            453            448         0
+      mario-2-1            594            591         0
+      mario-3-1            594            590         0
+      mario-3-3            450            445         0
+      mario-4-1            669            666         0
+      mario-4-2            564            403       155
+      mario-5-1            597            594         0
+      mario-5-3            453            448         0
+      mario-6-1            555            552         0
+      mario-6-2            648            645         0
+      mario-6-3            498            489         0
+      mario-7-1            531            527         0
+      mario-8-1           1122           1119         0
+
+Only mario-1-2 and mario-4-2 contain Breakable tiles in the top 3
+rows. Both are the only UNDERGROUND levels in the Super Mario Bros
+VGLC corpus. The cave ceiling in the underground biome is encoded
+as a long horizontal Breakable run, exactly the pattern visible in
+every v2 generated chunk.
+
+Quantitatively: of the 2518 training chunks, approximately 291 come
+from underground levels (158 - 28 + 1 = 131 chunks from mario-1-2
+and 187 - 28 + 1 = 160 chunks from mario-4-2), which is 11.5 percent
+of the training set. The remaining 88.5 percent of chunks come from
+overworld and treetop levels and have no top-row Breakable.
+
+The unconditional generative model learns to produce samples drawn
+from the AVERAGE of the training distribution. The model has no
+input signal indicating which biome the current sample should belong
+to. So the most distinctive structural feature of the underground
+biome (the cave ceiling) gets averaged into every generated chunk
+with a probability roughly proportional to the underground biome's
+frequency in the training set.
+
+This is independent of the class-balanced loss. The same biome
+averaging happens in Iteration 1 (unweighted) and Experiment B v1.
+The reason it became VISUALLY DOMINANT in v1 is that v1 amplified
+Breakable predictions broadly. The reason it became VISUALLY CLEAN
+in v2 is that v2's moderated weighting allowed the model to express
+the cave-ceiling pattern correctly (long horizontal Breakable rows)
+without spamming Breakable elsewhere. In other words: v2 is a better
+class-balanced model, and as a result the cave-ceiling biome-bug is
+now clearly visible instead of being buried under brick spam.
+
+
+================================================================================
+PART 5: WHY CLASS-BALANCED LOSS CANNOT FIX BIOME AVERAGING
+================================================================================
+
+Class-balanced loss adjusts the per-pixel gradient contribution
+based on the tile type at that pixel. It does not provide the model
+with any information about WHICH BIOME the current training sample
+comes from. The model has no mechanism to learn that "I should
+produce cave ceilings ONLY when generating underground chunks" -
+because the model has no concept of "underground chunks" vs
+"overworld chunks." The only thing it can learn is the marginal
+distribution of tile types in the training set.
+
+A model trained on a multi-biome corpus without biome conditioning
+will, in general:
+
+  - Reproduce the most common single-biome feature with the
+    frequency of that biome in the training set.
+  - Combine incompatible features from different biomes in the same
+    output (e.g., cave ceiling + outdoor pipes).
+  - Be unable to generate cleanly-typed samples for any specific
+    biome on demand.
+
+These are not bugs in the model; they are consequences of the
+unconditional formulation. Class-balanced loss, sqrt weighting,
+Effective Number of Samples weighting, and focal loss are all
+loss-shape modifications and none of them changes this property.
+
+The fix is structural: the model must accept a biome label as
+additional input, the training loop must provide the correct biome
+label for each chunk, and the inference loop must accept a biome
+label from the caller. This is conditional generation, and it
+matches Experiment D as planned in
+docs/260602.iteration-2-plan.txt Part 5.
+
+
+================================================================================
+PART 6: CLOSING EXPERIMENT B AND MOTIVATING EXPERIMENT D
+================================================================================
+
+Experiment B is concluded with the following results:
+
+  - v1 (raw inverse-frequency): FAILED at the qualitative bar
+    (rare-class spam dominates). Documented in
+    docs/260602.iteration-2-exp-b-class-balanced-results.txt.
+  - v2 (sqrt inverse-frequency): PARTIAL SUCCESS. Best variant of
+    the three CFM loss formulations tested. Resolves the
+    DiscontinuousGround failure mode that dominated Iteration 1.
+    Surfaces a previously-hidden structural limitation (biome
+    averaging) that is not fixable within the class-balanced loss
+    framework.
+  - The sqrt variant is retained as the default loss in
+    CfmTrainingLoop.cs going forward. Future experiments can build
+    on top of v2 rather than reverting to unweighted MSE.
+
+The three checkpoints are preserved as ablation evidence:
+
+  unet-baseline-checkpoint.bin           Iteration 1 unweighted
+  unet-class-balanced-checkpoint.bin     Exp B v1 raw inverse
+  unet-sqrt-balanced-checkpoint.bin      Exp B v2 sqrt inverse (current)
+
+Next experiment: Experiment D (conditional generation by biome
+label), as planned in docs/260602.iteration-2-plan.txt Part 5.
+Specific changes anticipated:
+
+  1. Assign a biome label to each VGLC level (overworld, underground,
+     treetop, special) based on level name pattern.
+  2. Add a biome-embedding lookup table to UnetBaseline that maps
+     the biome label to a learnable vector. Concatenate the biome
+     embedding with the time embedding before injecting into each
+     ResidualConvBlock.
+  3. Pass the biome label as an additional parameter through
+     CfmLossComputer.ComputeWeightedLoss and EulerOdeSolver.Solve.
+  4. Modify the training loop to look up each chunk's biome label
+     from its source level when assembling the batch.
+  5. Modify the generate entrypoint to accept a biome label
+     argument (e.g., --biome overworld).
+  6. Re-train with the same hyperparameters as v2 (sqrt loss,
+     20000 steps, BaseChannels 64, BatchSize 32). Generate per-biome
+     samples and verify the cave-ceiling pattern appears only in
+     underground generations.
+
+Expected outcome (testable): biome-conditional generation produces
+clean per-biome samples. Specifically: generations with
+biome=overworld should have no Breakable in the top 3 rows;
+generations with biome=underground should have continuous Breakable
+in the top 3 rows; generations with biome=treetop should have
+elevated brick platforms with sky above and below them.
+
+If verified, Experiment D closes the qualitative gap that motivated
+Iteration 2 and produces samples suitable for the TCC manuscript
+Chapter 4 result section. If unverified, the next experiment would
+be Experiment C (discrete flow matching).
+
+
+================================================================================
+END OF REPORT
+================================================================================
