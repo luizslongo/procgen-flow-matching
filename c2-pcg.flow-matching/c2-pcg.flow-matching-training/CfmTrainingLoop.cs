@@ -59,10 +59,16 @@ public class CfmTrainingLoop
 
         // === MODEL ===
         int numTileTypes = 14;
+        // NumBiomes covers Error + Overworld + Underground + Treetop.
+        // The Error index (0) is never used at training time; it is a
+        // safety value that lets the BiomeFromVglcLevelName mapper
+        // signal unrecognized level names.
+        int numBiomes = 4;
         UnetBaseline model = new UnetBaseline(
             numTileTypes,
             config.BaseChannels,
             config.TimeEmbeddingDim,
+            numBiomes,
             "unetBaseline");
         model.to(device);
         model.train();
@@ -95,11 +101,24 @@ public class CfmTrainingLoop
                 // Build batch tensor on the target device.
                 torch.Tensor x1 = TileMapTensorConverter.ToBatchTensor(batchChunks).to(device);
 
+                // Assemble per-sample biome labels from the chunks selected
+                // for this batch. Each chunk inherited its BiomeLabel from
+                // the source VGLC level via TileMapChunker. The model uses
+                // these labels as conditioning input (Experiment D).
+                long[] biomeLabelData = new long[config.BatchSize];
+                for (int j = 0; j < config.BatchSize; j++)
+                {
+                    biomeLabelData[j] = (long)batchChunks[j].BiomeLabel;
+                }
+                torch.Tensor biomeLabels = torch.tensor(biomeLabelData, dtype: torch.int64).to(device);
+
                 // Forward + loss. Class-balanced variant: rare tile types
                 // (BulletBill, Coin) contribute proportionally more gradient
                 // than common ones (Empty, Solid). See PR #11 / Iteration 2
-                // Experiment B in docs/260602.iteration-2-plan.txt.
-                torch.Tensor loss = CfmLossComputer.ComputeWeightedLoss(model, x1, classWeights);
+                // Experiment B in docs/260602.iteration-2-plan.txt. Biome
+                // labels condition the model on the desired biome per
+                // sample (Experiment D).
+                torch.Tensor loss = CfmLossComputer.ComputeWeightedLoss(model, x1, biomeLabels, classWeights);
 
                 // Backward + optimizer step.
                 optimizer.zero_grad();
