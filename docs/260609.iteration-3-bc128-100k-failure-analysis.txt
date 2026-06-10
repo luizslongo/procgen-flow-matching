@@ -1,0 +1,741 @@
+================================================================================
+TCC ITERATION 3 NEGATIVE RESULT:
+BASECHANNELS=128 + NUMSTEPS=100000 + ZERO-INIT SECONDCONV
+PRODUCED WORSE CHUNKS THAN ITERATION 2 EXPERIMENT D
+================================================================================
+
+Generated: 2026-06-09
+Topic:     Documents the failed attempt to improve chunk generation quality
+           by scaling BaseChannels from 64 to 128, NumSteps from 20000 to
+           100000, and adding zero-initialization to SecondConv in
+           ResidualConvBlock. Records the loss-plateau observation, the
+           visual quality regression vs Iteration 2 Experiment D, the
+           three-mechanism diagnosis of the failure, the fundamental limit
+           on violation-free generation imposed by the current CFM-plus-
+           argmax formulation, and the recommended path forward under the
+           rascunho deadline of 2026-06-15.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           training executed locally on RTX 5060 (Blackwell) via WSL2 on
+           2026-06-09; generation and visual comparison performed against
+           pre-existing Iteration 2 Experiment D outputs at
+           generated-png-overworld, generated-png-underground, and
+           generated-png-treetop.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260529.tcc-iteration-1-first-end-to-end-result.txt
+           docs/260602.iteration-2-plan.txt
+           docs/260602.iteration-2-exp-b-class-balanced-results.txt
+           docs/260603.iteration-2-exp-b-v2-and-biome-averaging-finding.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+This report records why Iteration 3 (the 2026-06-09 training run on RTX 5060)
+failed to improve chunk generation quality over Iteration 2 Experiment D, and
+what to do next given the rascunho deadline of 2026-06-15. The report serves
+two purposes:
+
+(1) Internal: decide whether to ship Experiment D as the final result or
+    attempt one more training variant before the rascunho.
+
+(2) Thesis manuscript: provide the diagnostic narrative for the Limitations
+    and Future Work section of Chapter 4. Negative results with mechanism
+    analysis are academically valuable; this report converts the 83 minutes
+    of compute spent today into a defensible writeup.
+
+The report also addresses a question that has lingered since Iteration 1:
+why has the pipeline not produced a single generated chunk with zero
+structural violations across any iteration so far, and whether the current
+CFM-plus-argmax formulation can ever achieve that goal.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: HYPOTHESIS AND ITERATION 3 SETUP
+PART 2: TRAINING RUN OBSERVATIONS
+PART 3: VISUAL COMPARISON ITERATION 3 vs EXPERIMENT D
+PART 4: DIAGNOSIS - THREE INDEPENDENT FAILURE MECHANISMS
+PART 5: FUNDAMENTAL LIMITS ON ZERO-VIOLATION CHUNKS
+PART 6: OPTIONS FOR THE NEXT ACTION
+PART 7: RECOMMENDATION GIVEN DEADLINE
+PART 8: CONCRETE NEXT STEPS FOR 2026-06-10 ONWARDS
+APPENDIX A: COMMIT REFERENCES
+APPENDIX B: VIOLATION CHECKLIST FOR THESIS LIMITATIONS SECTION
+
+
+================================================================================
+PART 1: HYPOTHESIS AND ITERATION 3 SETUP
+================================================================================
+
+1.1 HYPOTHESIS BEING TESTED
+
+Iteration 2 Experiment D (biome-conditional UnetBaseline with BaseChannels=64
+and NumSteps=20000) produced chunks that are visually recognizable as Super
+Mario Bros level segments with biome-distinct features. However, the
+FailureModeAnalyzer in c2-pcg.flow-matching-eval reports a non-zero violation
+count in every sample. The hypothesis driving Iteration 3 was that two
+changes would jointly reduce structural violations:
+
+   (H1) Increasing BaseChannels from 64 to 128 quadruples the UnetBaseline
+        internal feature dimension and approximately quadruples the model's
+        parameter count. With more capacity, the model should fit the
+        training distribution more faithfully and reduce structural failure
+        modes such as discontinuous ground and floating tiles.
+
+   (H2) Increasing NumSteps from 20000 to 100000 gives the model five times
+        more optimization steps to find a deeper minimum of the weighted
+        CFM loss surface.
+
+A subsidiary change was required to make (H1) feasible. An initial attempt
+to run at BaseChannels=128 with the standard ResidualConvBlock
+initialization diverged to infinity at training step approximately 50,
+because the unnormalized residual shortcut compounds variance through six
+residual blocks at the larger feature width. The fix added zero-initialization
+of SecondConv weights and bias inside ResidualConvBlock.cs lines 48 to 55,
+so that each residual block computes "result = 0 + shortcut = shortcut" at
+initialization. This pattern is canonical in DDPM (Ho et al. 2020), Stable
+Diffusion (Rombach et al. 2022), and FLUX.
+
+1.2 CONFIGURATION DELTA VS EXPERIMENT D
+
+   Parameter                  Exp D (Iter 2)        Iter 3 (today)
+   -------------------------- --------------------- -----------------------
+   BaseChannels               64                    128
+   NumSteps                   20000                 100000
+   ResidualConvBlock init     default               SecondConv zero-init
+   Loss formulation           sqrt-inverse weight   sqrt-inverse weight
+   Biome conditioning         yes (4 biomes)        yes (4 biomes)
+   Optimizer                  Adam, lr=5e-5         Adam, lr=5e-5
+   Batch size                 32                    32
+   Gradient clip max_norm     0.5                   0.5
+   Seed                       42                    42
+   Hardware                   CPU                   RTX 5060 (Blackwell)
+   Wall-clock training time   several hours on CPU  approximately 83 minutes
+
+1.3 EXPECTED OUTCOMES IF HYPOTHESES (H1) AND (H2) HOLD
+
+   (E1) Loss trajectory should continue descending past step 20000
+        because more capacity provides more learnable signal.
+
+   (E2) Final loss should be measurably below the Exp D plateau
+        (~0.30 weighted by sqrt-inverse class frequencies).
+
+   (E3) Generated chunks should show fewer structural failure modes,
+        particularly discontinuous ground (the dominant Iteration 1
+        failure mode at 60 percent of all violations).
+
+   (E4) Biome distinctness should be preserved or improved compared
+        to Experiment D.
+
+
+================================================================================
+PART 2: TRAINING RUN OBSERVATIONS
+================================================================================
+
+2.1 LOSS TRAJECTORY OBSERVED
+
+   Step    Reported loss   Notes
+   ------- --------------- ------------------------------------------
+   0       1.048           Finite at init; zero-init pattern worked
+                           (no NaN divergence as occurred in the
+                           BC=128 default-init attempt)
+   500     0.441           Productive descent phase
+   5000    approx 0.35     Descent continuing
+   20500   approx 0.30     Step where progress was first checked
+   21000   approx 0.30     Same plateau range
+   21800   0.278           Bottom of typical step-to-step bounce
+   50000   approx 0.31     Plateau persists
+   99000   0.370           Plateau persists (high end of bounce)
+   99500   0.292           Plateau persists (low end of bounce)
+   99950   0.282           Final reported step
+
+The loss flattened by step approximately 20000. From step 20000 onwards
+across 80000 additional steps, the average loss remained between 0.27 and
+0.45 with no downward trend. Expected outcome (E1) is FALSIFIED.
+
+2.2 LOSS NOISE FLOOR
+
+The step-to-step variance in reported loss is between 0.15 and 0.20 in
+absolute units (observed range 0.27 to 0.45). This noise floor is invariant
+across the run: the variance at step 500 equals the variance at step 99950.
+The interpretation is that by step 20000 the UnetBaseline had converged to
+a region of the weighted-loss surface where additional optimization steps
+produced no net weight change beyond what is required to fit batch-to-batch
+composition variance.
+
+2.3 EXP D LOSS COMPARISON
+
+From docs/260603 the Experiment D BC=64 model with 20000 steps reached
+approximately the same weighted loss range (0.28 to 0.32 plateau) after
+approximately 15000 steps. Expected outcome (E2) is FALSIFIED: Iteration 3
+did not achieve a lower final loss despite four times more parameters and
+five times more steps.
+
+
+================================================================================
+PART 3: VISUAL COMPARISON ITERATION 3 vs EXPERIMENT D
+================================================================================
+
+After training completed, 10 chunks were generated per biome (Overworld,
+Underground, Treetop) from the Iteration 3 checkpoint
+unet-conditional-checkpoint.bin. These outputs were written to
+generated-png-bc128-overworld, generated-png-bc128-underground, and
+generated-png-bc128-treetop, then compared against the existing Iteration
+2 Experiment D chunks at generated-png-overworld,
+generated-png-underground, and generated-png-treetop.
+
+3.1 PER-PROPERTY COMPARISON
+
+   Property                  Iter 3 BC=128 100k     Exp D BC=64 20k
+   ------------------------- ---------------------- ------------------
+   Coherent ground floor     Absent (scattered)     Present in all 10
+   Full 2-tile pipes         Absent (1-tile stubs)  Present
+   Goomba placement          Embedded inside bricks On ground/on pipes
+   Rare-tile density         Very high              Moderate
+   Biome distinctness        Weak (all similar)     Strong
+   Playable empty space      Minimal                Substantial
+   Bullet Bill cannons       Multiple per chunk     Rare, on ground
+   Question blocks           Scattered randomly     Horizontal rows
+   Stepped staircases        Absent                 Present (chunk 003,
+                                                    chunk 005)
+
+3.2 SPECIFIC FAILURE MODES OBSERVED IN ITERATION 3 OUTPUT
+
+   (F1) No Iteration 3 chunk in any biome contains a continuous solid
+        ground floor across the bottom row. The bottom row is
+        fragmented with bricks, empty spaces, and embedded enemies.
+
+   (F2) Pipes appear as 1-tile-wide vertical brick clusters rather
+        than the canonical 2-tile-wide green pipe structure with cap
+        (PipeTopLeft + PipeTopRight) and body (PipeBodyLeft +
+        PipeBodyRight).
+
+   (F3) Goomba enemies (Enemy tile) are placed inside brick walls
+        rather than on traversable surfaces.
+
+   (F4) BulletBillLauncher and BulletBillBody tiles appear multiple
+        times per chunk despite training-set frequencies of 0.04
+        percent and 0.03 percent respectively. The model is
+        over-predicting rare classes.
+
+   (F5) Underground chunks are visually indistinguishable from
+        Overworld chunks. The biome embedding signal is not producing
+        biome-specific tile distributions.
+
+3.3 NUMERIC SUMMARY
+
+The Iteration 3 output cannot be used for the thesis because it fails
+to demonstrate the biome-conditioning capability that is a stated
+contribution of Iteration 2 Experiment D. The joint hypothesis
+(H1) + (H2) is REJECTED at the level of generated chunk quality even
+though final loss numbers were superficially comparable.
+
+
+================================================================================
+PART 4: DIAGNOSIS - THREE INDEPENDENT FAILURE MECHANISMS
+================================================================================
+
+The regression cannot be attributed to a single cause. Three mechanisms
+operate together; removing any one would partially recover quality but
+not fully restore Experiment D behavior.
+
+4.1 MECHANISM 1: CLASS-BALANCED LOSS TIMES EXTRA CAPACITY EQUALS
+                  RARE-CLASS OVEREMPHASIS
+
+The sqrt-inverse class weights computed at training start by
+TileTypeFrequencyComputer.BuildSqrtInverseFrequencyWeightTensor are:
+
+   Tile type            Count    Weight   Effective LR multiplier
+   -------------------- -------- -------- -----------------------
+   Empty                 850570    0.575                  0.6 times
+   Solid                  83322    1.836                  1.8 times
+   Breakable              23529    3.455                  3.5 times
+   QuestionFull             768   19.121                 19.1 times
+   QuestionEmpty           1788   12.532                 12.5 times
+   Enemy                   7265    6.217                  6.2 times
+   PipeTopLeft             2310   11.025                 11.0 times
+   PipeTopRight            2309   11.028                 11.0 times
+   PipeBodyLeft            4966    7.520                  7.5 times
+   PipeBodyRight           4963    7.522                  7.5 times
+   Coin                    4502    7.898                  7.9 times
+   BulletBillLauncher       421   25.826                 25.8 times
+   BulletBillBody           343   28.612                 28.6 times
+
+At BaseChannels=64 the UnetBaseline had limited capacity. Most of that
+capacity was committed to learning the bulk-distribution structure
+(Empty + Solid tiles, which together account for approximately 95
+percent of training tokens) because the aggregate weighted loss on
+those tiles, while individually small per-token, dominated due to
+their volume.
+
+At BaseChannels=128 the model has approximately four times more
+parameters. The aggregate Empty + Solid loss is still dominant in
+expectation, but enough surplus capacity is available that the
+rare-class gradients (with their 25.8 times and 28.6 times weight
+multipliers) can also drive learning. The model devotes that surplus
+capacity to learning rare-class distributions WITHOUT enforcing the
+structural constraints that hold them in valid positions in real
+Mario levels.
+
+Concrete manifestation: BulletBillLauncher appears in approximately
+14 percent of training-set chunks. In Iteration 3 output, it appears
+in approximately 80 to 100 percent of generated chunks (visual estimate;
+not measured by FailureModeAnalyzer). The model has learned the signal
+"BulletBill is important, produce often" without learning the signal
+"BulletBill should be on ground level, paired with BulletBillBody
+immediately above."
+
+This is the rare-class hallucination failure mode documented in
+class-balanced training of generative models (see Cui et al. 2019,
+"Class-Balanced Loss Based on Effective Number of Samples"). The
+sqrt-inverse moderator was supposed to soften this; the data shows it
+was insufficient at BaseChannels=128.
+
+4.2 MECHANISM 2: 100K STEPS PAST CONVERGENCE EQUALS STRUCTURAL EROSION
+
+By step 20000 the loss has converged. The Adam optimizer continues to
+compute gradient signals from each batch and apply weight updates, but
+these updates carry no learning signal beyond batch-composition noise.
+
+Each weight update applied to a converged network introduces a small
+random perturbation. Over 80000 additional steps, the accumulated
+perturbation drifts the weights away from the minimum the model reached
+at step 20000.
+
+Structural features (continuous ground floor, full pipes, biome-specific
+tile selection) are encoded in the UnetBaseline as delicate combinations
+of weights in the early Conv2d layers and the biome embedding projection.
+Random drift erodes these combinations preferentially because they
+involve precise tile-level geometry; in contrast, the rare-tile-
+overemphasis behavior is more robust to small weight perturbations
+because it depends only on average output statistics.
+
+Net effect over the 80000 unnecessary steps: structural features
+degrade, rare-tile spam persists.
+
+4.3 MECHANISM 3: SECONDCONV ZERO-INIT WEAKENED BIOME EMBEDDING
+                  PROPAGATION
+
+The forward pass of ResidualConvBlock at ResidualConvBlock.cs:58 to 76
+implements the following sequence:
+
+    hidden = FirstConv.forward(x)
+    hidden = FirstNorm.forward(hidden)
+    hidden = silu(hidden)
+    timeProjected = TimeProjection.forward(timeEmbedding)
+    hidden = hidden + timeProjected.unsqueeze(-1).unsqueeze(-1)
+    hidden = SecondConv.forward(hidden)        <-- WEIGHTS ZEROED
+    hidden = SecondNorm.forward(hidden)
+    hidden = silu(hidden)
+    shortcut = Shortcut.forward(x)
+    result = hidden + shortcut
+
+In the Iteration 3 zero-init configuration, SecondConv.weight starts
+at zero. Therefore at step 0, "hidden" after SecondConv.forward is
+identically zero regardless of input. The residual block computes
+"result = 0 + shortcut = shortcut" for the first thousands of training
+steps until SecondConv weights drift away from zero.
+
+The biome embedding flows through TimeProjection and is added to
+"hidden" before SecondConv. When SecondConv.weight is zero, the biome
+signal contained in "hidden" is multiplied by zero and lost. The biome
+signal in early training has no path through the residual block to
+influence the output.
+
+For the UnetBaseline to learn biome conditioning, SecondConv must first
+learn to be non-zero AND learn to propagate the specific biome features.
+With three biomes (Overworld, Underground, Treetop) splitting capacity,
+this is a harder learning problem than at BC=64 where zero-init was not
+used and biome features could propagate freely from step 0.
+
+This is the architectural cost of the zero-init pattern: it trades
+stability at extreme capacity for slower onset of conditional signal
+propagation. DDPM and FLUX papers acknowledge this and compensate with
+longer training schedules and learning-rate warmup tricks not present
+in the current Iteration 3 training loop.
+
+
+================================================================================
+PART 5: FUNDAMENTAL LIMITS ON ZERO-VIOLATION CHUNKS
+================================================================================
+
+The motivating question for this report was whether the pipeline can
+ever produce a generated chunk with zero structural violations. This
+part argues that the current CFM-plus-argmax formulation has a
+non-zero violation floor even under perfect training, and that this
+limit is a property of the formulation, not of the training process.
+
+5.1 FIVE SOURCES OF IRREDUCIBLE VIOLATION RATE
+
+   (I1) ARGMAX QUANTIZATION NOISE.
+        The UnetBaseline outputs a 14-dimensional velocity field per
+        tile cell. The Euler ODE solver in c2-pcg.flow-matching-inference
+        integrates this field to a 14-dimensional position vector at
+        terminal time, then argmax converts the vector to a discrete
+        tile type. Near argmax boundaries where two tile types have
+        similar predicted probability, small floating-point noise can
+        flip the tile assignment. This produces single-tile anomalies
+        (an isolated brick where Empty was intended) that
+        FailureModeAnalyzer counts as violations.
+
+   (I2) PER-TOKEN LOSS HAS NO STRUCTURAL TERM.
+        CfmLossComputer.ComputeWeightedLoss measures per-tile squared
+        velocity error. There is no loss component that penalizes
+        the pattern "discontinuous ground" or the pattern "floating
+        tile". The model only learns structure indirectly via the
+        per-tile distribution. A model that perfectly matches the
+        per-tile distribution can still produce structurally invalid
+        chunks because the loss does not see chunks as wholes.
+
+   (I3) FINITE TRAINING DATA (2518 CHUNKS).
+        At batch size 32 with replacement sampling, after the model
+        has seen each chunk approximately 1270 times across 100000
+        steps, additional training does not introduce new structural
+        patterns. The 2518 chunks constrain the model's structural
+        knowledge to the patterns they instantiate. Some structural
+        failure modes in generated chunks are simply outside the
+        empirical distribution the model could learn.
+
+   (I4) STOCHASTIC EULER INTEGRATION.
+        The Euler ODE solver integrates the velocity field with
+        finite NFE (number of function evaluations) steps, typically
+        10 to 20. At low NFE the solver introduces integration error
+        that accumulates as deviation from the true generative
+        distribution. Higher NFE reduces this error but not to zero.
+
+   (I5) BIOME LABEL CONFOUNDING.
+        The training set has 15 VGLC levels labeled across 4 biomes
+        (Error, Overworld, Underground, Treetop), with the Error
+        label never used at training time. Some structural patterns
+        such as ground continuity are biome-invariant and
+        well-supported across all levels. Others such as treetop
+        platform arrangement are biome-specific but have few
+        training examples. The model averages these signals,
+        producing biome-distinct chunks at the population level but
+        not perfectly faithful biome reproduction per chunk.
+
+5.2 IMPLICATION FOR THESIS NARRATIVE
+
+Reaching zero violations per chunk with the current
+CFM-plus-argmax-plus-FailureModeAnalyzer setup is not achievable. The
+thesis should report violation counts COMPARATIVELY (CFM vs random
+baseline; CFM at different training durations; CFM with and without
+biome conditioning) rather than ABSOLUTELY (CFM achieves N percent
+violation-free chunks).
+
+This reframing aligns with the thesis title's framing of generation as a
+Constraint Satisfaction Problem: the contribution is showing that CFM
+learns constraints from data without explicit specification, not that CFM
+achieves perfect satisfaction. Wave Function Collapse achieves zero
+violations by construction because it propagates explicitly specified
+constraints; CFM achieves an approximation of constraint satisfaction by
+learning the distribution of constraint-satisfying examples.
+
+5.3 APPROACHES THAT WOULD REACH ZERO VIOLATIONS (FUTURE WORK)
+
+Approaches that could reach zero violations are outside the scope of
+the thesis as currently framed but worth listing for the Future Work
+section:
+
+   (Z1) Post-generation heuristic repair: deterministic rules that
+        fix bottom-row gaps, complete partial pipes, snap misplaced
+        enemies to nearest valid surface. Tractable in approximately
+        one day of implementation.
+
+   (Z2) Constraint-aware sampling: modify the Euler solver to project
+        intermediate states onto a constraint manifold (e.g. force
+        bottom row to be Solid throughout integration). Research
+        level.
+
+   (Z3) Discrete diffusion models with structural priors: replace
+        continuous CFM with masked discrete diffusion (D3PM-style),
+        adding an "allowed-tile" mask at each step that excludes
+        structurally invalid patterns. Research level; weeks of work.
+
+   (Z4) Reinforcement learning with violations as reward: fine-tune
+        the trained CFM model with negative violation count as reward
+        via PPO or similar. Multi-week project.
+
+   (Z5) Hybrid CFM plus Wave Function Collapse: use CFM to propose
+        global layout, then WFC to fill in structurally constrained
+        regions. Hybrid that combines learned constraints with
+        explicit constraints. Research level.
+
+
+================================================================================
+PART 6: OPTIONS FOR THE NEXT ACTION
+================================================================================
+
+Eight options for the next 24 to 144 hours, ranked by time-to-thesis-result:
+
+OPTION A: SHIP EXPERIMENT D AS FINAL RESULT
+   Time:     Zero hours of additional training
+   Risk:     Minimal
+   Pros:     Working chunks exist in generated-png-overworld and
+             companion folders; biome conditioning demonstrably works;
+             six full days clear for writing Chapter 4
+   Cons:     No quantitative improvement over Exp D in the thesis story
+   Outcome:  Recognizable Mario chunks across three biomes,
+             non-zero violation rate, defended as
+             "CFM learns biome-conditional structure from data" claim
+
+OPTION B: UNIFORM-LOSS BC=64 ABLATION
+   Time:     Approximately 30 minutes training plus 5 minutes generation
+   Risk:     Low (loss change is well-understood)
+   Pros:     Tests whether the class-balanced loss was the dominant
+             cause of remaining violations; if YES, uniform-loss
+             chunks may be structurally cleaner than Exp D
+   Cons:     Likely WORSE for rare-tile recall; introduces a
+             "better on some metrics, worse on others" tradeoff that
+             complicates the thesis narrative
+   Outcome:  Either improves over Exp D structurally (uniform-loss
+             wins narrative) or matches Exp D with worse rare-tile
+             diversity (no narrative change)
+
+OPTION C: USE STEP-20000 BC=128 CHECKPOINT
+   Time:     Approximately 5 minutes generation
+   Risk:     Low (no new training)
+   Pros:     Tests whether early-stopped BC=128 is better than
+             Exp D; checkpoint already exists at
+             unet-conditional-checkpoint.bin.step20000
+   Cons:     Likely still suffers from Mechanism 3 (zero-init biome
+             harm); unlikely to beat Exp D
+   Outcome:  Quick experiment; if it improves over Exp D, ship that;
+             if not, no time lost
+
+OPTION D: BC=96 CONTROL EXPERIMENT
+   Time:     Approximately 50 minutes training plus 5 minutes generation
+   Risk:     Medium
+   Pros:     Tests the capacity gradient; if BC=96 is better than
+             both 64 and 128, supports a "U-shaped capacity-quality"
+             narrative for the thesis
+   Cons:     50 minutes of compute; Mechanism 1 likely still applies
+             with class-balanced loss; uncertain benefit
+   Outcome:  Probably similar to Exp D; not worth the time
+
+OPTION E: WEIGHT-CAP CLASS-BALANCED LOSS (max weight = 10 times)
+   Time:     Approximately 30 minutes training plus 5 minutes generation
+   Risk:     Medium
+   Pros:     Directly addresses Mechanism 1; should reduce rare-tile
+             hallucination while preserving some class balance
+   Cons:     Requires code change to
+             TileTypeFrequencyComputer.BuildSqrtInverseFrequencyWeightTensor;
+             one round of debugging
+   Outcome:  Could produce the cleanest chunks yet if the max-weight
+             cap works; rare-tile recall may suffer
+
+OPTION F: TWO-STAGE TRAINING (uniform 20k then class-balanced 5k)
+   Time:     Approximately 30 minutes total
+   Risk:     Medium
+   Pros:     Theoretically best of both worlds: structure first, then
+             rare-tile refinement
+   Cons:     Requires CfmTrainingLoop modification to switch loss
+             function mid-run; possible learning-rate scheduling
+             complications; first-time experiment with unknown
+             failure modes
+   Outcome:  Possibly best chunks; possibly broken; hard to predict
+
+OPTION G: POST-GENERATION HEURISTIC REPAIR
+   Time:     Approximately 3 to 4 hours of code
+   Risk:     Low (orthogonal to training)
+   Pros:     Reaches zero violations on ground-floor completion;
+             complements existing model rather than replacing it;
+             provides a deliverable for "Iteration 3 final" in the
+             thesis
+   Cons:     Adds an explicit-rule component, partially undermining
+             the "learned constraints" claim of the thesis
+   Outcome:  Best-looking final chunks; thesis discussion must
+             acknowledge the hybrid approach
+
+OPTION H: ADD MARIO AI FRAMEWORK BEATABILITY METRIC
+   Time:     Approximately one day of implementation
+   Risk:     Medium (Java integration, JAR loading)
+   Pros:     Reframes evaluation in a more meaningful metric;
+             addresses Synth's suggestion from earlier review;
+             complements existing FailureModeAnalyzer
+   Cons:     Implementation overhead; may reveal low beatability rates
+             that complicate the writeup; risk of not finishing
+   Outcome:  Better thesis chapter; possible deadline pressure
+
+
+================================================================================
+PART 7: RECOMMENDATION GIVEN DEADLINE
+================================================================================
+
+7.1 PRIMARY RECOMMENDATION
+
+OPTION A plus OPTION C SANITY CHECK.
+
+Ship Experiment D as the final result. The chunks already in
+generated-png-overworld, generated-png-underground, and
+generated-png-treetop are the thesis figures. Use the remaining six
+days for Chapter 4 prose, not for additional training runs.
+
+Before committing to this, run Option C (generate from BC=128
+step-20000 checkpoint) as a five-minute sanity check. If those
+chunks happen to be visibly better than Exp D, ship them instead.
+If they match Exp D or are worse, ship Exp D.
+
+7.2 SECONDARY (IF TIME PERMITS AFTER DRAFT)
+
+OPTION G.
+
+If Chapter 4 prose is in good shape by 2026-06-13 (two days before
+rascunho), implement Option G post-generation heuristic repair as
+an "Iteration 3 final" deliverable. Frame the thesis iterations
+as:
+
+   Iteration 1: CFM baseline (uniform loss, no biome conditioning)
+   Iteration 2: + class-balanced + biome conditioning (Experiment D)
+   Iteration 3: + structural post-processing (Option G heuristic
+                repair)
+
+Each iteration's contribution is clearly separable and the thesis
+narrative gains a third concrete result.
+
+7.3 EXPLICITLY NOT RECOMMENDED BEFORE RASCUNHO
+
+Options B, D, E, F all involve another training run. Given that
+Iteration 3 has demonstrated training-run risk is real (today's
+BC=128 run cost 83 minutes of wall-clock and produced a worse
+result), additional training under deadline pressure should be
+avoided.
+
+Option H (Mario AI Framework) is correct for AFTER the rascunho.
+Implementing it before 2026-06-15 risks not finishing either the
+framework or the thesis.
+
+
+================================================================================
+PART 8: CONCRETE NEXT STEPS FOR 2026-06-10 ONWARDS
+================================================================================
+
+8.1 TOMORROW (2026-06-10)
+
+(1) Run Option C sanity check (approximately 5 minutes):
+
+       dotnet run --project c4-cmd.pcg-flow-matching-generate
+           --no-build --
+           unet-conditional-checkpoint.bin.step20000
+           --biome Overworld
+           --png-dir generated-png-bc128-step20k-overworld
+
+    Visually compare to generated-png-overworld. If clearly
+    better, ship; if not, proceed to (2).
+
+(2) Backup the Iteration 3 final checkpoint with a renamed filename
+    so it is not confused with Exp D in future:
+
+       cp unet-conditional-checkpoint.bin
+          unet-iter3-bc128-100k-checkpoint.bin
+
+(3) Verify whether the Exp D BC=64 checkpoint backup exists from
+    before today's training overwrote unet-conditional-checkpoint.bin:
+
+       ls -la unet-conditional-bc64-checkpoint.bin.backup 2>&1
+
+    If the backup exists: skip step (4).
+
+    If the backup does not exist: recreate the Experiment D model
+    by switching to commit 19b9c04 in a separate worktree, training
+    for 20000 steps, and renaming the output. Time estimate: 20
+    minutes on RTX 5060.
+
+(4) Begin Chapter 4 outline. Suggested structure:
+
+       4.1 Iteration 1 baseline (cites docs/260529)
+       4.2 Iteration 2 with class-balanced loss (cites docs/260602)
+       4.3 Iteration 2 Experiment D biome conditioning
+           (cites docs/260603)
+       4.4 Iteration 3 failed scaling experiment
+           (cites this report)
+       4.5 Limitations and Future Work (cites Part 5 of this report)
+
+8.2 BY 2026-06-13 (TWO DAYS BEFORE RASCUNHO)
+
+(5) Chapter 4 first draft complete.
+
+(6) If time available, implement Option G heuristic repair.
+
+8.3 BY 2026-06-15 (RASCUNHO DUE)
+
+(7) Submit rascunho.
+
+8.4 AFTER 2026-06-15
+
+(8) Reserve Option H (Mario AI Framework) for the period between
+    rascunho and final submission (2026-07-12).
+
+
+================================================================================
+APPENDIX A: COMMIT REFERENCES
+================================================================================
+
+Relevant commits on the procgen-flow-matching repository:
+
+   f5601d6  add Euler ODE inference and generation entrypoint
+            (first BaseChannels=64 generate file)
+
+   ca4cbf8  lower training learning rate from 1e-4 to 5e-5
+
+   9192caf  bump training NumSteps from 2000 to 20000
+
+   ff65d2f  render generated chunks to PNG by default
+
+   9cbf70b  rename train outputs to unet-sqrt-balanced-checkpoint
+
+   e062254  add --biome flag to generate CLI
+
+   19b9c04  Experiment D merge (biome-conditional final, BC=64,
+            NumSteps=20000, sqrt-inverse class-balanced loss)
+
+   60f9b50  zero-init SecondConv weights and bias
+
+   485fecb  bump BaseChannels=128 and NumSteps=100000
+            (Iteration 3 today)
+
+
+================================================================================
+APPENDIX B: VIOLATION CHECKLIST FOR THESIS LIMITATIONS SECTION
+================================================================================
+
+Use this checklist when writing Chapter 4 Section 4.5 Limitations and
+Future Work:
+
+   [ ] Mention the irreducible violation rate floor (Part 5 of this
+       report)
+
+   [ ] Explain why CFM-plus-argmax produces structural violations
+       (sources I1 through I5)
+
+   [ ] Document the class-balanced loss vs structural fidelity
+       tradeoff (Mechanism 1 of Part 4)
+
+   [ ] Acknowledge the 2518-chunk training-data size constraint
+       (source I3)
+
+   [ ] Cite the BC=128 scaling experiment as a tested-and-rejected
+       direction with full mechanism analysis (Part 4)
+
+   [ ] Propose post-generation heuristic repair (Option G) as
+       immediate future work
+
+   [ ] Propose discrete diffusion models with structural priors
+       (approach Z3) as a research direction
+
+   [ ] Propose Mario AI Framework beatability metric as evaluation
+       improvement, citing Karakovskiy and Togelius 2012
+
+   [ ] Connect back to the thesis title's CSP framing: violations
+       are a constraint dissatisfaction metric for a learned
+       generative model, not an absolute quality measure
+
+
+================================================================================
+END OF REPORT
+================================================================================
