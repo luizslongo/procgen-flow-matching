@@ -24,7 +24,7 @@ public class ChunkStructureRepairTests
         Console.WriteLine("============================================");
         Console.WriteLine();
 
-        TestEmptyChunkIsUnchanged();
+        TestEmptyChunkBottomRowIsFilled();
         TestCompletePipeIsUnchanged();
         TestIsolatedPipeTopLeftIsCompleted();
         TestOrphanPipeTopRightIsRemoved();
@@ -39,6 +39,14 @@ public class ChunkStructureRepairTests
         TestStructureCounterCountsCompleteBulletBills();
         TestRepairReturnsNewTileMap();
         TestExcessivePipesAreAllRemoved();
+        TestBottomRowEmptyTilesBecomeSolid();
+        TestBottomRowNonEmptyTilesPreserved();
+        TestFloatingPipeIsExtendedOrRemoved();
+        TestPipeRestingOnSolidIsUnchanged();
+        TestFloatingBulletBillIsExtendedOrRemoved();
+        TestFloatingEnemyIsSnappedToGround();
+        TestFloatingEnemyWithoutGroundInRangeIsRemoved();
+        TestEnemyOnGroundIsKept();
 
         Console.WriteLine();
         Console.WriteLine("============================================");
@@ -99,20 +107,34 @@ public class ChunkStructureRepairTests
 
     // === Tests =============================================================
 
-    private static void TestEmptyChunkIsUnchanged()
+    private static void TestEmptyChunkBottomRowIsFilled()
     {
         TileMap chunk = MakeChunk(28, 14);
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
-        bool unchanged = true;
-        for (int i = 0; i < chunk.Tiles.Length; i++)
+
+        bool topRowsAllEmpty = true;
+        for (int y = 0; y < chunk.Height - 1; y++)
         {
-            if (repaired.Tiles[i] != TileTypeEnum.Empty)
+            for (int x = 0; x < chunk.Width; x++)
             {
-                unchanged = false;
+                if (Get(repaired, x, y) != TileTypeEnum.Empty)
+                {
+                    topRowsAllEmpty = false;
+                    break;
+                }
+            }
+        }
+        bool bottomRowAllSolid = true;
+        for (int x = 0; x < chunk.Width; x++)
+        {
+            if (Get(repaired, x, chunk.Height - 1) != TileTypeEnum.Solid)
+            {
+                bottomRowAllSolid = false;
                 break;
             }
         }
-        Assert(unchanged, "empty chunk is unchanged");
+        Assert(topRowsAllEmpty, "empty chunk top rows remain Empty");
+        Assert(bottomRowAllSolid, "empty chunk bottom row becomes Solid");
     }
 
     private static void TestCompletePipeIsUnchanged()
@@ -325,5 +347,167 @@ public class ChunkStructureRepairTests
 
         Assert(Get(repaired, 24, 8) != TileTypeEnum.PipeTopLeft,
                "loose PipeTopLeft removed when existing pipes >= max");
+    }
+
+    private static void TestBottomRowEmptyTilesBecomeSolid()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+        bool allSolid = true;
+        for (int x = 0; x < chunk.Width; x++)
+        {
+            if (Get(repaired, x, chunk.Height - 1) != TileTypeEnum.Solid)
+            {
+                allSolid = false;
+                break;
+            }
+        }
+        Assert(allSolid, "BottomRowCompletion turns Empty bottom-row tiles to Solid");
+    }
+
+    private static void TestBottomRowNonEmptyTilesPreserved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        Set(chunk, 5, 13, TileTypeEnum.Breakable);
+        Set(chunk, 10, 13, TileTypeEnum.Enemy);
+        Set(chunk, 15, 13, TileTypeEnum.Coin);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 5, 13) == TileTypeEnum.Breakable,
+               "BottomRowCompletion preserves Breakable on bottom row");
+        // Coin and Enemy may be affected by other repair passes; just
+        // assert they aren't overwritten by Solid via BottomRowCompletion
+        // when they were already non-Empty before the repair started.
+        TileTypeEnum coinAfter = Get(repaired, 15, 13);
+        Assert(coinAfter != TileTypeEnum.Solid || coinAfter == TileTypeEnum.Coin,
+               "BottomRowCompletion does not overwrite non-Empty bottom row");
+    }
+
+    private static void TestFloatingPipeIsExtendedOrRemoved()
+    {
+        // A complete 2x2 pipe at (10, 4) with empty space below all the
+        // way to the bottom. With BottomRowCompletion, the bottom row
+        // becomes Solid; PipeSupportRepair should then extend the pipe
+        // body down to row 12 (so the pipe rests on the new Solid row 13)
+        // OR REMOVE the floating pipe. With existing supported pipes = 0,
+        // MinCompletePerChunk=1 forces EXTEND.
+        TileMap chunk = MakeChunk(28, 14);
+        Set(chunk, 10, 4, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 11, 4, TileTypeEnum.PipeTopRight);
+        Set(chunk, 10, 5, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 11, 5, TileTypeEnum.PipeBodyRight);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        bool isStillPipeTop = Get(repaired, 10, 4) == TileTypeEnum.PipeTopLeft &&
+                              Get(repaired, 11, 4) == TileTypeEnum.PipeTopRight;
+        bool isCompletelyRemoved = !StructureCounter.IsPipeTile(Get(repaired, 10, 4)) &&
+                                   !StructureCounter.IsPipeTile(Get(repaired, 11, 4));
+
+        if (isStillPipeTop)
+        {
+            // Should have extended body down to (10, 12) and (11, 12)
+            // with the bottom row 13 being Solid as ground.
+            bool extendedToGround = Get(repaired, 10, 12) == TileTypeEnum.PipeBodyLeft &&
+                                    Get(repaired, 11, 12) == TileTypeEnum.PipeBodyRight &&
+                                    Get(repaired, 10, 13) == TileTypeEnum.Solid &&
+                                    Get(repaired, 11, 13) == TileTypeEnum.Solid;
+            Assert(extendedToGround, "floating pipe is extended to ground");
+        }
+        else
+        {
+            Assert(isCompletelyRemoved, "floating pipe is removed entirely");
+        }
+    }
+
+    private static void TestPipeRestingOnSolidIsUnchanged()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Pipe at rows 10-11, ground at row 12.
+        Set(chunk, 10, 10, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 11, 10, TileTypeEnum.PipeTopRight);
+        Set(chunk, 10, 11, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 11, 11, TileTypeEnum.PipeBodyRight);
+        Set(chunk, 10, 12, TileTypeEnum.Solid);
+        Set(chunk, 11, 12, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        bool intact = Get(repaired, 10, 10) == TileTypeEnum.PipeTopLeft &&
+                      Get(repaired, 11, 10) == TileTypeEnum.PipeTopRight &&
+                      Get(repaired, 10, 11) == TileTypeEnum.PipeBodyLeft &&
+                      Get(repaired, 11, 11) == TileTypeEnum.PipeBodyRight &&
+                      Get(repaired, 10, 12) == TileTypeEnum.Solid;
+        Assert(intact, "pipe resting on Solid is unchanged");
+    }
+
+    private static void TestFloatingBulletBillIsExtendedOrRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        Set(chunk, 10, 4, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 10, 5, TileTypeEnum.BulletBillBody);
+        // Empty all the way down to row 13 which becomes Solid by
+        // BottomRowCompletion. Existing supported bullet bills = 0
+        // forces EXTEND.
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        bool isStillLauncher = Get(repaired, 10, 4) == TileTypeEnum.BulletBillLauncher;
+        bool isCompletelyRemoved = !StructureCounter.IsBulletBillTile(Get(repaired, 10, 4));
+
+        if (isStillLauncher)
+        {
+            bool extendedToGround = Get(repaired, 10, 12) == TileTypeEnum.BulletBillBody &&
+                                    Get(repaired, 10, 13) == TileTypeEnum.Solid;
+            Assert(extendedToGround, "floating bullet bill is extended to ground");
+        }
+        else
+        {
+            Assert(isCompletelyRemoved, "floating bullet bill is removed entirely");
+        }
+    }
+
+    private static void TestFloatingEnemyIsSnappedToGround()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Enemy at (10, 9) with Solid 2 rows below at (10, 11).
+        Set(chunk, 10, 9, TileTypeEnum.Enemy);
+        Set(chunk, 10, 11, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        bool snapped = Get(repaired, 10, 10) == TileTypeEnum.Enemy &&
+                       Get(repaired, 10, 9) != TileTypeEnum.Enemy &&
+                       Get(repaired, 10, 11) == TileTypeEnum.Solid;
+        Assert(snapped, "floating enemy is snapped down to row above ground");
+    }
+
+    private static void TestFloatingEnemyWithoutGroundInRangeIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Enemy at (10, 5) with no ground within 3 rows below (rows 6, 7, 8
+        // are all Empty). Bottom row 13 is far beyond search depth, so
+        // EnemyRepair removes the enemy. BottomRowCompletion will fill
+        // row 13 with Solid, but that's >3 rows below the enemy at y=5.
+        Set(chunk, 10, 5, TileTypeEnum.Enemy);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 5) != TileTypeEnum.Enemy,
+               "enemy with no ground in search range is removed");
+    }
+
+    private static void TestEnemyOnGroundIsKept()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Enemy at (10, 12) with Solid at (10, 13).
+        Set(chunk, 10, 12, TileTypeEnum.Enemy);
+        Set(chunk, 10, 13, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 12) == TileTypeEnum.Enemy,
+               "enemy standing on Solid is kept in place");
     }
 }
