@@ -46,6 +46,18 @@ public class PipeTopClearance
                     continue;
                 }
 
+                // For Underground biome, the top row (y == 0) is the
+                // cave ceiling enforced by CeilingCompletion. Clearing
+                // it would cause an oscillating fight between the two
+                // passes that never converges. A pipe at y == 1 in
+                // Underground is structurally implausible (the ceiling
+                // blocks entry); leave the pipe in place and accept the
+                // visual inconsistency for this rare edge case.
+                if (chunk.BiomeLabel == BiomeTypeEnum.Underground && y == 1)
+                {
+                    continue;
+                }
+
                 anyChange = ClearIfObstruction(chunk, x, y - 1) || anyChange;
                 anyChange = ClearIfObstruction(chunk, x + 1, y - 1) || anyChange;
             }
