@@ -1,0 +1,401 @@
+================================================================================
+TCC ITERATION 8: BIOME LABEL PROPAGATION,
+                 PIPE COUNT GUARANTEE,
+                 AND BULLET BILL LAUNCHER CLEARANCE
+================================================================================
+
+Generated: 2026-06-10
+Topic:     Documents three corrections to the repair pipeline driven by
+           three issues observed in the Iteration 7 generated chunks:
+           Treetop and Underground biome-aware rules never firing, only
+           one supported pipe across 10 Overworld chunks, and a Breakable
+           tile sitting immediately adjacent to a BulletBillLauncher in
+           chunk-010 of the Iter 7 Overworld run. The root cause of the
+           first issue was a defect in MapGenerator that did not propagate
+           the requested biome label to the generated TileMap instances.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           implementation committed on the iteration-5-chunk-structure-repair
+           branch on 2026-06-10.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260609.iteration-3-bc128-100k-failure-analysis.txt
+           docs/260610.iteration-5-chunk-structure-repair.txt
+           docs/260610.iteration-6-support-and-ground-repair.txt
+           docs/260610.iteration-7-clearance-height-and-biome-rules.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Iteration 7 was supposed to fix the Treetop continuous-ground problem
+and the Underground missing-ceiling problem via biome-aware
+BottomRowCompletion and a new CeilingCompletion pass. Both visual
+problems persisted unchanged in the Iteration 7 output. The user
+reported on 2026-06-10: "treetop still has absolutely no
+discontinuation on the ground" and "underground still has no
+ceiling". Two other problems were also reported:
+
+   "across the 10 overworld chunks we got one single pipe" - the
+   MaxPipeRows cap introduced in Iteration 7 was rejecting almost
+   every pipe because the model places pipe tops well above the
+   floor.
+
+   "there is a breakable block right to the left of the bullet bill
+   launcher" in chunk-010 of the Iter 7 Overworld run - bullet bills
+   shoot horizontally; an adjacent obstruction defeats the cannon.
+
+Iteration 8 fixes all three. The biome problem turned out to be a
+defect in MapGenerator unrelated to the biome-aware repair design.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: ROOT CAUSE ANALYSIS - WHY ITERATION 7 BIOME RULES NEVER FIRED
+PART 2: IMPLEMENTATION - THREE FIXES
+PART 3: TESTS AND BUILD VERIFICATION
+PART 4: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+PART 5: LIMITATIONS
+PART 6: NEXT STEPS
+APPENDIX A: GRANULAR COMMIT LIST
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+
+
+================================================================================
+PART 1: ROOT CAUSE ANALYSIS - WHY ITERATION 7 BIOME RULES NEVER FIRED
+================================================================================
+
+1.1 THE DEFECT IN MapGenerator.Generate
+
+Reading MapGenerator.cs lines 60-69 of the Iteration 7 codebase
+reveals the discretization block:
+
+   torch.Tensor generatedCpu = generated.cpu();
+   List<TileMap> maps = new List<TileMap>();
+   for (int i = 0; i < config.NumSamples; i++)
+   {
+       torch.Tensor single = generatedCpu[i];
+       TileMap map = TileMapTensorConverter.FromOneHotTensor(single);
+       maps.Add(map);
+   }
+
+TileMapTensorConverter.FromOneHotTensor produces a TileMap with the
+correct Width, Height, and Tiles array, but DOES NOT set the
+BiomeLabel field. C# default-initializes the public BiomeLabel field
+to BiomeTypeEnum.Error (value 0, per standard-enum-zero-is-error).
+
+Therefore every chunk in the returned list has BiomeLabel == Error
+regardless of which biome was requested via config.BiomeLabel.
+
+1.2 HOW THIS INTERACTED WITH THE BIOME-AWARE REPAIRS
+
+The Iteration 7 BottomRowCompletion has the gate:
+
+   if (chunk.BiomeLabel == BiomeTypeEnum.Treetop) return false;
+
+The Iteration 7 CeilingCompletion has the gate:
+
+   if (chunk.BiomeLabel != BiomeTypeEnum.Underground) return false;
+
+Because the generated chunks always have BiomeLabel = Error:
+
+   Error is not Treetop, so BottomRowCompletion ran on every chunk
+   regardless of the requested biome. Treetop chunks got their
+   bottom rows filled with Solid.
+
+   Error is not Underground, so CeilingCompletion was a no-op on
+   every chunk. Underground chunks never got a ceiling.
+
+This explains exactly the visual symptoms reported: Treetop chunks
+had continuous ground (BottomRowCompletion filled the gaps);
+Underground chunks had no ceiling (CeilingCompletion never ran).
+
+1.3 WHY THIS BUG WAS NOT CAUGHT BY THE 38 LOGIC TESTS
+
+The Iteration 7 logic tests construct TileMap instances directly in
+test code and EXPLICITLY set chunk.BiomeLabel = BiomeTypeEnum.Treetop
+or chunk.BiomeLabel = BiomeTypeEnum.Underground before calling
+RepairAll. Those tests exercise the biome-aware rules correctly
+because the BiomeLabel is set in the test harness.
+
+The defect lives in the MapGenerator code path that the logic tests
+do not exercise. The integration test path - generate.exe running
+TorchSharp inference, then calling FailureModeAnalyzer + repair - is
+the only place the defect manifests, and there is no automated test
+for that path because it requires GPU + libtorch + a checkpoint.
+
+The Iteration 8 fix to MapGenerator is therefore code-level but
+not currently covered by an automated test. Adding a generation-path
+test would require either mocking the entire TorchSharp inference or
+spinning up a fake EulerOdeSolverConfig path; both are out of scope
+for the rascunho deadline.
+
+1.4 THE FIX
+
+In MapGenerator.Generate, after each TileMap is constructed from the
+model output tensor, propagate the requested biome:
+
+   TileMap map = TileMapTensorConverter.FromOneHotTensor(single);
+   map.BiomeLabel = config.BiomeLabel;
+   maps.Add(map);
+
+One additional line of code. With this in place the Iteration 7
+biome-aware repairs work as designed.
+
+
+================================================================================
+PART 2: IMPLEMENTATION - THREE FIXES
+================================================================================
+
+2.1 FIX 1: BIOME LABEL PROPAGATION
+
+File modified: c2-pcg.flow-matching-inference/MapGenerator.cs
+
+The single-line change documented in Section 1.4 plus a four-line
+comment explaining the rationale.
+
+2.2 FIX 2: PIPE COUNT GUARANTEE
+
+File modified: c2-pcg.flow-matching-eval/PipeSupportRepair.cs
+
+The Iteration 7 PipeSupportRepair rejected any floating pipe whose
+extension to ground would exceed config.MaxPipeRows = 6 rows. With
+the model placing pipe tops at y = 2 to y = 4 most of the time and
+the ground at y = 13 (after BottomRowCompletion), the typical pipe
+column needs 10 to 12 rows, well above the cap. Result: almost
+every pipe was REMOVED.
+
+The fix gives MinCompletePerChunk priority over MaxPipeRows. When the
+chunk has fewer than MinCompletePerChunk supported pipes, the next
+floating pipe is extended regardless of resulting height. After the
+minimum is satisfied, MaxPipeRows is enforced strictly so further
+pipes do not pile up as multi-tile towers.
+
+Trade-off: a typical chunk will now have exactly one tall pipe rather
+than zero pipes. Visually a tall pipe is mildly unusual but it
+matches some real SMB chunks (e.g. World 1-2 has a 7-tile pipe).
+
+The override applies ONLY to pipes, not to bullet bills. Real SMB
+Overworld levels frequently have chunks with no bullet bill cannons;
+forcing at least one would over-populate the biome.
+
+2.3 FIX 3: BULLET BILL LAUNCHER HORIZONTAL CLEARANCE
+
+File created: c2-pcg.flow-matching-eval/BulletBillLauncherClearance.cs
+
+Single-pass repair. For each BulletBillLauncher at (x, y), scans
+cells (x - 3, y), (x - 2, y), (x - 1, y), (x + 1, y), (x + 2, y),
+(x + 3, y). Solid and Breakable tiles in these cells are replaced
+with Empty so the cannon has horizontal clearance to fire. Coin,
+QuestionFull, Enemy, pipe parts, and other bullet bill parts in the
+clearance zone are preserved (Coin/Question/Enemy are not
+projectile obstructions; pipe and bullet bill parts belong to other
+structures whose own validity passes handle conflicts).
+
+The clearance applies only to the same row as the launcher because
+in-game bullet bill trajectories are perfectly horizontal.
+
+2.4 ORCHESTRATOR UPDATE
+
+File modified: c2-pcg.flow-matching-eval/ChunkStructureRepair.cs
+
+The pass list now contains 10 entries; BulletBillLauncherClearance
+is inserted immediately after BulletBillSupportRepair so the
+clearance only acts on launchers that survived support validation.
+
+
+================================================================================
+PART 3: TESTS AND BUILD VERIFICATION
+================================================================================
+
+3.1 COMPILE-TIME VERIFICATION
+
+   dotnet build c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj --verbosity minimal
+
+   Result: Build succeeded. 0 Warning(s). 0 Error(s).
+
+3.2 LOGIC TESTS
+
+Total: 44 logic tests passing, 0 failing on 2026-06-10.
+
+New tests added in Iteration 8 (4 new + 1 updated):
+
+   tall pipe is kept when it would be the chunk's first supported pipe
+   BulletBillLauncherClearance removes adjacent Solid tiles
+   BulletBillLauncherClearance removes adjacent Breakable on the left
+   BulletBillLauncherClearance removes adjacent Breakable on the right
+   BulletBillLauncherClearance preserves Coin in clearance zone
+
+Updated test: TestPipeTooTallToExtendIsRemoved was reworked to
+include a first complete supported pipe at (5, 11) so the
+MinCompletePerChunk override does not fire on the second tall pipe,
+and the MaxPipeRows enforcement can be asserted.
+
+3.3 GENERATION PATH
+
+Cannot be exercised in the development container due to lack of GPU
+and incompatible libtorch glibc requirements (same constraint
+documented in iter5 and iter6 reports). Verification of the biome
+propagation fix in the running system is delegated to the local
+workstation. The fix is mechanically straightforward (one assignment
+statement) so the risk of regression is minimal.
+
+
+================================================================================
+PART 4: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+================================================================================
+
+This section is populated by the author after running the test plan
+in Appendix B on the local RTX 5060.
+
+4.1 OVERWORLD ITERATION 8 PRE vs POST-REPAIR
+
+   Property              Pre-repair       Post-repair
+   --------------------- ---------------- ----------------
+   Total violations      <to populate>    <to populate>
+   BrokenPipeHorizontal  <to populate>    <to populate>
+   BrokenPipeTopLeft     <to populate>    <to populate>
+   BrokenPipeTopRight    <to populate>    <to populate>
+   BrokenBulletBill      <to populate>    <to populate>
+   FloatingEnemy         <to populate>    <to populate>
+   DiscontinuousGround   <to populate>    <to populate>
+
+   Pipe count per chunk (visual estimate, 0-3+ scale): <to populate>
+
+4.2 UNDERGROUND ITERATION 8 PRE vs POST-REPAIR
+
+   (same template)
+
+   Top row appears as cave ceiling: yes / no
+
+4.3 TREETOP ITERATION 8 PRE vs POST-REPAIR
+
+   (same template)
+
+   Bottom row has natural gaps: yes / no
+
+4.4 VISUAL ASSESSMENT NOTES
+
+   (to populate)
+
+
+================================================================================
+PART 5: LIMITATIONS
+================================================================================
+
+5.1 LAUNCHER CLEARANCE FIRING DIRECTION
+
+In real SMB the bullet bill cannon fires only to the LEFT (the
+direction Mario is moving away from). The current
+BulletBillLauncherClearance clears BOTH sides because the canonical
+SMB sprite is bidirectional in some sources and it is safer to clear
+both sides than to leave a blocked side. A future refinement could
+clear only the left if the rendered sprite supports a left-facing
+direction-of-fire convention.
+
+5.2 PIPE COUNT GUARANTEE WITHOUT EXISTENCE GUARANTEE
+
+The MinCompletePerChunk override fires only when the model placed
+at least one PipeTopLeft anywhere in the chunk. If the model produced
+no pipe tiles at all, no pipe is added; the chunk has zero pipes.
+This is fine for the thesis story because pipe density should
+match the training distribution; we should not synthesize pipes
+in chunks where the model decided they do not belong.
+
+5.3 INTEGRATION TEST GAP
+
+The biome propagation defect was not caught by the 38 Iteration 7
+logic tests because they did not exercise the MapGenerator code
+path. Adding integration tests requires GPU and trained checkpoint;
+these are out of scope for the rascunho deadline but should be
+added for the final submission to catch similar future defects.
+
+
+================================================================================
+PART 6: NEXT STEPS
+================================================================================
+
+6.1 IMMEDIATE (BEFORE RASCUNHO 2026-06-15)
+
+   (1) Run test plan in Appendix B and populate Section 4.
+
+   (2) Confirm Treetop chunks have natural ground gaps and
+       Underground chunks have a visible ceiling. These are the
+       primary visual verifications.
+
+   (3) Confirm Overworld chunks now show 1 to 3 pipes per chunk.
+
+   (4) Begin Chapter 4 writeup.
+
+6.2 AFTER RASCUNHO (2026-06-15 TO 2026-07-12)
+
+   (5) Add a generation-path integration test that mocks
+       TorchSharp inference to verify BiomeLabel propagation
+       without requiring GPU.
+
+   (6) Mario AI Framework integration.
+
+
+================================================================================
+APPENDIX A: GRANULAR COMMIT LIST
+================================================================================
+
+Iteration 8 commits on iteration-5-chunk-structure-repair branch:
+
+   f20beca  propagate config.BiomeLabel to every generated TileMap
+   2180f2f  guarantee at least MinCompletePerChunk pipe in PipeSupportRepair
+   2668d2b  add BulletBillLauncherClearance preventing blocked horizontal fire
+   35c3c7b  wire BulletBillLauncherClearance into orchestrator after support pass
+   4e82383  add 4 tests for iter8 biome propagation pipe override and launcher clearance
+
+
+================================================================================
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+================================================================================
+
+B.1 PULL THE LATEST BRANCH FROM ORIGIN
+
+   git fetch origin
+   git checkout iteration-5-chunk-structure-repair
+   git pull origin iteration-5-chunk-structure-repair
+
+B.2 VERIFY BUILD AND LOGIC TESTS
+
+   dotnet build procgen-flow-matching.sln --verbosity minimal
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+   Expected: Build succeeded. 0 Warning(s). 0 Error(s).
+             44 passed, 0 failed.
+
+B.3 RUN GENERATE FOR EACH BIOME
+
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Overworld --png-dir generated-png-iter8-overworld 2>&1 | tee iter8-overworld.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Underground --png-dir generated-png-iter8-underground 2>&1 | tee iter8-underground.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Treetop --png-dir generated-png-iter8-treetop 2>&1 | tee iter8-treetop.log
+
+B.4 VISUAL VERIFICATION CHECKLIST
+
+The three flagship symptoms to verify:
+
+   (1) Underground chunks have a continuous Solid ceiling at y = 0.
+       If still missing, the biome propagation did not take or the
+       generated chunk's BiomeLabel is being overwritten somewhere
+       downstream of MapGenerator.Generate.
+
+   (2) Treetop chunks have natural ground gaps; the bottom row is
+       NOT a uniform brick line.
+
+   (3) Overworld chunks contain 1 to 3 pipes per chunk; the pipes
+       may be tall (extending most of the chunk height) which is
+       expected from the MinCompletePerChunk override.
+
+   (4) No bullet bill launcher has a Solid or Breakable tile within
+       3 cells to its left or right in the same row.
+
+
+================================================================================
+END OF REPORT
+================================================================================
