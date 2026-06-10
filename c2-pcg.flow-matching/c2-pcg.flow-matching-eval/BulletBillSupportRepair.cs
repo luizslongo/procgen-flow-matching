@@ -119,6 +119,10 @@ public class BulletBillSupportRepair
 
     private static bool TryExtendBulletBillBodyToGround(TileMap chunk, int x, int currentBottomY)
     {
+        // Body must never be written in the bottom row (chunk.Height - 1)
+        // because that row is the ground surface. Stop one row above.
+        int maxBodyY = chunk.Height - 2;
+
         for (int newY = currentBottomY + 1; newY < chunk.Height; newY++)
         {
             TileTypeEnum here = StructureCounter.GetTile(chunk, x, newY);
@@ -126,6 +130,11 @@ public class BulletBillSupportRepair
             if (here == TileTypeEnum.Solid || here == TileTypeEnum.Breakable)
             {
                 return true;
+            }
+
+            if (newY > maxBodyY)
+            {
+                return false;
             }
 
             if (here != TileTypeEnum.Empty)
@@ -136,7 +145,7 @@ public class BulletBillSupportRepair
             StructureCounter.SetTile(chunk, x, newY, TileTypeEnum.BulletBillBody);
         }
 
-        return true;
+        return false;
     }
 
     private static void RemoveEntireBulletBillColumn(TileMap chunk, int x, int launcherY)

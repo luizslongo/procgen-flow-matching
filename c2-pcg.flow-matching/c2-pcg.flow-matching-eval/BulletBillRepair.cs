@@ -54,6 +54,17 @@ public class BulletBillRepair
                     continue;
                 }
 
+                // A launcher at y >= chunk.Height - 2 would have its body
+                // row at chunk.Height - 1 (the ground row), displacing
+                // ground. Reject and remove the launcher.
+                if (y >= chunk.Height - 2)
+                {
+                    StructureCounter.SetTile(chunk, x, y,
+                        StructureCounter.SelectReplacementTile(y, chunk.Height));
+                    anyChange = true;
+                    continue;
+                }
+
                 TileTypeEnum below = StructureCounter.GetTile(chunk, x, y + 1);
                 if (below == TileTypeEnum.BulletBillBody)
                 {
