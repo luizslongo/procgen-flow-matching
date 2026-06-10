@@ -62,6 +62,19 @@ public class PipeRepair
                     continue;
                 }
 
+                // A pipe whose top row is at chunk.Height - 2 would have
+                // its body row at chunk.Height - 1, displacing the ground
+                // surface. Pipes attach ON TOP of ground; the body must
+                // end one row above ground, not replace it. Reject the
+                // completion attempt and fall through to REMOVE.
+                if (y >= chunk.Height - 2)
+                {
+                    StructureCounter.SetTile(chunk, x, y,
+                        StructureCounter.SelectReplacementTile(y, chunk.Height));
+                    anyChange = true;
+                    continue;
+                }
+
                 if (IsAlreadyValidPipeAnchor(chunk, x, y))
                 {
                     continue;

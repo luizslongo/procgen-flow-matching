@@ -172,6 +172,10 @@ public class PipeSupportRepair
     // non-ground tile, in which case the caller falls through to REMOVE.
     private static bool TryExtendPipeBodyToGround(TileMap chunk, int x, int currentBottomY)
     {
+        // Pipe body must never be written in the bottom row (chunk.Height - 1)
+        // because that row is the ground surface. Stop one row above.
+        int maxBodyY = chunk.Height - 2;
+
         for (int newY = currentBottomY + 1; newY < chunk.Height; newY++)
         {
             TileTypeEnum left = StructureCounter.GetTile(chunk, x, newY);
@@ -183,6 +187,13 @@ public class PipeSupportRepair
             if (leftIsGround && rightIsGround)
             {
                 return true;
+            }
+
+            // If we are about to write into the ground row, abort.
+            // The pipe could not reach ground via Empty cells; REMOVE.
+            if (newY > maxBodyY)
+            {
+                return false;
             }
 
             bool leftFillable = left == TileTypeEnum.Empty;
@@ -197,7 +208,7 @@ public class PipeSupportRepair
             StructureCounter.SetTile(chunk, x + 1, newY, TileTypeEnum.PipeBodyRight);
         }
 
-        return true;
+        return false;
     }
 
     // Replaces every tile of the floating pipe column with the
