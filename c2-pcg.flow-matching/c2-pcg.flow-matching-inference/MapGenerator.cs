@@ -59,12 +59,16 @@ public class MapGenerator
 
         // === DISCRETIZE ===
         // Move to CPU, then convert each sample to a TileMap via per-pixel argmax.
+        // Propagate config.BiomeLabel onto every generated TileMap so downstream
+        // biome-aware analysis (FailureModeAnalyzer, ChunkStructureRepair) sees
+        // the biome the chunk was generated for, not the default BiomeTypeEnum.Error.
         torch.Tensor generatedCpu = generated.cpu();
         List<TileMap> maps = new List<TileMap>();
         for (int i = 0; i < config.NumSamples; i++)
         {
             torch.Tensor single = generatedCpu[i];
             TileMap map = TileMapTensorConverter.FromOneHotTensor(single);
+            map.BiomeLabel = config.BiomeLabel;
             maps.Add(map);
         }
 
