@@ -81,7 +81,7 @@ public class PcgFlowMatchingGenerateEntryPoint
         EulerOdeSolverConfig config = new EulerOdeSolverConfig();
         config.NumSteps = 50;
         config.NumSamples = 10;
-        config.BaseChannels = 128;
+        config.BaseChannels = 64;
         config.TimeEmbeddingDim = 128;
         config.NumBiomes = 4;
         config.BiomeLabel = biome;
