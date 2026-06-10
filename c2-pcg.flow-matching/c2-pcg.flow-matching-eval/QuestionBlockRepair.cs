@@ -30,6 +30,15 @@ public class QuestionBlockRepair
 {
     // Runs one pass of question block repair on the chunk in place.
     // Returns true if any tile was modified.
+    //
+    // Both QuestionFull (the interactive `?` block) and QuestionEmpty
+    // (the already-hit `Q` block, often pre-placed as decoration) are
+    // checked against the same placement rules. The VGLC training data
+    // contains more QuestionEmpty than QuestionFull tiles (1788 vs 768
+    // tile occurrences) because level designers use Q as decorative
+    // pre-placed hit-blocks. Visually they read the same as `?` blocks
+    // so they need the same accessibility rules: a Q embedded in solid
+    // ground would have looked wrong in a real SMB level too.
     public static bool RepairOnce(TileMap chunk)
     {
         bool anyChange = false;
@@ -38,7 +47,10 @@ public class QuestionBlockRepair
         {
             for (int x = 0; x < chunk.Width; x++)
             {
-                if (StructureCounter.GetTile(chunk, x, y) != TileTypeEnum.QuestionFull)
+                TileTypeEnum tile = StructureCounter.GetTile(chunk, x, y);
+                bool isQuestionTile = tile == TileTypeEnum.QuestionFull ||
+                                      tile == TileTypeEnum.QuestionEmpty;
+                if (!isQuestionTile)
                 {
                     continue;
                 }
