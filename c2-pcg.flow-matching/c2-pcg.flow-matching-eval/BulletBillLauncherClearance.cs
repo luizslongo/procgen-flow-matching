@@ -25,13 +25,21 @@ namespace c2_pcg.flowMatchingEval;
 // because in-game bullet bill trajectories are perfectly horizontal.
 public class BulletBillLauncherClearance
 {
-    // Number of cells on each side of the launcher to scan.
-    // 3 matches the typical SMB cannon firing distance before the
-    // bullet bill enters Mario's screen.
-    private const int HorizontalClearanceRange = 3;
+    // Number of cells of horizontal clearance on at least one side
+    // of the launcher. 14 matches a half-chunk firing distance which
+    // gives bullets meaningful travel before reaching Mario's screen.
+    // When the launcher is too close to a chunk edge to clear 14 cells
+    // on a side, the clearance is bounded by the edge.
+    private const int LongClearanceTiles = 14;
 
     // Runs one pass of launcher clearance in place.
     // Returns true if any tile was modified.
+    //
+    // For each launcher, the pass picks the side (left or right) with
+    // the most natural distance to the chunk edge and clears up to
+    // LongClearanceTiles cells (or until the edge) on that side. The
+    // other side is left alone because the clearance only needs to
+    // satisfy "at least one direction".
     public static bool RepairOnce(TileMap chunk)
     {
         bool anyChange = false;
@@ -45,10 +53,33 @@ public class BulletBillLauncherClearance
                     continue;
                 }
 
-                for (int dx = 1; dx <= HorizontalClearanceRange; dx++)
+                int distanceToLeftEdge = x;
+                int distanceToRightEdge = chunk.Width - 1 - x;
+
+                // Choose the side with more available distance to the
+                // chunk edge so the clearance has the most room.
+                int clearDirection;
+                int maxDistance;
+                if (distanceToLeftEdge >= distanceToRightEdge)
                 {
-                    anyChange = ClearIfObstruction(chunk, x - dx, y) || anyChange;
-                    anyChange = ClearIfObstruction(chunk, x + dx, y) || anyChange;
+                    clearDirection = -1;
+                    maxDistance = distanceToLeftEdge;
+                }
+                else
+                {
+                    clearDirection = 1;
+                    maxDistance = distanceToRightEdge;
+                }
+
+                int clearTiles = LongClearanceTiles;
+                if (maxDistance < clearTiles)
+                {
+                    clearTiles = maxDistance;
+                }
+
+                for (int i = 1; i <= clearTiles; i++)
+                {
+                    anyChange = ClearIfObstruction(chunk, x + clearDirection * i, y) || anyChange;
                 }
             }
         }
