@@ -26,6 +26,7 @@ public class PcgFlowMatchingGenerateEntryPoint
         string pngOutputDir = "./generated-png";
         string spriteDir = "./sprites";
         BiomeTypeEnum biome = BiomeTypeEnum.Overworld;
+        bool applyRepair = true;
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -56,8 +57,13 @@ public class PcgFlowMatchingGenerateEntryPoint
                 }
                 i++;
             }
+            else if (args[i] == "--no-repair")
+            {
+                applyRepair = false;
+            }
         }
         Console.WriteLine("Conditioning generation on biome: " + biome);
+        Console.WriteLine("Structure repair: " + (applyRepair ? "enabled" : "disabled"));
 
         // === RENDERING SETUP ===
         if (renderPng && !Directory.Exists(spriteDir))
@@ -90,58 +96,111 @@ public class PcgFlowMatchingGenerateEntryPoint
         Console.WriteLine("Generating " + config.NumSamples + " chunks with NFE=" + config.NumSteps);
         List<TileMap> maps = MapGenerator.Generate(config);
 
-        // === PER-CHUNK OUTPUT + AGGREGATION ===
-        int aggTotal = 0;
-        int aggBrokenPipeHorizontal = 0;
-        int aggBrokenPipeTopLeft = 0;
-        int aggBrokenPipeTopRight = 0;
-        int aggBrokenBulletBill = 0;
-        int aggFloatingEnemy = 0;
-        int aggDiscontinuousGround = 0;
+        // === REPAIR + PER-CHUNK OUTPUT + AGGREGATION ===
+        // Each generated chunk is analyzed twice: once before structural
+        // repair (raw model output) and once after. The output prints
+        // both counts side by side so the repair impact is visible per
+        // chunk and in the aggregate. When --no-repair is set the
+        // post-repair pass operates on the unmodified raw chunk so the
+        // post counts match the pre counts.
+        ChunkStructureRepairConfig repairConfig = new ChunkStructureRepairConfig();
+
+        int aggTotalPre = 0;
+        int aggBrokenPipeHorizontalPre = 0;
+        int aggBrokenPipeTopLeftPre = 0;
+        int aggBrokenPipeTopRightPre = 0;
+        int aggBrokenBulletBillPre = 0;
+        int aggFloatingEnemyPre = 0;
+        int aggDiscontinuousGroundPre = 0;
+
+        int aggTotalPost = 0;
+        int aggBrokenPipeHorizontalPost = 0;
+        int aggBrokenPipeTopLeftPost = 0;
+        int aggBrokenPipeTopRightPost = 0;
+        int aggBrokenBulletBillPost = 0;
+        int aggFloatingEnemyPost = 0;
+        int aggDiscontinuousGroundPost = 0;
 
         for (int i = 0; i < maps.Count; i++)
         {
-            TileMap map = maps[i];
+            TileMap rawMap = maps[i];
+            FailureModeAnalysisResult preResult = FailureModeAnalyzer.Analyze(rawMap);
+
+            TileMap finalMap;
+            if (applyRepair)
+            {
+                finalMap = ChunkStructureRepair.RepairAll(rawMap, repairConfig);
+            }
+            else
+            {
+                finalMap = rawMap;
+            }
+
+            FailureModeAnalysisResult postResult = FailureModeAnalyzer.Analyze(finalMap);
 
             Console.WriteLine();
             Console.WriteLine("=== Generated chunk " + (i + 1) + " / " + maps.Count + " ===");
-            PrintMapAscii(map);
+            PrintMapAscii(finalMap);
 
-            FailureModeAnalysisResult result = FailureModeAnalyzer.Analyze(map);
-            Console.WriteLine("Violations: " + result.TotalViolations +
-                              " (rate " + result.ViolationRate.ToString("F4") + ")");
-            Console.WriteLine("  BrokenPipeHorizontal: " + result.BrokenPipeHorizontalCount);
-            Console.WriteLine("  BrokenPipeTopLeft:    " + result.BrokenPipeTopLeftCount);
-            Console.WriteLine("  BrokenPipeTopRight:   " + result.BrokenPipeTopRightCount);
-            Console.WriteLine("  BrokenBulletBill:     " + result.BrokenBulletBillCount);
-            Console.WriteLine("  FloatingEnemy:        " + result.FloatingEnemyCount);
-            Console.WriteLine("  DiscontinuousGround:  " + result.DiscontinuousGroundCount);
+            Console.WriteLine("Violations (pre-repair):  " + preResult.TotalViolations);
+            Console.WriteLine("  BrokenPipeHorizontal: " + preResult.BrokenPipeHorizontalCount);
+            Console.WriteLine("  BrokenPipeTopLeft:    " + preResult.BrokenPipeTopLeftCount);
+            Console.WriteLine("  BrokenPipeTopRight:   " + preResult.BrokenPipeTopRightCount);
+            Console.WriteLine("  BrokenBulletBill:     " + preResult.BrokenBulletBillCount);
+            Console.WriteLine("  FloatingEnemy:        " + preResult.FloatingEnemyCount);
+            Console.WriteLine("  DiscontinuousGround:  " + preResult.DiscontinuousGroundCount);
+
+            Console.WriteLine("Violations (post-repair): " + postResult.TotalViolations);
+            Console.WriteLine("  BrokenPipeHorizontal: " + postResult.BrokenPipeHorizontalCount);
+            Console.WriteLine("  BrokenPipeTopLeft:    " + postResult.BrokenPipeTopLeftCount);
+            Console.WriteLine("  BrokenPipeTopRight:   " + postResult.BrokenPipeTopRightCount);
+            Console.WriteLine("  BrokenBulletBill:     " + postResult.BrokenBulletBillCount);
+            Console.WriteLine("  FloatingEnemy:        " + postResult.FloatingEnemyCount);
+            Console.WriteLine("  DiscontinuousGround:  " + postResult.DiscontinuousGroundCount);
 
             if (renderPng)
             {
                 string pngFile = Path.Combine(pngOutputDir, "chunk-" + (i + 1).ToString("D3") + ".png");
-                MapPngRenderer.RenderMapToPng(map, rendererConfig, pngFile);
+                MapPngRenderer.RenderMapToPng(finalMap, rendererConfig, pngFile);
                 Console.WriteLine("  PNG: " + pngFile);
             }
 
-            aggTotal += result.TotalViolations;
-            aggBrokenPipeHorizontal += result.BrokenPipeHorizontalCount;
-            aggBrokenPipeTopLeft += result.BrokenPipeTopLeftCount;
-            aggBrokenPipeTopRight += result.BrokenPipeTopRightCount;
-            aggBrokenBulletBill += result.BrokenBulletBillCount;
-            aggFloatingEnemy += result.FloatingEnemyCount;
-            aggDiscontinuousGround += result.DiscontinuousGroundCount;
+            aggTotalPre += preResult.TotalViolations;
+            aggBrokenPipeHorizontalPre += preResult.BrokenPipeHorizontalCount;
+            aggBrokenPipeTopLeftPre += preResult.BrokenPipeTopLeftCount;
+            aggBrokenPipeTopRightPre += preResult.BrokenPipeTopRightCount;
+            aggBrokenBulletBillPre += preResult.BrokenBulletBillCount;
+            aggFloatingEnemyPre += preResult.FloatingEnemyCount;
+            aggDiscontinuousGroundPre += preResult.DiscontinuousGroundCount;
+
+            aggTotalPost += postResult.TotalViolations;
+            aggBrokenPipeHorizontalPost += postResult.BrokenPipeHorizontalCount;
+            aggBrokenPipeTopLeftPost += postResult.BrokenPipeTopLeftCount;
+            aggBrokenPipeTopRightPost += postResult.BrokenPipeTopRightCount;
+            aggBrokenBulletBillPost += postResult.BrokenBulletBillCount;
+            aggFloatingEnemyPost += postResult.FloatingEnemyCount;
+            aggDiscontinuousGroundPost += postResult.DiscontinuousGroundCount;
         }
 
         Console.WriteLine();
-        Console.WriteLine("=== AGGREGATE over " + maps.Count + " chunks ===");
-        Console.WriteLine("Total violations:       " + aggTotal);
-        Console.WriteLine("  BrokenPipeHorizontal: " + aggBrokenPipeHorizontal);
-        Console.WriteLine("  BrokenPipeTopLeft:    " + aggBrokenPipeTopLeft);
-        Console.WriteLine("  BrokenPipeTopRight:   " + aggBrokenPipeTopRight);
-        Console.WriteLine("  BrokenBulletBill:     " + aggBrokenBulletBill);
-        Console.WriteLine("  FloatingEnemy:        " + aggFloatingEnemy);
-        Console.WriteLine("  DiscontinuousGround:  " + aggDiscontinuousGround);
+        Console.WriteLine("=== AGGREGATE over " + maps.Count + " chunks (pre-repair) ===");
+        Console.WriteLine("Total violations:       " + aggTotalPre);
+        Console.WriteLine("  BrokenPipeHorizontal: " + aggBrokenPipeHorizontalPre);
+        Console.WriteLine("  BrokenPipeTopLeft:    " + aggBrokenPipeTopLeftPre);
+        Console.WriteLine("  BrokenPipeTopRight:   " + aggBrokenPipeTopRightPre);
+        Console.WriteLine("  BrokenBulletBill:     " + aggBrokenBulletBillPre);
+        Console.WriteLine("  FloatingEnemy:        " + aggFloatingEnemyPre);
+        Console.WriteLine("  DiscontinuousGround:  " + aggDiscontinuousGroundPre);
+
+        Console.WriteLine();
+        Console.WriteLine("=== AGGREGATE over " + maps.Count + " chunks (post-repair) ===");
+        Console.WriteLine("Total violations:       " + aggTotalPost);
+        Console.WriteLine("  BrokenPipeHorizontal: " + aggBrokenPipeHorizontalPost);
+        Console.WriteLine("  BrokenPipeTopLeft:    " + aggBrokenPipeTopLeftPost);
+        Console.WriteLine("  BrokenPipeTopRight:   " + aggBrokenPipeTopRightPost);
+        Console.WriteLine("  BrokenBulletBill:     " + aggBrokenBulletBillPost);
+        Console.WriteLine("  FloatingEnemy:        " + aggFloatingEnemyPost);
+        Console.WriteLine("  DiscontinuousGround:  " + aggDiscontinuousGroundPost);
     }
 
     static void PrintUsage()
@@ -152,6 +211,7 @@ public class PcgFlowMatchingGenerateEntryPoint
         Console.WriteLine("  --png-dir <path>       Output directory for PNGs (default: ./generated-png)");
         Console.WriteLine("  --sprite-dir <path>    Sprite source directory (default: ./sprites)");
         Console.WriteLine("  --biome <name>         Biome to condition on: overworld|underground|treetop (default: overworld)");
+        Console.WriteLine("  --no-repair            Disable post-generation ChunkStructureRepair (default: enabled)");
         Console.WriteLine();
         Console.WriteLine("Example: dotnet run -- unet-conditional-checkpoint.bin --biome underground");
     }
