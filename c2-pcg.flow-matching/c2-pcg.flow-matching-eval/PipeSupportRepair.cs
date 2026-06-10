@@ -58,12 +58,24 @@ public class PipeSupportRepair
                 }
 
                 // Floating pipe at (x, y) to (x+1, bottomY).
-                // Height check: if grounding this pipe would require a
-                // total column taller than MaxPipeRows, REMOVE instead
-                // of EXTEND, regardless of the per-count policy.
+                // The MinCompletePerChunk guarantee takes priority over
+                // the MaxPipeRows cap: if the chunk has no supported
+                // pipe yet, this pipe must be extended even if it ends
+                // up taller than the visual limit. Better one tall pipe
+                // than zero pipes. After at least MinCompletePerChunk
+                // pipes are supported, MaxPipeRows is enforced strictly.
+                bool mustHaveAtLeastOne = existingSupportedCount < config.MinCompletePerChunk;
                 bool fitsHeightLimit = WouldFitMaxPipeHeight(chunk, x, y, bottomY, config);
-                bool shouldExtend = fitsHeightLimit &&
-                                    DecideExtendOrRemove(existingSupportedCount, config, rng);
+                bool shouldExtend;
+                if (mustHaveAtLeastOne)
+                {
+                    shouldExtend = true;
+                }
+                else
+                {
+                    shouldExtend = fitsHeightLimit &&
+                                   DecideExtendOrRemove(existingSupportedCount, config, rng);
+                }
 
                 if (shouldExtend && TryExtendPipeBodyToGround(chunk, x, bottomY))
                 {
