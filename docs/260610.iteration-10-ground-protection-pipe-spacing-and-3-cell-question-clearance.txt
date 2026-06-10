@@ -1,0 +1,310 @@
+================================================================================
+TCC ITERATION 10: GROUND-ROW PROTECTION, PIPE SPACING,
+                  AND 3-CELL QUESTION BLOCK CLEARANCE
+================================================================================
+
+Generated: 2026-06-10
+Topic:     Documents three refinements driven by issues observed in the
+           Iteration 9 chunks: pipe bodies displacing ground at the
+           bottom row, adjacent injected pipes packed against each
+           other, and QuestionFull tiles with Solid tiles 2 or 3 cells
+           below them (blocking Mario's jump-arc head clearance).
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           implementation committed on the iteration-5-chunk-structure-repair
+           branch on 2026-06-10.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260610.iteration-5-chunk-structure-repair.txt
+           docs/260610.iteration-6-support-and-ground-repair.txt
+           docs/260610.iteration-7-clearance-height-and-biome-rules.txt
+           docs/260610.iteration-8-biome-propagation-pipe-guarantee-and-launcher-clearance.txt
+           docs/260610.iteration-9-question-below-clearance-and-pipe-injection.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+ASCII inspection of the Iteration 9 chunks revealed three remaining
+problems:
+
+   Iter 9 chunk 10 Overworld had a pipe body at the bottom row
+   (rows 12-13 showed <> over [] with the body REPLACING the
+   ground Solid that BottomRowCompletion had placed). Pipes
+   should attach ON TOP of ground; the body row should end one
+   row above the ground.
+
+   Iter 9 chunks 1, 2, 3, 4, 6, 7 Overworld showed adjacent
+   injected pipes packed against each other in patterns like
+   <><> and <><><>. The Iteration 9 greedy left-to-right
+   injection had no spacing constraint.
+
+   Iter 9 chunk 9 Treetop had a QuestionFull at upper-mid with
+   a Solid tile 2 rows directly below it. The Iteration 9 rule
+   only required y+1 to be Empty; a Solid at y+2 or y+3 still
+   passed even though it blocks Mario big's jump-arc head
+   clearance.
+
+Iteration 10 fixes all three.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: DESIGN - THREE REFINEMENTS
+PART 2: IMPLEMENTATION
+PART 3: ORCHESTRATOR (NO CHANGES; PASS ORDER UNCHANGED)
+PART 4: TESTS AND BUILD VERIFICATION
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+PART 6: NEXT STEPS
+APPENDIX A: GRANULAR COMMIT LIST
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+
+
+================================================================================
+PART 1: DESIGN - THREE REFINEMENTS
+================================================================================
+
+1.1 GROUND-ROW PROTECTION FOR PIPES AND BULLET BILLS
+
+The Iteration 5-9 PipeRepair completed pipe templates by writing
+PipeBodyLeft/PipeBodyRight over any "benign" target (Empty or Solid).
+A PipeTopLeft placed by the model at chunk.Height - 2 was completed
+with its body at chunk.Height - 1, which is the ground row. The body
+displaced the ground Solid that BottomRowCompletion had placed,
+visually breaking ground continuity.
+
+Iteration 10 adds an early-reject rule to PipeRepair: if PipeTopLeft
+is at y >= chunk.Height - 2, the completion is rejected and the
+PipeTopLeft is replaced via SelectReplacementTile. Pipes must attach
+ABOVE the ground row, not in it.
+
+PipeSupportRepair's extension loop is similarly tightened. Body must
+never be written at chunk.Height - 1; if extension reaches the
+would-be ground row without finding a ground tile already there,
+the method returns false and the caller removes the entire pipe
+column.
+
+BulletBillRepair and BulletBillSupportRepair get the mirror
+treatment for 1-tile-wide bullet bill columns.
+
+1.2 MINIMUM SPACING BETWEEN INJECTED PIPES
+
+The Iteration 9 PipeInjection scanned columns left-to-right and
+placed pipes at the first valid spot. With a target count of 3 and
+no spacing rule, three pipes ended up at columns 0-1, 2-3, 4-5
+(touching) in many chunks. Real SMB pipes are always separated by
+several tiles of walkable ground.
+
+Iteration 10 adds a MinSpacingColumns = 2 constant and a
+HasNearbyPipeStructure check. Before injecting at column x, the pass
+scans columns x-2 through x-1 (left side) and x+2 through x+3 (right
+side) for any pipe tile in any row from pipeTopY down to ground. If
+any pipe tile is present, the candidate column is skipped. The scan
+continues to the next candidate column without abandoning the
+injection.
+
+The effect: injected pipes are at least 2 Empty columns apart from
+each other (and from model-placed pipes). In a 28-column chunk with
+3 target pipes, the typical injected positions are 0-1, 4-5, 8-9.
+
+1.3 3-CELL CLEARANCE BELOW QUESTIONFULL
+
+The Iteration 9 HasEmptyDirectlyBelow rule only required (x, y+1) to
+be Empty. A QuestionFull at y with Solid at y+2 or y+3 still passed,
+even though Solid in those rows blocks Mario big's jump-arc head
+clearance.
+
+Iteration 10 tightens the rule: all three cells (x, y+1), (x, y+2),
+(x, y+3) must be Empty. This matches Mario big's hitbox sweep during
+the jump-and-hit motion: his head passes through y+2 and y+1 on the
+way up, so any Solid or Breakable tile in y+1..y+3 blocks the jump.
+
+HasGroundBelow now searches from y+4 to y+8 because y+1..y+3 are
+constrained to be Empty; a ground tile in that range would violate
+the clearance and is not a legal way to satisfy the support
+condition.
+
+
+================================================================================
+PART 2: IMPLEMENTATION
+================================================================================
+
+2.1 UPDATED: PipeRepair.cs
+
+Added the chunk-Height-2 early-reject check at the top of the
+PipeTopLeft anchoring loop. The PipeTopLeft at the rejection
+position is replaced via SelectReplacementTile, mirroring the
+removal path used elsewhere in the class.
+
+2.2 UPDATED: PipeSupportRepair.cs
+
+TryExtendPipeBodyToGround introduces maxBodyY = chunk.Height - 2.
+The loop returns false (removal) if the extension would write a
+body row into the ground row. The previous behavior returned true
+on reaching chunk.Height without finding ground, treating the
+implicit ground below the chunk as support; the new behavior treats
+the bottom row as the required ground location.
+
+2.3 UPDATED: BulletBillRepair.cs
+
+Mirror of 2.1: early-reject when launcher is at y >= chunk.Height - 2.
+
+2.4 UPDATED: BulletBillSupportRepair.cs
+
+Mirror of 2.2.
+
+2.5 UPDATED: PipeInjection.cs
+
+Added MinSpacingColumns = 2 constant and HasNearbyPipeStructure
+private method. The TryInjectOnePipe loop calls HasNearbyPipeStructure
+for each candidate column and skips the column when the check
+returns true.
+
+2.6 UPDATED: QuestionBlockRepair.cs
+
+HasEmptyDirectlyBelow now iterates dy = 1 through 3 and requires all
+three cells to be Empty. HasGroundBelow starts at dy = 4 instead of
+dy = 2.
+
+
+================================================================================
+PART 3: ORCHESTRATOR (NO CHANGES; PASS ORDER UNCHANGED)
+================================================================================
+
+The 11-pass orchestrator order from Iteration 9 is preserved. All
+Iteration 10 changes are internal to the existing repair classes.
+
+
+================================================================================
+PART 4: TESTS AND BUILD VERIFICATION
+================================================================================
+
+4.1 COMPILE-TIME VERIFICATION
+
+   dotnet build c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj --verbosity minimal
+
+   Result: Build succeeded. 0 Warning(s). 0 Error(s).
+
+4.2 LOGIC TESTS
+
+Total: 58 logic tests passing, 0 failing on 2026-06-10.
+
+New tests added in Iteration 10 (6 new):
+
+   PipeTopLeft at chunk.Height-2 is removed
+   pipe body extends down to row 12 (one above bottom) - 2 asserts
+   bottom row columns stay Solid after pipe extension - 2 asserts
+   QuestionFull with Solid 3 cells below is removed
+   QuestionFull with Solid 2 cells below is removed
+   QuestionFull with 3 Empty cells below and ground 4th cell is kept
+   two injected pipes are spaced at least 2 Empty columns apart
+
+Tests updated/removed:
+
+   The three BulletBillLauncherClearance tests were repositioned to
+   place the launcher at column 25 (far right) so the clearance
+   zone (columns 23-27) is outside the PipeInjection scan range.
+   The previous launcher at column 10 had its cleared cells
+   re-filled by injected pipes at columns 8-9, which broke the
+   "Empty after clearance" assertion.
+
+   TestBottomRowBulletBillBodyPreserved was removed because the
+   Iteration 10 rule rejecting BulletBillLauncher at chunk.Height-2
+   means no valid bullet bill chain produces a BulletBillBody at
+   the bottom row in production, so the preservation-of-bottom-body
+   scenario is no longer reachable.
+
+
+================================================================================
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+================================================================================
+
+5.1 OVERWORLD ITERATION 10
+
+   (to populate)
+
+5.2 UNDERGROUND ITERATION 10
+
+   (to populate)
+
+5.3 TREETOP ITERATION 10
+
+   (to populate)
+
+5.4 VISUAL ASSESSMENT
+
+   Confirm:
+   (1) No pipe body in the bottom row of any chunk
+   (2) Adjacent injected pipes have at least 2 Empty columns between
+       them
+   (3) No QuestionFull has any Solid or Breakable in (x, y+1),
+       (x, y+2), or (x, y+3)
+
+
+================================================================================
+PART 6: NEXT STEPS
+================================================================================
+
+7.1 IMMEDIATE (BEFORE RASCUNHO 2026-06-15)
+
+   (1) Run test plan in Appendix B and populate Section 5.
+   (2) Visual inspection.
+   (3) Begin Chapter 4 writeup.
+
+
+================================================================================
+APPENDIX A: GRANULAR COMMIT LIST
+================================================================================
+
+Iteration 10 commits on iteration-5-chunk-structure-repair branch:
+
+   76e72bc  prevent pipe bodies from displacing the ground row
+   e9be966  prevent bullet bill bodies from displacing the ground row
+   d01a359  enforce minimum spacing between injected pipes
+   46f095d  tighten QuestionFull below-clearance rule to 3 cells
+   79e712f  add 6 iter10 tests and reposition 3 launcher-clearance tests
+
+
+================================================================================
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+================================================================================
+
+B.1 PULL THE LATEST BRANCH
+
+   git fetch origin
+   git checkout iteration-5-chunk-structure-repair
+   git pull origin iteration-5-chunk-structure-repair
+
+B.2 VERIFY BUILD AND LOGIC TESTS
+
+   dotnet build procgen-flow-matching.sln --verbosity minimal
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+   Expected: Build succeeded. 0 Warning(s). 0 Error(s).
+             58 passed, 0 failed.
+
+B.3 RUN GENERATE FOR EACH BIOME
+
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Overworld --png-dir generated-png-iter10-overworld 2>&1 | tee iter10-overworld.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Underground --png-dir generated-png-iter10-underground 2>&1 | tee iter10-underground.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Treetop --png-dir generated-png-iter10-treetop 2>&1 | tee iter10-treetop.log
+
+B.4 VISUAL VERIFICATION
+
+   (1) Bottom row of every Overworld and Underground chunk is
+       continuous Solid or Breakable; no pipe body or bullet
+       bill body visible at the bottom row.
+
+   (2) When a chunk has multiple pipes, they are separated by
+       at least 2 Empty columns.
+
+   (3) Every QuestionFull tile has 3 Empty cells directly below
+       it before any Solid or Breakable surface.
+
+
+================================================================================
+END OF REPORT
+================================================================================
