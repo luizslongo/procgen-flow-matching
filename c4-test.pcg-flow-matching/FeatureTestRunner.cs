@@ -14,10 +14,18 @@ public class FeatureTestRunner
 
     public static void Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--repair-only")
+        {
+            int code = ChunkStructureRepairTests.RunAll();
+            Environment.Exit(code);
+            return;
+        }
+
         if (args.Length == 0)
         {
             Console.WriteLine("Usage: FeatureTestRunner <vglc-directory-path>");
             Console.WriteLine("Example: dotnet run -- \"/path/to/TheVGLC/Super Mario Bros/Processed\"");
+            Console.WriteLine("Or:      dotnet run -- --repair-only  (runs only the repair logic tests)");
             return;
         }
 
