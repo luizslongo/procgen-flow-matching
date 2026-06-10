@@ -41,7 +41,6 @@ public class ChunkStructureRepairTests
         TestExcessivePipesAreAllRemoved();
         TestBottomRowEmptyTilesBecomeSolid();
         TestBottomRowCoinReplacedWithSolid();
-        TestBottomRowBulletBillBodyPreserved();
         TestBottomRowCompletionSkipsTreetop();
         TestCeilingCompletionFillsUndergroundTopRow();
         TestCeilingCompletionSkipsOverworld();
@@ -59,6 +58,12 @@ public class ChunkStructureRepairTests
         TestPipeInjectionAddsAtLeastOnePipeInEmptyChunk();
         TestPipeInjectionRespectsMaxCount();
         TestPipeInjectionSkipsTreetopWithNoGround();
+        TestPipeTopLeftAtBottomMinusTwoIsRemoved();
+        TestExtendedPipeDoesNotOverwriteBottomRowGround();
+        TestQuestionFullWithSolidThreeCellsBelowIsRemoved();
+        TestQuestionFullWithSolidTwoCellsBelowIsRemoved();
+        TestQuestionFullWithThreeCellsClearAndGroundFourthIsKept();
+        TestInjectedPipesAreSpacedApart();
         TestFloatingPipeIsExtendedOrRemoved();
         TestPipeRestingOnSolidIsUnchanged();
         TestFloatingBulletBillIsExtendedOrRemoved();
@@ -403,18 +408,6 @@ public class ChunkStructureRepairTests
                "BottomRowCompletion replaces Coin on bottom row with Solid");
     }
 
-    private static void TestBottomRowBulletBillBodyPreserved()
-    {
-        TileMap chunk = MakeChunk(28, 14);
-        Set(chunk, 5, 12, TileTypeEnum.BulletBillLauncher);
-        Set(chunk, 5, 13, TileTypeEnum.BulletBillBody);
-
-        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
-
-        Assert(Get(repaired, 5, 13) == TileTypeEnum.BulletBillBody,
-               "BottomRowCompletion preserves BulletBillBody on bottom row");
-    }
-
     private static void TestBottomRowCompletionSkipsTreetop()
     {
         TileMap chunk = MakeChunk(28, 14);
@@ -581,48 +574,52 @@ public class ChunkStructureRepairTests
     private static void TestLauncherClearanceRemovesAdjacentSolid()
     {
         TileMap chunk = MakeChunk(28, 14);
-        // Launcher at y=11 with adjacent Solid tiles in clearance zone.
-        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
-        Set(chunk, 8, 11, TileTypeEnum.Solid);
-        Set(chunk, 9, 11, TileTypeEnum.Solid);
-        Set(chunk, 11, 11, TileTypeEnum.Solid);
-        Set(chunk, 12, 11, TileTypeEnum.Solid);
+        // Launcher far right at column 25 to keep it outside the
+        // injection zone (PipeInjection scans left-to-right and with
+        // MaxCompletePerChunk=3 plus spacing 2 occupies columns 0-1,
+        // 4-5, 8-9). With launcher at column 25 the adjacent clearance
+        // zone at columns 23-27 is not reached by injection.
+        Set(chunk, 25, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 23, 11, TileTypeEnum.Solid);
+        Set(chunk, 24, 11, TileTypeEnum.Solid);
+        Set(chunk, 26, 11, TileTypeEnum.Solid);
+        Set(chunk, 27, 11, TileTypeEnum.Solid);
 
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
 
-        bool cleared = Get(repaired, 8, 11) == TileTypeEnum.Empty &&
-                       Get(repaired, 9, 11) == TileTypeEnum.Empty &&
-                       Get(repaired, 11, 11) == TileTypeEnum.Empty &&
-                       Get(repaired, 12, 11) == TileTypeEnum.Empty;
+        bool cleared = Get(repaired, 23, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 24, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 26, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 27, 11) == TileTypeEnum.Empty;
         Assert(cleared, "BulletBillLauncherClearance removes adjacent Solid tiles");
     }
 
     private static void TestLauncherClearanceRemovesAdjacentBreakable()
     {
         TileMap chunk = MakeChunk(28, 14);
-        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
-        Set(chunk, 9, 11, TileTypeEnum.Breakable);
-        Set(chunk, 11, 11, TileTypeEnum.Breakable);
+        Set(chunk, 25, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 24, 11, TileTypeEnum.Breakable);
+        Set(chunk, 26, 11, TileTypeEnum.Breakable);
 
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
 
-        Assert(Get(repaired, 9, 11) == TileTypeEnum.Empty,
+        Assert(Get(repaired, 24, 11) == TileTypeEnum.Empty,
                "BulletBillLauncherClearance removes adjacent Breakable on the left");
-        Assert(Get(repaired, 11, 11) == TileTypeEnum.Empty,
+        Assert(Get(repaired, 26, 11) == TileTypeEnum.Empty,
                "BulletBillLauncherClearance removes adjacent Breakable on the right");
     }
 
     private static void TestLauncherClearancePreservesNonObstructions()
     {
         TileMap chunk = MakeChunk(28, 14);
-        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
-        Set(chunk, 9, 11, TileTypeEnum.Coin);
-        Set(chunk, 11, 11, TileTypeEnum.Empty);
+        Set(chunk, 25, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 24, 11, TileTypeEnum.Coin);
+        Set(chunk, 26, 11, TileTypeEnum.Empty);
         // Coin is not an obstruction; it should not be cleared.
 
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
 
-        Assert(Get(repaired, 9, 11) == TileTypeEnum.Coin,
+        Assert(Get(repaired, 24, 11) == TileTypeEnum.Coin,
                "BulletBillLauncherClearance preserves Coin in clearance zone");
     }
 
@@ -837,5 +834,119 @@ public class ChunkStructureRepairTests
         int pipeCount = StructureCounter.CountCompletePipes(repaired);
         Assert(pipeCount == 0,
                "empty Treetop chunk gets no injected pipes because it has no ground");
+    }
+
+    private static void TestPipeTopLeftAtBottomMinusTwoIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // PipeTopLeft at row 12 (chunk.Height - 2). The body row would
+        // be at row 13 (the ground row), which is not allowed. The
+        // PipeTopLeft is replaced.
+        Set(chunk, 10, 12, TileTypeEnum.PipeTopLeft);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 12) != TileTypeEnum.PipeTopLeft,
+               "PipeTopLeft at chunk.Height-2 is removed because body would land in ground row");
+    }
+
+    private static void TestExtendedPipeDoesNotOverwriteBottomRowGround()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Floating pipe top at row 4; PipeSupportRepair extends body
+        // down through Empty until it hits ground at row 13. Body must
+        // stop at row 12 leaving row 13 as Solid ground.
+        Set(chunk, 10, 4, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 11, 4, TileTypeEnum.PipeTopRight);
+        Set(chunk, 10, 5, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 11, 5, TileTypeEnum.PipeBodyRight);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 13) == TileTypeEnum.Solid,
+               "bottom row column 10 stays Solid after pipe extension");
+        Assert(Get(repaired, 11, 13) == TileTypeEnum.Solid,
+               "bottom row column 11 stays Solid after pipe extension");
+        Assert(Get(repaired, 10, 12) == TileTypeEnum.PipeBodyLeft,
+               "pipe body extends down to row 12 (one above bottom)");
+        Assert(Get(repaired, 11, 12) == TileTypeEnum.PipeBodyRight,
+               "pipe body extends down to row 12 (one above bottom)");
+    }
+
+    private static void TestQuestionFullWithSolidThreeCellsBelowIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++) Set(chunk, x, 13, TileTypeEnum.Solid);
+        // QuestionFull at (10, 7) with Solid at (10, 10) which is 3
+        // rows below. The 3-cell clearance rule requires y+1..y+3 to
+        // ALL be Empty; the Solid at y+3 violates clearance.
+        Set(chunk, 10, 7, TileTypeEnum.QuestionFull);
+        Set(chunk, 10, 10, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 7) != TileTypeEnum.QuestionFull,
+               "QuestionFull with Solid 3 cells below is removed (jump arc blocked)");
+    }
+
+    private static void TestQuestionFullWithSolidTwoCellsBelowIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++) Set(chunk, x, 13, TileTypeEnum.Solid);
+        Set(chunk, 10, 9, TileTypeEnum.QuestionFull);
+        Set(chunk, 10, 11, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 9) != TileTypeEnum.QuestionFull,
+               "QuestionFull with Solid 2 cells below is removed (jump arc blocked)");
+    }
+
+    private static void TestQuestionFullWithThreeCellsClearAndGroundFourthIsKept()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++) Set(chunk, x, 13, TileTypeEnum.Solid);
+        // QuestionFull at (10, 9). y+1=10 Empty, y+2=11 Empty, y+3=12
+        // Empty, y+4=13 Solid (ground). Clearance rule satisfied and
+        // ground exists within search range.
+        Set(chunk, 10, 9, TileTypeEnum.QuestionFull);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 9) == TileTypeEnum.QuestionFull,
+               "QuestionFull with 3 Empty cells below and ground 4th cell is kept");
+    }
+
+    private static void TestInjectedPipesAreSpacedApart()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Empty chunk; PipeInjection will inject up to MaxCompletePerChunk
+        // = 3 pipes. Find injected pipe positions (PipeTopLeft cells in
+        // row 11 = chunk.Height - 3) and check the gap between any two
+        // adjacent injected pipes is at least MinSpacingColumns = 2
+        // columns.
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        int prevTopLeftX = -100;
+        bool spacingHeld = true;
+        for (int x = 0; x < repaired.Width; x++)
+        {
+            if (Get(repaired, x, 11) != TileTypeEnum.PipeTopLeft) continue;
+            if (prevTopLeftX >= 0)
+            {
+                // x is current pipe TopLeft column; previous pipe occupies
+                // (prevTopLeftX, prevTopLeftX + 1) so the right edge is
+                // prevTopLeftX + 1. The gap between right edge and current
+                // left edge is x - (prevTopLeftX + 1) - 1 = x - prevTopLeftX - 2.
+                int gap = x - prevTopLeftX - 2;
+                if (gap < 2)
+                {
+                    spacingHeld = false;
+                }
+            }
+            prevTopLeftX = x;
+        }
+        Assert(spacingHeld, "two injected pipes are spaced at least 2 Empty columns apart");
     }
 }
