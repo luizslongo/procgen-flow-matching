@@ -36,6 +36,8 @@ public class PipeSupportRepair
     public static bool RepairOnce(TileMap chunk, ChunkStructureRepairConfig config, Random rng)
     {
         bool anyChange = false;
+        anyChange = RemoveTooShortPipes(chunk, config) || anyChange;
+
         int existingSupportedCount = CountSupportedPipes(chunk);
 
         for (int y = 0; y < chunk.Height; y++)
@@ -57,25 +59,16 @@ public class PipeSupportRepair
                     continue;
                 }
 
-                // Floating pipe at (x, y) to (x+1, bottomY).
-                // The MinCompletePerChunk guarantee takes priority over
-                // the MaxPipeRows cap: if the chunk has no supported
-                // pipe yet, this pipe must be extended even if it ends
-                // up taller than the visual limit. Better one tall pipe
-                // than zero pipes. After at least MinCompletePerChunk
-                // pipes are supported, MaxPipeRows is enforced strictly.
-                bool mustHaveAtLeastOne = existingSupportedCount < config.MinCompletePerChunk;
+                // Floating pipe at (x, y) to (x+1, bottomY). The
+                // must-have-at-least-one override from earlier is
+                // removed because PipeInjection now reliably guarantees
+                // the minimum pipe count by injecting short pipes
+                // separately. MaxPipeRows is enforced strictly here:
+                // any pipe whose extension to ground would exceed the
+                // cap is REMOVED.
                 bool fitsHeightLimit = WouldFitMaxPipeHeight(chunk, x, y, bottomY, config);
-                bool shouldExtend;
-                if (mustHaveAtLeastOne)
-                {
-                    shouldExtend = true;
-                }
-                else
-                {
-                    shouldExtend = fitsHeightLimit &&
-                                   DecideExtendOrRemove(existingSupportedCount, config, rng);
-                }
+                bool shouldExtend = fitsHeightLimit &&
+                                    DecideExtendOrRemove(existingSupportedCount, config, rng);
 
                 if (shouldExtend && TryExtendPipeBodyToGround(chunk, x, bottomY))
                 {
@@ -89,6 +82,33 @@ public class PipeSupportRepair
             }
         }
 
+        return anyChange;
+    }
+
+    // Sweeps complete pipe anchors and removes those whose total
+    // column height (top + body rows) is below config.MinPipeRows.
+    // Real SMB pipes are at least 3 tiles tall; shorter pipes look
+    // stunted and break the canonical pipe silhouette.
+    private static bool RemoveTooShortPipes(TileMap chunk, ChunkStructureRepairConfig config)
+    {
+        bool anyChange = false;
+        for (int y = 0; y < chunk.Height; y++)
+        {
+            for (int x = 0; x < chunk.Width; x++)
+            {
+                if (StructureCounter.GetTile(chunk, x, y) != TileTypeEnum.PipeTopLeft) continue;
+                if (!IsCompletePipeAnchor(chunk, x, y)) continue;
+
+                int bottomY = FindPipeBottomBodyRow(chunk, x, y);
+                int height = bottomY - y + 1;
+
+                if (height < config.MinPipeRows)
+                {
+                    RemoveEntirePipeColumn(chunk, x, y);
+                    anyChange = true;
+                }
+            }
+        }
         return anyChange;
     }
 

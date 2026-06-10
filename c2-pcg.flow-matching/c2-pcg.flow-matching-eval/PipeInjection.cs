@@ -34,8 +34,10 @@ namespace c2_pcg.flowMatchingEval;
 // canonical SMB content.
 public class PipeInjection
 {
-    // Pipe column height in rows: 1 top row plus 1 body row.
-    private const int InjectedPipeHeight = 2;
+    // Pipe column height in rows: 1 top row plus 2 body rows.
+    // Matches the canonical short SMB pipe and the MinPipeRows = 3
+    // minimum enforced elsewhere in the pipeline.
+    private const int InjectedPipeHeight = 3;
 
     // Minimum number of Empty columns required between any two pipe
     // structures in the chunk. The left-to-right scan skips candidate
