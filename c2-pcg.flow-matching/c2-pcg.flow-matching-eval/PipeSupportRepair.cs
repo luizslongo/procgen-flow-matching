@@ -58,7 +58,12 @@ public class PipeSupportRepair
                 }
 
                 // Floating pipe at (x, y) to (x+1, bottomY).
-                bool shouldExtend = DecideExtendOrRemove(existingSupportedCount, config, rng);
+                // Height check: if grounding this pipe would require a
+                // total column taller than MaxPipeRows, REMOVE instead
+                // of EXTEND, regardless of the per-count policy.
+                bool fitsHeightLimit = WouldFitMaxPipeHeight(chunk, x, y, bottomY, config);
+                bool shouldExtend = fitsHeightLimit &&
+                                    DecideExtendOrRemove(existingSupportedCount, config, rng);
 
                 if (shouldExtend && TryExtendPipeBodyToGround(chunk, x, bottomY))
                 {
@@ -222,5 +227,39 @@ public class PipeSupportRepair
             return false;
         }
         return rng.Next(0, 2) == 0;
+    }
+
+    // Returns true if extending the pipe currently at top row topY to
+    // bottom body row currentBottomY all the way down to ground would
+    // result in a total column height (top row plus body rows) at or
+    // below config.MaxPipeRows. Used to gate the EXTEND decision so
+    // pipes placed very high above the ground REMOVE instead of
+    // becoming visually-implausible multi-tile towers.
+    //
+    // x is the left column of the pipe; the method probes both columns
+    // when searching for ground below currentBottomY.
+    private static bool WouldFitMaxPipeHeight(
+        TileMap chunk,
+        int x,
+        int topY,
+        int currentBottomY,
+        ChunkStructureRepairConfig config)
+    {
+        int finalBottomY = chunk.Height - 1;
+        for (int probeY = currentBottomY + 1; probeY < chunk.Height; probeY++)
+        {
+            TileTypeEnum left = StructureCounter.GetTile(chunk, x, probeY);
+            TileTypeEnum right = StructureCounter.GetTile(chunk, x + 1, probeY);
+            bool leftIsGround = left == TileTypeEnum.Solid || left == TileTypeEnum.Breakable;
+            bool rightIsGround = right == TileTypeEnum.Solid || right == TileTypeEnum.Breakable;
+            if (leftIsGround && rightIsGround)
+            {
+                finalBottomY = probeY - 1;
+                break;
+            }
+        }
+
+        int totalRows = finalBottomY - topY + 1;
+        return totalRows <= config.MaxPipeRows;
     }
 }
