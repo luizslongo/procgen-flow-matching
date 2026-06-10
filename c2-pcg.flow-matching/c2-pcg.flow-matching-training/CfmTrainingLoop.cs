@@ -118,7 +118,7 @@ public class CfmTrainingLoop
                 // Experiment B in docs/260602.iteration-2-plan.txt. Biome
                 // labels condition the model on the desired biome per
                 // sample (Experiment D).
-                torch.Tensor loss = CfmLossComputer.ComputeWeightedLoss(model, x1, biomeLabels, classWeights);
+                torch.Tensor loss = CfmLossComputer.ComputeLoss(model, x1, biomeLabels);
 
                 // Backward + optimizer step.
                 optimizer.zero_grad();
