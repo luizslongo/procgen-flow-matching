@@ -37,6 +37,15 @@ public class PipeInjection
     // Pipe column height in rows: 1 top row plus 1 body row.
     private const int InjectedPipeHeight = 2;
 
+    // Minimum number of Empty columns required between any two pipe
+    // structures in the chunk. The left-to-right scan skips candidate
+    // columns whose neighborhood (within MinSpacingColumns cells to
+    // either side, in any row of the pipe vertical range) contains
+    // pipe tiles. This prevents adjacent pipes like "<><>" or
+    // "<><><>" that occur when greedy injection packs pipes against
+    // each other.
+    private const int MinSpacingColumns = 2;
+
     // Runs one pass of pipe injection on the chunk in place.
     // Returns true if any pipe was injected.
     public static bool RepairOnce(TileMap chunk, ChunkStructureRepairConfig config, Random rng)
@@ -84,11 +93,49 @@ public class PipeInjection
             {
                 continue;
             }
+            if (HasNearbyPipeStructure(chunk, x, pipeTopY))
+            {
+                continue;
+            }
             StructureCounter.SetTile(chunk, x, pipeTopY, TileTypeEnum.PipeTopLeft);
             StructureCounter.SetTile(chunk, x + 1, pipeTopY, TileTypeEnum.PipeTopRight);
             StructureCounter.SetTile(chunk, x, pipeTopY + 1, TileTypeEnum.PipeBodyLeft);
             StructureCounter.SetTile(chunk, x + 1, pipeTopY + 1, TileTypeEnum.PipeBodyRight);
             return true;
+        }
+        return false;
+    }
+
+    // Returns true if any column within MinSpacingColumns to the left
+    // of x OR within MinSpacingColumns to the right of x+1 (the
+    // injection right edge) contains a pipe tile at any row from
+    // pipeTopY down to chunk.Height - 1. Used to prevent adjacent
+    // pipes packed by greedy left-to-right injection.
+    private static bool HasNearbyPipeStructure(TileMap chunk, int x, int pipeTopY)
+    {
+        int leftStart = x - MinSpacingColumns;
+        if (leftStart < 0) leftStart = 0;
+        for (int probeX = leftStart; probeX < x; probeX++)
+        {
+            for (int probeY = pipeTopY; probeY < chunk.Height; probeY++)
+            {
+                if (StructureCounter.IsPipeTile(StructureCounter.GetTile(chunk, probeX, probeY)))
+                {
+                    return true;
+                }
+            }
+        }
+        int rightEnd = x + 1 + MinSpacingColumns;
+        if (rightEnd > chunk.Width - 1) rightEnd = chunk.Width - 1;
+        for (int probeX = x + 2; probeX <= rightEnd; probeX++)
+        {
+            for (int probeY = pipeTopY; probeY < chunk.Height; probeY++)
+            {
+                if (StructureCounter.IsPipeTile(StructureCounter.GetTile(chunk, probeX, probeY)))
+                {
+                    return true;
+                }
+            }
         }
         return false;
     }
