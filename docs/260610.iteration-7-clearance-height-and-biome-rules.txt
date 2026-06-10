@@ -1,0 +1,413 @@
+================================================================================
+TCC ITERATION 7: PIPE CLEARANCE, HEIGHT CAPS, AND BIOME-SPECIFIC RULES
+================================================================================
+
+Generated: 2026-06-10
+Topic:     Documents the six additional repair refinements added on top
+           of Iteration 6 to address visual problems observed in the
+           Iteration 6 generated chunks: tiles blocking pipe entries,
+           multi-tile-tall bullet bill towers, bullet bills and coins
+           filling ground-row positions, Treetop chunks with artificially
+           continuous ground, and Underground chunks missing their cave
+           ceiling.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           implementation committed on the iteration-5-chunk-structure-repair
+           branch on 2026-06-10. The branch name continues to host the
+           ongoing repair-pipeline work; the iteration boundaries are
+           documentary.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260609.iteration-3-bc128-100k-failure-analysis.txt
+           docs/260610.iteration-5-chunk-structure-repair.txt
+           docs/260610.iteration-6-support-and-ground-repair.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+The Iteration 6 repair pipeline eliminated all floating pipes, floating
+bullet bills, and floating enemies in the generated Overworld chunks.
+Visual inspection of the Iteration 6 PNGs surfaced six new visual
+problems that the support and structural-integrity validations of
+Iterations 5 and 6 did not catch:
+
+   (P1) Pipes with Solid or Breakable tiles directly above the cap,
+        which block Mario's entry into the pipe. Observed in
+        generated-png-iter6-overworld/chunk-001.png with a Breakable
+        sitting on top of a green pipe at the right edge of the chunk.
+
+   (P2) Bullet bill cannons extended into 5 and 6 tile tall columns
+        because the launcher was placed many rows above the ground
+        and the unbounded EXTEND policy filled every intermediate
+        row with BulletBillBody. Observed in
+        generated-png-iter6-overworld/chunk-004.png with three such
+        columns of length 4, 5, and 5.
+
+   (P3) The model substituting structural tiles (BulletBillBody, Coin,
+        QuestionFull) for ground in bottom-row positions where the
+        canonical content would be Solid. Observed in
+        generated-png-iter6-overworld/chunk-006.png and chunk-010.png.
+
+   (P4) Every Treetop chunk having a uniform continuous brick floor.
+        Real SMB Treetop levels (3-3, 5-3) have explicit ground gaps
+        as a gameplay feature. The BottomRowCompletion pass was
+        over-applying to Treetop.
+
+   (P5) Every Underground chunk missing the cave ceiling that defines
+        the biome visually. Real SMB Underground (1-2, 4-2) renders
+        the play area as a cave with a Solid roof at y=0.
+
+   (P6) Implicit problem: PipeTopClearance interacting with the new
+        ceiling-fill in Underground, where the pipe-cap clearance
+        would erase the ceiling Solid and the next iteration would
+        re-add it, causing oscillation.
+
+Iteration 7 addresses (P1) through (P6) via four new repair classes
+plus updates to two existing classes.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: DESIGN - SIX NEW CONSTRAINTS
+PART 2: IMPLEMENTATION - TWO NEW CLASSES AND UPDATES TO FOUR EXISTING
+PART 3: INTEGRATION - UPDATED ORCHESTRATOR PASS ORDER
+PART 4: TESTS AND BUILD VERIFICATION
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+PART 6: LIMITATIONS
+PART 7: NEXT STEPS
+APPENDIX A: GRANULAR COMMIT LIST
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+
+
+================================================================================
+PART 1: DESIGN - SIX NEW CONSTRAINTS
+================================================================================
+
+1.1 PIPE TOP CLEARANCE (addresses P1)
+
+For each complete PipeTopLeft + PipeTopRight anchor at (x, y), the
+cells (x, y-1) and (x+1, y-1) must be Empty (or out-of-chunk). Tiles
+other than Empty in these cells block Mario's entry into the pipe and
+are replaced with Empty. Tiles that are themselves part of another
+pipe or bullet bill structure are NOT cleared; subsequent passes
+handle conflicts.
+
+1.2 PIPE HEIGHT CAP (addresses P2 for pipes)
+
+A pipe column cannot exceed MaxPipeRows tiles total (default 6: top
+row plus body rows). Before PipeSupportRepair extends a floating
+pipe to ground, it computes the would-be total height; if above the
+cap, REMOVE replaces EXTEND regardless of the COMPLETE-vs-REMOVE
+count policy.
+
+1.3 BULLET BILL HEIGHT CAP (addresses P2 for bullet bills)
+
+Mirror of 1.2 for bullet bill columns. MaxBulletBillRows defaults to 3
+(launcher plus body rows), matching canonical SMB cannon heights of
+2 to 3 tiles.
+
+1.4 BOTTOM-ROW TILE FILTER (addresses P3)
+
+Updated BottomRowCompletion replaces any tile in the bottom row that
+is not Solid, Breakable, PipeBodyLeft, PipeBodyRight, or BulletBillBody
+with Solid. Previously the pass only replaced Empty tiles. The new
+allowed-list eliminates the model's behavior of substituting Coin,
+QuestionFull, QuestionEmpty, or Enemy tiles in ground positions to
+avoid DiscontinuousGround violations.
+
+1.5 BIOME-AWARE BOTTOM-ROW COMPLETION (addresses P4)
+
+BottomRowCompletion now checks chunk.BiomeLabel and skips the entire
+pass when the biome is Treetop. Treetop chunks retain their natural
+ground gaps from the model output, matching the gameplay feature of
+the source SMB Treetop levels.
+
+1.6 UNDERGROUND CEILING (addresses P5)
+
+The new CeilingCompletion class mirrors BottomRowCompletion at the
+top row, applied only when the biome is Underground. The same
+allowed-list (Solid, Breakable, PipeBodyLeft, PipeBodyRight,
+BulletBillBody) governs the top row. Empty and other tile types
+become Solid, forming the canonical cave roof.
+
+1.7 PIPE-CEILING ANTI-OSCILLATION (addresses P6)
+
+PipeTopClearance now contains an Underground-specific guard: when
+the pipe top is at y=1 in an Underground chunk, the clearance attempt
+is skipped because the row above (y=0) is the cave ceiling enforced
+by CeilingCompletion. Without this guard the two passes would
+oscillate (clearance removes the Solid; ceiling re-adds it; the
+fixed-point iteration never terminates).
+
+
+================================================================================
+PART 2: IMPLEMENTATION - TWO NEW CLASSES AND UPDATES TO FOUR EXISTING
+================================================================================
+
+2.1 NEW: PipeTopClearance.cs (93 lines)
+
+Single-pass repair. Scans each PipeTopLeft and verifies the
+adjacent PipeTopRight to confirm a complete cap. For each such cap,
+calls ClearIfObstruction on (x, y-1) and (x+1, y-1). The clear method
+replaces Solid, Breakable, Coin, Question*, and Enemy tiles with
+Empty; pipe and bullet bill tiles are skipped to avoid breaking
+other structures (orphan-tile sweep in subsequent passes catches
+them if they end up disconnected).
+
+2.2 NEW: CeilingCompletion.cs (59 lines)
+
+Single-pass repair. Returns immediately when chunk.BiomeLabel is not
+Underground. Otherwise scans the top row (y=0) and replaces every
+disallowed tile with Solid. Allowed tiles: Solid, Breakable,
+PipeBodyLeft, PipeBodyRight, BulletBillBody.
+
+2.3 UPDATED: BottomRowCompletion.cs
+
+Now biome-aware (skips Treetop) and tile-type aware (replaces every
+non-allowed tile with Solid). Allowed tiles match CeilingCompletion's
+list.
+
+2.4 UPDATED: PipeSupportRepair.cs
+
+Adds WouldFitMaxPipeHeight pre-check before invoking the
+EXTEND-vs-REMOVE decision. Computes what the total pipe column height
+would be after extending to the nearest ground tile below; if above
+config.MaxPipeRows, the EXTEND option is rejected and the pipe is
+removed via the existing REMOVE path.
+
+2.5 UPDATED: BulletBillSupportRepair.cs
+
+Mirror change with WouldFitMaxBulletBillHeight and config.MaxBulletBillRows.
+
+2.6 UPDATED: ChunkStructureRepairConfig.cs
+
+Adds MaxPipeRows = 6 and MaxBulletBillRows = 3 public fields. Default
+values chosen to match canonical SMB structure heights with a small
+margin for legitimately tall pipes.
+
+
+================================================================================
+PART 3: INTEGRATION - UPDATED ORCHESTRATOR PASS ORDER
+================================================================================
+
+ChunkStructureRepair.RepairAll now invokes NINE passes per iteration:
+
+   (1) BottomRowCompletion
+   (2) CeilingCompletion
+   (3) PipeRepair
+   (4) PipeSupportRepair
+   (5) PipeTopClearance
+   (6) BulletBillRepair
+   (7) BulletBillSupportRepair
+   (8) EnemyRepair
+   (9) QuestionBlockRepair
+
+Pass order rationale:
+
+   Ground and ceiling (1, 2) run first so support validations have
+   stable surfaces to test against.
+
+   PipeRepair (3) anchors complete 2x2 pipes before PipeSupportRepair
+   (4) verifies ground support. PipeTopClearance (5) runs LAST among
+   the pipe passes so it only acts on pipes that survived both the
+   structure-validity and support checks.
+
+   BulletBill (6, 7) and Enemy (8) repairs follow the same anchor-then-
+   validate pattern.
+
+   QuestionBlockRepair (9) runs last because its adjacency rules
+   depend on the final pipe and bullet bill positions.
+
+
+================================================================================
+PART 4: TESTS AND BUILD VERIFICATION
+================================================================================
+
+4.1 COMPILE-TIME VERIFICATION
+
+   dotnet build c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj --verbosity minimal
+
+   Result: Build succeeded. 0 Warning(s). 0 Error(s).
+
+4.2 LOGIC TESTS
+
+Total: 38 logic tests passing, 0 failing on 2026-06-10.
+
+New tests added in Iteration 7 (9 new + 1 modified):
+
+   BottomRowCompletion replaces Coin on bottom row with Solid
+   BottomRowCompletion preserves BulletBillBody on bottom row
+   Treetop chunk bottom row remains untouched by BottomRowCompletion
+   Underground chunk top row becomes Solid
+   Overworld top row not modified by CeilingCompletion
+   PipeTopClearance preserves the pipe
+   PipeTopClearance clears Breakable/Solid above the pipe cap
+   PipeTopClearance does not act on pipe at y=0
+   pipe whose extension would exceed MaxPipeRows is removed
+   bullet bill whose extension would exceed MaxBulletBillRows is removed
+
+The pre-existing TestBrokenBulletBillIsCompletedOrRemoved was updated
+to place the launcher at y=11 instead of y=8 so the column fits within
+MaxBulletBillRows=3.
+
+Invoke with: dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+
+================================================================================
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+================================================================================
+
+This section is populated by the author after running the test plan
+in Appendix B on the local RTX 5060 against
+unet-conditional-checkpoint.bin.
+
+5.1 OVERWORLD ITERATION 7 PRE vs POST-REPAIR
+
+   Property              Pre-repair       Post-repair
+   --------------------- ---------------- ----------------
+   Total violations      <to populate>    <to populate>
+   BrokenPipeHorizontal  <to populate>    <to populate>
+   BrokenPipeTopLeft     <to populate>    <to populate>
+   BrokenPipeTopRight    <to populate>    <to populate>
+   BrokenBulletBill      <to populate>    <to populate>
+   FloatingEnemy         <to populate>    <to populate>
+   DiscontinuousGround   <to populate>    <to populate>
+
+5.2 UNDERGROUND ITERATION 7 PRE vs POST-REPAIR
+
+   (same template)
+
+5.3 TREETOP ITERATION 7 PRE vs POST-REPAIR
+
+   (same template)
+
+5.4 VISUAL ASSESSMENT NOTES
+
+   (1) No tile blocking the row directly above any pipe cap.
+   (2) No bullet bill column taller than 3 tiles.
+   (3) No Coin, Question*, or Enemy tile in the bottom row of
+       Overworld or Underground chunks.
+   (4) Treetop chunks have ground gaps preserved from the model.
+   (5) Underground chunks have a continuous Solid ceiling at y=0.
+
+
+================================================================================
+PART 6: LIMITATIONS
+================================================================================
+
+6.1 PIPE-CEILING EDGE CASE IN UNDERGROUND
+
+A pipe at y=1 in an Underground chunk has its cap immediately below
+the cave ceiling. PipeTopClearance skips the clearance attempt to
+avoid oscillation with CeilingCompletion. The pipe is structurally
+implausible (the ceiling blocks entry) but it survives in the
+repaired output. Frequency is expected to be very low because the
+model rarely places pipe tops at y=1.
+
+6.2 HEIGHT CAPS ARE ABSOLUTE, NOT BIOME-SPECIFIC
+
+MaxPipeRows and MaxBulletBillRows are global config values. Real SMB
+Underground levels have notably taller pipes than Overworld in some
+places. A future refinement could make the height caps biome-aware.
+Current values are conservative on the short side which matches the
+visually-clearer Iteration 7 goal.
+
+6.3 BIOME LABEL ASSUMED CORRECT
+
+The biome-aware passes trust chunk.BiomeLabel, which is set by
+TileMapChunker from the source VGLC level filename via
+BiomeFromVglcLevelName. If the level-to-biome mapping is wrong for
+any source level, the biome-aware repairs produce wrong-for-biome
+output. The mapping table should be reviewed before publishing
+manuscript figures.
+
+
+================================================================================
+PART 7: NEXT STEPS
+================================================================================
+
+7.1 IMMEDIATE (BEFORE RASCUNHO 2026-06-15)
+
+   (1) Run test plan in Appendix B, populate Section 5.
+
+   (2) Visual inspection of new generated-png-iter7-* directories.
+
+   (3) Begin Chapter 4 writeup with Iterations 1 through 7 as the
+       narrative arc. The repair-pipeline sub-chapter can be
+       structured as: Iteration 5 introduces the COMPLETE-or-REMOVE
+       paradigm; Iteration 6 adds support and ground; Iteration 7
+       refines with biome-aware and visual-plausibility constraints.
+
+7.2 AFTER RASCUNHO (2026-06-15 TO 2026-07-12)
+
+   (4) Mario AI Framework integration for the % beatable metric.
+
+   (5) PNG A/B comparison grids at fixed RNG seeds for the
+       methodology section.
+
+
+================================================================================
+APPENDIX A: GRANULAR COMMIT LIST
+================================================================================
+
+Iteration 7 commits on iteration-5-chunk-structure-repair branch:
+
+   d7d1565  add MaxPipeRows and MaxBulletBillRows config constants
+   522c7b5  add PipeTopClearance preventing tiles from blocking pipe entry
+   0e93b68  enforce MaxPipeRows in PipeSupportRepair before extending
+   a20d728  enforce MaxBulletBillRows in BulletBillSupportRepair before extending
+   f52076c  make BottomRowCompletion biome-aware and stricter on tile types
+   740d802  add CeilingCompletion filling the top row for Underground biome
+   d25e8b0  guard PipeTopClearance against breaking the Underground ceiling
+   d05dce9  wire CeilingCompletion and PipeTopClearance into orchestrator
+   7a04549  add 9 logic tests for iteration 7 clearance height ceiling and biome rules
+
+
+================================================================================
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+================================================================================
+
+B.1 PULL THE LATEST BRANCH FROM ORIGIN
+
+   git fetch origin
+   git checkout iteration-5-chunk-structure-repair
+   git pull origin iteration-5-chunk-structure-repair
+
+B.2 VERIFY BUILD AND LOGIC TESTS
+
+   dotnet build procgen-flow-matching.sln --verbosity minimal
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+   Expected: Build succeeded. 0 Warning(s). 0 Error(s).
+             38 passed, 0 failed.
+
+B.3 RUN GENERATE WITH ITERATION 7 REPAIR FOR EACH BIOME
+
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Overworld --png-dir generated-png-iter7-overworld 2>&1 | tee iter7-overworld.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Underground --png-dir generated-png-iter7-underground 2>&1 | tee iter7-underground.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Treetop --png-dir generated-png-iter7-treetop 2>&1 | tee iter7-treetop.log
+
+B.4 POPULATE SECTION 5 OF THIS REPORT
+
+Transcribe the AGGREGATE blocks from each biome's log into the
+corresponding Section 5 subsection.
+
+B.5 VISUAL INSPECTION CHECKLIST
+
+   (1) Overworld: no tile blocking the row above any pipe cap;
+       no bullet bill column taller than 3 tiles; bottom row is
+       Solid where the model did not place ground.
+
+   (2) Underground: top row (y=0) is Solid forming a cave ceiling.
+
+   (3) Treetop: bottom row has natural gaps preserved from the model
+       output; no artificial filling of the ground row.
+
+
+================================================================================
+END OF REPORT
+================================================================================
