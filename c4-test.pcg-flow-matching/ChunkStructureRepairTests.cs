@@ -49,6 +49,10 @@ public class ChunkStructureRepairTests
         TestPipeTopClearanceSkipsPipeAtTopOfChunk();
         TestPipeTooTallToExtendIsRemoved();
         TestBulletBillTooTallToExtendIsRemoved();
+        TestTallPipeIsKeptIfFirstInChunk();
+        TestLauncherClearanceRemovesAdjacentSolid();
+        TestLauncherClearanceRemovesAdjacentBreakable();
+        TestLauncherClearancePreservesNonObstructions();
         TestFloatingPipeIsExtendedOrRemoved();
         TestPipeRestingOnSolidIsUnchanged();
         TestFloatingBulletBillIsExtendedOrRemoved();
@@ -507,18 +511,29 @@ public class ChunkStructureRepairTests
     private static void TestPipeTooTallToExtendIsRemoved()
     {
         TileMap chunk = MakeChunk(28, 14);
-        // Pipe top at y=1, currently floats at y=1, y=2. Ground would need
-        // to extend until y=13 (after BottomRowCompletion). Total column
-        // height would be 13 rows, exceeding MaxPipeRows=6. Expected: REMOVE.
-        Set(chunk, 10, 1, TileTypeEnum.PipeTopLeft);
-        Set(chunk, 11, 1, TileTypeEnum.PipeTopRight);
-        Set(chunk, 10, 2, TileTypeEnum.PipeBodyLeft);
-        Set(chunk, 11, 2, TileTypeEnum.PipeBodyRight);
+        // Place a complete supported pipe at (5, 11) so the chunk already
+        // has 1 supported pipe and the MinCompletePerChunk override does
+        // not fire on the second pipe.
+        Set(chunk, 5, 11, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 6, 11, TileTypeEnum.PipeTopRight);
+        Set(chunk, 5, 12, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 6, 12, TileTypeEnum.PipeBodyRight);
+        Set(chunk, 5, 13, TileTypeEnum.Solid);
+        Set(chunk, 6, 13, TileTypeEnum.Solid);
+
+        // Second pipe top at y=1 would require 13 rows to extend to
+        // ground, exceeding MaxPipeRows=6. With the first pipe already
+        // supported, the MinCompletePerChunk override does not apply
+        // and the tall pipe is REMOVED.
+        Set(chunk, 15, 1, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 16, 1, TileTypeEnum.PipeTopRight);
+        Set(chunk, 15, 2, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 16, 2, TileTypeEnum.PipeBodyRight);
 
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
 
-        Assert(Get(repaired, 10, 1) != TileTypeEnum.PipeTopLeft,
-               "pipe whose extension would exceed MaxPipeRows is removed");
+        Assert(Get(repaired, 15, 1) != TileTypeEnum.PipeTopLeft,
+               "second pipe whose extension would exceed MaxPipeRows is removed when first pipe is already supported");
     }
 
     private static void TestBulletBillTooTallToExtendIsRemoved()
@@ -534,6 +549,73 @@ public class ChunkStructureRepairTests
 
         Assert(Get(repaired, 10, 1) != TileTypeEnum.BulletBillLauncher,
                "bullet bill whose extension would exceed MaxBulletBillRows is removed");
+    }
+
+    private static void TestTallPipeIsKeptIfFirstInChunk()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // A single pipe top at y=1 would normally exceed MaxPipeRows=6
+        // when extended to ground at y=13 (12 rows). The MinCompletePerChunk
+        // guarantee overrides the cap, so the pipe is kept and extended.
+        Set(chunk, 10, 1, TileTypeEnum.PipeTopLeft);
+        Set(chunk, 11, 1, TileTypeEnum.PipeTopRight);
+        Set(chunk, 10, 2, TileTypeEnum.PipeBodyLeft);
+        Set(chunk, 11, 2, TileTypeEnum.PipeBodyRight);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 1) == TileTypeEnum.PipeTopLeft,
+               "tall pipe is kept when it would be the chunk's first supported pipe");
+        Assert(Get(repaired, 10, 12) == TileTypeEnum.PipeBodyLeft,
+               "tall pipe's body extends down to row above ground");
+    }
+
+    private static void TestLauncherClearanceRemovesAdjacentSolid()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        // Launcher at y=11 with adjacent Solid tiles in clearance zone.
+        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 8, 11, TileTypeEnum.Solid);
+        Set(chunk, 9, 11, TileTypeEnum.Solid);
+        Set(chunk, 11, 11, TileTypeEnum.Solid);
+        Set(chunk, 12, 11, TileTypeEnum.Solid);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        bool cleared = Get(repaired, 8, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 9, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 11, 11) == TileTypeEnum.Empty &&
+                       Get(repaired, 12, 11) == TileTypeEnum.Empty;
+        Assert(cleared, "BulletBillLauncherClearance removes adjacent Solid tiles");
+    }
+
+    private static void TestLauncherClearanceRemovesAdjacentBreakable()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 9, 11, TileTypeEnum.Breakable);
+        Set(chunk, 11, 11, TileTypeEnum.Breakable);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 9, 11) == TileTypeEnum.Empty,
+               "BulletBillLauncherClearance removes adjacent Breakable on the left");
+        Assert(Get(repaired, 11, 11) == TileTypeEnum.Empty,
+               "BulletBillLauncherClearance removes adjacent Breakable on the right");
+    }
+
+    private static void TestLauncherClearancePreservesNonObstructions()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        Set(chunk, 10, 11, TileTypeEnum.BulletBillLauncher);
+        Set(chunk, 9, 11, TileTypeEnum.Coin);
+        Set(chunk, 11, 11, TileTypeEnum.Empty);
+        // Coin is not an obstruction; it should not be cleared.
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 9, 11) == TileTypeEnum.Coin,
+               "BulletBillLauncherClearance preserves Coin in clearance zone");
     }
 
     private static void TestFloatingPipeIsExtendedOrRemoved()
