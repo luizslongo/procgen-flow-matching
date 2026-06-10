@@ -53,6 +53,12 @@ public class ChunkStructureRepairTests
         TestLauncherClearanceRemovesAdjacentSolid();
         TestLauncherClearanceRemovesAdjacentBreakable();
         TestLauncherClearancePreservesNonObstructions();
+        TestQuestionFullWithSolidBelowIsRemoved();
+        TestQuestionFullWithBreakableBelowIsRemoved();
+        TestQuestionFullWithEmptyBelowIsKept();
+        TestPipeInjectionAddsAtLeastOnePipeInEmptyChunk();
+        TestPipeInjectionRespectsMaxCount();
+        TestPipeInjectionSkipsTreetopWithNoGround();
         TestFloatingPipeIsExtendedOrRemoved();
         TestPipeRestingOnSolidIsUnchanged();
         TestFloatingBulletBillIsExtendedOrRemoved();
@@ -124,16 +130,18 @@ public class ChunkStructureRepairTests
         TileMap chunk = MakeChunk(28, 14);
         TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
 
-        bool topRowsAllEmpty = true;
-        for (int y = 0; y < chunk.Height - 1; y++)
+        // PipeInjection now synthesizes pipes in empty chunks, so the
+        // middle rows (11, 12) may contain pipe tiles. Only the very
+        // top row (0) is asserted Empty here; the bottom row is asserted
+        // Solid as before; the injected pipe is verified in a
+        // dedicated PipeInjection test.
+        bool topRowAllEmpty = true;
+        for (int x = 0; x < chunk.Width; x++)
         {
-            for (int x = 0; x < chunk.Width; x++)
+            if (Get(repaired, x, 0) != TileTypeEnum.Empty)
             {
-                if (Get(repaired, x, y) != TileTypeEnum.Empty)
-                {
-                    topRowsAllEmpty = false;
-                    break;
-                }
+                topRowAllEmpty = false;
+                break;
             }
         }
         bool bottomRowAllSolid = true;
@@ -145,7 +153,7 @@ public class ChunkStructureRepairTests
                 break;
             }
         }
-        Assert(topRowsAllEmpty, "empty chunk top rows remain Empty");
+        Assert(topRowAllEmpty, "empty chunk top row remains Empty");
         Assert(bottomRowAllSolid, "empty chunk bottom row becomes Solid");
     }
 
@@ -743,5 +751,91 @@ public class ChunkStructureRepairTests
 
         Assert(Get(repaired, 10, 12) == TileTypeEnum.Enemy,
                "enemy standing on Solid is kept in place");
+    }
+
+    private static void TestQuestionFullWithSolidBelowIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++)
+        {
+            Set(chunk, x, 13, TileTypeEnum.Solid);
+        }
+        // QuestionFull at (10, 12) with Solid directly below at (10, 13).
+        // Mario cannot reach this block from below.
+        Set(chunk, 10, 12, TileTypeEnum.QuestionFull);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 12) != TileTypeEnum.QuestionFull,
+               "QuestionFull with Solid directly below is removed");
+    }
+
+    private static void TestQuestionFullWithBreakableBelowIsRemoved()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++)
+        {
+            Set(chunk, x, 13, TileTypeEnum.Solid);
+        }
+        Set(chunk, 10, 11, TileTypeEnum.QuestionFull);
+        Set(chunk, 10, 12, TileTypeEnum.Breakable);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 11) != TileTypeEnum.QuestionFull,
+               "QuestionFull with Breakable directly below is removed");
+    }
+
+    private static void TestQuestionFullWithEmptyBelowIsKept()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        for (int x = 0; x < chunk.Width; x++)
+        {
+            Set(chunk, x, 13, TileTypeEnum.Solid);
+        }
+        // ? block at (10, 8) with Empty below at (10, 9) so Mario can
+        // walk and jump into the gap to hit it. Ground at (10, 13)
+        // satisfies the HasGroundBelow rule.
+        Set(chunk, 10, 8, TileTypeEnum.QuestionFull);
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        Assert(Get(repaired, 10, 8) == TileTypeEnum.QuestionFull,
+               "QuestionFull with Empty directly below is kept");
+    }
+
+    private static void TestPipeInjectionAddsAtLeastOnePipeInEmptyChunk()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        int pipeCount = StructureCounter.CountCompletePipes(repaired);
+        Assert(pipeCount >= 1, "empty chunk gets at least one injected pipe");
+    }
+
+    private static void TestPipeInjectionRespectsMaxCount()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        int pipeCount = StructureCounter.CountCompletePipes(repaired);
+        ChunkStructureRepairConfig cfg = DefaultConfig();
+        Assert(pipeCount <= cfg.MaxCompletePerChunk,
+               "injected pipe count does not exceed MaxCompletePerChunk");
+    }
+
+    private static void TestPipeInjectionSkipsTreetopWithNoGround()
+    {
+        TileMap chunk = MakeChunk(28, 14);
+        chunk.BiomeLabel = BiomeTypeEnum.Treetop;
+        // No tiles set; BottomRowCompletion is skipped for Treetop so
+        // the bottom row stays Empty and PipeInjection has no ground
+        // to anchor on. No pipes should be injected.
+
+        TileMap repaired = ChunkStructureRepair.RepairAll(chunk, DefaultConfig());
+
+        int pipeCount = StructureCounter.CountCompletePipes(repaired);
+        Assert(pipeCount == 0,
+               "empty Treetop chunk gets no injected pipes because it has no ground");
     }
 }
