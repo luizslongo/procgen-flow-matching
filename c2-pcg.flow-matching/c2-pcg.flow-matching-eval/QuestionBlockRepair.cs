@@ -84,15 +84,31 @@ public class QuestionBlockRepair
         return true;
     }
 
-    // Rule: the cell directly below (x, y+1) MUST be Empty. Mario hits
-    // QuestionFull blocks from BELOW by jumping; the cell below must
-    // be unobstructed so Mario can stand or move beneath the block and
-    // his head can pass into (x, y+1) on the jump arc. A Solid or
-    // Breakable tile at (x, y+1) makes the block unreachable from below
-    // and the QuestionFull cannot be triggered, defeating its purpose.
+    // Rule: the three cells directly below (x, y+1), (x, y+2), and
+    // (x, y+3) must ALL be Empty. Mario big jumping to head-impact a
+    // QuestionFull at (x, y) requires the column from y+1 to y+3 to
+    // be clear: at the start of the jump Mario big stands with feet
+    // on the ground tile somewhere below y+3 and head at the next
+    // row up; during the jump his hitbox sweeps through (x, y+1) and
+    // (x, y+2). Solid or Breakable tiles anywhere in y+1..y+3 block
+    // the jump arc and the block cannot be triggered. The 3-cell
+    // clearance is exactly the minimum Mario big needs for the
+    // jump-and-hit motion.
     private static bool HasEmptyDirectlyBelow(TileMap chunk, int x, int y)
     {
-        return StructureCounter.GetTile(chunk, x, y + 1) == TileTypeEnum.Empty;
+        for (int dy = 1; dy <= 3; dy++)
+        {
+            int probeY = y + dy;
+            if (probeY >= chunk.Height)
+            {
+                return false;
+            }
+            if (StructureCounter.GetTile(chunk, x, probeY) != TileTypeEnum.Empty)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     // Rule 1: bottom row is always ground in canonical SMB.
@@ -119,12 +135,12 @@ public class QuestionBlockRepair
     // rows below this position so Mario has a surface to jump from.
     // The 8-row range is a generous approximation of the chunk-height
     // distance over which an Overworld block is still considered
-    // "reachable" without explicit pathfinding. Search starts at y+2
-    // because y+1 is required to be Empty by HasEmptyDirectlyBelow
-    // (the "Mario hits from below" rule).
+    // "reachable" without explicit pathfinding. Search starts at y+4
+    // because y+1, y+2, and y+3 are all required to be Empty by
+    // HasEmptyDirectlyBelow (the 3-cell jump-arc clearance rule).
     private static bool HasGroundBelow(TileMap chunk, int x, int y)
     {
-        for (int dy = 2; dy <= 8; dy++)
+        for (int dy = 4; dy <= 8; dy++)
         {
             TileTypeEnum below = StructureCounter.GetTile(chunk, x, y + dy);
             if (below == TileTypeEnum.Solid)
