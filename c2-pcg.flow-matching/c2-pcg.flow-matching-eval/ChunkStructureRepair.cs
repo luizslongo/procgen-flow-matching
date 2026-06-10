@@ -53,6 +53,7 @@ public class ChunkStructureRepair
             changedThisIteration = BulletBillLauncherClearance.RepairOnce(repaired) || changedThisIteration;
             changedThisIteration = EnemyRepair.RepairOnce(repaired) || changedThisIteration;
             changedThisIteration = QuestionBlockRepair.RepairOnce(repaired) || changedThisIteration;
+            changedThisIteration = PipeInjection.RepairOnce(repaired, config, rng) || changedThisIteration;
 
             if (!changedThisIteration)
             {
