@@ -34,11 +34,18 @@ public class ChunkStructureRepairConfig
 
     // Maximum total height of a pipe column (top row plus body rows).
     // PipeSupportRepair removes pipes whose extension to ground would
-    // exceed this height. Canonical SMB pipes are 2-4 tiles tall, so
-    // 6 is a generous upper bound that allows for taller pipes near the
-    // top of the chunk while still rejecting the 10+ tile towers that
-    // the original unbounded extension produced.
-    public int MaxPipeRows = 6;
+    // exceed this height. The cap matches Mario big's jump reach from
+    // ground (about 4 tiles upward); pipes taller than 5 tiles cannot
+    // be landed on from the ground without external scenery, so they
+    // are removed and replaced by a short injected pipe near the
+    // ground via PipeInjection.
+    public int MaxPipeRows = 5;
+
+    // Minimum total height of a pipe column. Pipes shorter than this
+    // are removed by PipeSupportRepair (or PipeRepair when completion
+    // would produce a sub-minimum pipe). The canonical short SMB pipe
+    // is 3 tiles tall (top + 2 body rows).
+    public int MinPipeRows = 3;
 
     // Maximum total height of a bullet bill column (launcher plus body
     // rows). BulletBillSupportRepair removes bullet bills whose extension

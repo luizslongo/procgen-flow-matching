@@ -62,12 +62,13 @@ public class PipeRepair
                     continue;
                 }
 
-                // A pipe whose top row is at chunk.Height - 2 would have
-                // its body row at chunk.Height - 1, displacing the ground
-                // surface. Pipes attach ON TOP of ground; the body must
-                // end one row above ground, not replace it. Reject the
-                // completion attempt and fall through to REMOVE.
-                if (y >= chunk.Height - 2)
+                // Minimum pipe height = top + 2 body rows. The bottom
+                // body row must end at chunk.Height - 2 or higher, so
+                // the top row must be at chunk.Height - 4 or higher.
+                // Pipes placed below that level cannot satisfy the
+                // 3-row minimum without writing body into the ground
+                // row; reject and remove.
+                if (y >= chunk.Height - 3)
                 {
                     StructureCounter.SetTile(chunk, x, y,
                         StructureCounter.SelectReplacementTile(y, chunk.Height));
@@ -151,34 +152,31 @@ public class PipeRepair
         return anyChange;
     }
 
-    // Returns true if the 2x2 region anchored at (x, y) by PipeTopLeft
-    // already forms a valid complete pipe template.
+    // Returns true if the 3-row pipe region anchored at (x, y) by
+    // PipeTopLeft already forms a valid complete pipe template
+    // (1 top row + 2 body rows). Minimum SMB pipe height.
     private static bool IsAlreadyValidPipeAnchor(TileMap chunk, int x, int y)
     {
         bool tr = StructureCounter.GetTile(chunk, x + 1, y) == TileTypeEnum.PipeTopRight;
-        bool bl = StructureCounter.GetTile(chunk, x, y + 1) == TileTypeEnum.PipeBodyLeft;
-        bool br = StructureCounter.GetTile(chunk, x + 1, y + 1) == TileTypeEnum.PipeBodyRight;
-        return tr && bl && br;
+        bool bl1 = StructureCounter.GetTile(chunk, x, y + 1) == TileTypeEnum.PipeBodyLeft;
+        bool br1 = StructureCounter.GetTile(chunk, x + 1, y + 1) == TileTypeEnum.PipeBodyRight;
+        bool bl2 = StructureCounter.GetTile(chunk, x, y + 2) == TileTypeEnum.PipeBodyLeft;
+        bool br2 = StructureCounter.GetTile(chunk, x + 1, y + 2) == TileTypeEnum.PipeBodyRight;
+        return tr && bl1 && br1 && bl2 && br2;
     }
 
-    // Returns true if each of the three positions needed for completion
+    // Returns true if each of the five positions needed for completion
     // is either already the correct pipe tile or a benign fill target
     // (Empty or Solid). Completion is rejected if any position holds a
-    // different structural tile that we would overwrite.
+    // different structural tile that we would overwrite. The five
+    // positions are the right cap tile and both rows of the 2-row body.
     private static bool CanFillForCompletion(TileMap chunk, int x, int y)
     {
-        if (!IsBenignFillTarget(chunk, x + 1, y, TileTypeEnum.PipeTopRight))
-        {
-            return false;
-        }
-        if (!IsBenignFillTarget(chunk, x, y + 1, TileTypeEnum.PipeBodyLeft))
-        {
-            return false;
-        }
-        if (!IsBenignFillTarget(chunk, x + 1, y + 1, TileTypeEnum.PipeBodyRight))
-        {
-            return false;
-        }
+        if (!IsBenignFillTarget(chunk, x + 1, y, TileTypeEnum.PipeTopRight)) return false;
+        if (!IsBenignFillTarget(chunk, x, y + 1, TileTypeEnum.PipeBodyLeft)) return false;
+        if (!IsBenignFillTarget(chunk, x + 1, y + 1, TileTypeEnum.PipeBodyRight)) return false;
+        if (!IsBenignFillTarget(chunk, x, y + 2, TileTypeEnum.PipeBodyLeft)) return false;
+        if (!IsBenignFillTarget(chunk, x + 1, y + 2, TileTypeEnum.PipeBodyRight)) return false;
         return true;
     }
 
@@ -195,13 +193,16 @@ public class PipeRepair
         return false;
     }
 
-    // Writes the three pipe tiles needed to complete the 2x2 anchored
-    // at (x, y) by PipeTopLeft.
+    // Writes the five pipe tiles needed to complete the 3-row pipe
+    // anchored at (x, y) by PipeTopLeft: right cap and both rows of
+    // the 2-row minimum body.
     private static void FillCompletion(TileMap chunk, int x, int y)
     {
         StructureCounter.SetTile(chunk, x + 1, y, TileTypeEnum.PipeTopRight);
         StructureCounter.SetTile(chunk, x, y + 1, TileTypeEnum.PipeBodyLeft);
         StructureCounter.SetTile(chunk, x + 1, y + 1, TileTypeEnum.PipeBodyRight);
+        StructureCounter.SetTile(chunk, x, y + 2, TileTypeEnum.PipeBodyLeft);
+        StructureCounter.SetTile(chunk, x + 1, y + 2, TileTypeEnum.PipeBodyRight);
     }
 
     // The COMPLETE-vs-REMOVE policy from ChunkStructureRepairConfig.
