@@ -65,6 +65,10 @@ public class QuestionBlockRepair
         {
             return false;
         }
+        if (!HasEmptyDirectlyBelow(chunk, x, y))
+        {
+            return false;
+        }
         if (IsBuriedInSolid(chunk, x, y))
         {
             return false;
@@ -78,6 +82,17 @@ public class QuestionBlockRepair
             return false;
         }
         return true;
+    }
+
+    // Rule: the cell directly below (x, y+1) MUST be Empty. Mario hits
+    // QuestionFull blocks from BELOW by jumping; the cell below must
+    // be unobstructed so Mario can stand or move beneath the block and
+    // his head can pass into (x, y+1) on the jump arc. A Solid or
+    // Breakable tile at (x, y+1) makes the block unreachable from below
+    // and the QuestionFull cannot be triggered, defeating its purpose.
+    private static bool HasEmptyDirectlyBelow(TileMap chunk, int x, int y)
+    {
+        return StructureCounter.GetTile(chunk, x, y + 1) == TileTypeEnum.Empty;
     }
 
     // Rule 1: bottom row is always ground in canonical SMB.
@@ -104,10 +119,12 @@ public class QuestionBlockRepair
     // rows below this position so Mario has a surface to jump from.
     // The 8-row range is a generous approximation of the chunk-height
     // distance over which an Overworld block is still considered
-    // "reachable" without explicit pathfinding.
+    // "reachable" without explicit pathfinding. Search starts at y+2
+    // because y+1 is required to be Empty by HasEmptyDirectlyBelow
+    // (the "Mario hits from below" rule).
     private static bool HasGroundBelow(TileMap chunk, int x, int y)
     {
-        for (int dy = 1; dy <= 8; dy++)
+        for (int dy = 2; dy <= 8; dy++)
         {
             TileTypeEnum below = StructureCounter.GetTile(chunk, x, y + dy);
             if (below == TileTypeEnum.Solid)
