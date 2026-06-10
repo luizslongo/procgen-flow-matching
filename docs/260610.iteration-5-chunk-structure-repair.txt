@@ -340,8 +340,38 @@ libraries. Test plan in Appendix B.
 The repair logic operates on TileMap, an integer-typed enum array
 data structure with no external dependencies, so the logic is testable
 in isolation from TorchSharp by constructing hand-crafted TileMaps and
-asserting the repair output. This test is not yet written; it is the
-recommended next code addition. See Part 7.
+asserting the repair output.
+
+A 19-test suite at
+c4-test.pcg-flow-matching/ChunkStructureRepairTests.cs was added and
+all 19 tests pass on 2026-06-10. The suite is invoked via:
+
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+Coverage:
+
+   (1) empty chunk is unchanged
+   (2-5) complete pipe TL/TR/BL/BR unchanged
+   (6) isolated PipeTopLeft is completed into a valid 2x2 pipe
+   (7) orphan PipeTopRight is removed
+   (8) orphan PipeBodyLeft is removed
+   (9) isolated BulletBillLauncher is completed with body below
+   (10) orphan BulletBillBody is removed
+   (11) buried QuestionFull is removed
+   (12) QuestionFull on bottom row is removed
+   (13) QuestionFull adjacent to pipe is removed
+   (14) validly placed QuestionFull is kept
+   (15) StructureCounter counts two complete pipes
+   (16) StructureCounter counts two complete bullet bills
+   (17) RepairAll returns a new TileMap instance
+   (18) RepairAll does not mutate the input chunk
+   (19) loose PipeTopLeft removed when existing pipes >= max
+
+The 19 tests run in under one second and do not require VGLC data or
+a trained checkpoint. They exercise every public entry point of the
+repair classes and verify the COMPLETE-or-REMOVE policy biases
+correctly toward removal when the existing complete count is at or
+above MaxCompletePerChunk.
 
 
 ================================================================================
