@@ -44,7 +44,13 @@ public class BulletBillSupportRepair
                     continue;
                 }
 
-                bool shouldExtend = DecideExtendOrRemove(existingSupportedCount, config, rng);
+                // Height check: if grounding this bullet bill would
+                // require a total column taller than MaxBulletBillRows,
+                // REMOVE instead of EXTEND. Real SMB cannons are at
+                // most 2-3 tiles tall.
+                bool fitsHeightLimit = WouldFitMaxBulletBillHeight(chunk, x, y, bottomY, config);
+                bool shouldExtend = fitsHeightLimit &&
+                                    DecideExtendOrRemove(existingSupportedCount, config, rng);
 
                 if (shouldExtend && TryExtendBulletBillBodyToGround(chunk, x, bottomY))
                 {
@@ -163,5 +169,32 @@ public class BulletBillSupportRepair
             return false;
         }
         return rng.Next(0, 2) == 0;
+    }
+
+    // Returns true if extending the bullet bill currently at launcherY
+    // to currentBottomY all the way down to ground would result in a
+    // total column height at or below config.MaxBulletBillRows. Used
+    // to gate the EXTEND decision so over-tall cannons REMOVE instead
+    // of growing into multi-tile towers.
+    private static bool WouldFitMaxBulletBillHeight(
+        TileMap chunk,
+        int x,
+        int launcherY,
+        int currentBottomY,
+        ChunkStructureRepairConfig config)
+    {
+        int finalBottomY = chunk.Height - 1;
+        for (int probeY = currentBottomY + 1; probeY < chunk.Height; probeY++)
+        {
+            TileTypeEnum here = StructureCounter.GetTile(chunk, x, probeY);
+            if (here == TileTypeEnum.Solid || here == TileTypeEnum.Breakable)
+            {
+                finalBottomY = probeY - 1;
+                break;
+            }
+        }
+
+        int totalRows = finalBottomY - launcherY + 1;
+        return totalRows <= config.MaxBulletBillRows;
     }
 }
