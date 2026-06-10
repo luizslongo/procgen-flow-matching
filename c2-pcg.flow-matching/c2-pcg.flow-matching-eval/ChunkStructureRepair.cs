@@ -3,9 +3,10 @@ using c2_pcg.flowMatchingDataloader;
 
 namespace c2_pcg.flowMatchingEval;
 
-// Orchestrates the seven structural repair passes on a generated
-// chunk in the order: BottomRowCompletion, PipeRepair,
-// PipeSupportRepair, BulletBillRepair, BulletBillSupportRepair,
+// Orchestrates the nine structural repair passes on a generated
+// chunk in the order: BottomRowCompletion (biome-aware),
+// CeilingCompletion (Underground only), PipeRepair, PipeSupportRepair,
+// PipeTopClearance, BulletBillRepair, BulletBillSupportRepair,
 // EnemyRepair, QuestionBlockRepair.
 //
 // Action class: pure function over TileMap; returns a new repaired
@@ -43,8 +44,10 @@ public class ChunkStructureRepair
         {
             bool changedThisIteration = false;
             changedThisIteration = BottomRowCompletion.RepairOnce(repaired) || changedThisIteration;
+            changedThisIteration = CeilingCompletion.RepairOnce(repaired) || changedThisIteration;
             changedThisIteration = PipeRepair.RepairOnce(repaired, config, rng) || changedThisIteration;
             changedThisIteration = PipeSupportRepair.RepairOnce(repaired, config, rng) || changedThisIteration;
+            changedThisIteration = PipeTopClearance.RepairOnce(repaired) || changedThisIteration;
             changedThisIteration = BulletBillRepair.RepairOnce(repaired, config, rng) || changedThisIteration;
             changedThisIteration = BulletBillSupportRepair.RepairOnce(repaired, config, rng) || changedThisIteration;
             changedThisIteration = EnemyRepair.RepairOnce(repaired) || changedThisIteration;
