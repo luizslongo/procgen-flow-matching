@@ -1,0 +1,303 @@
+================================================================================
+TCC ITERATION 5 REPAIR REVISION: PIPE HEIGHT BOUNDS,
+                                 QUESTIONEMPTY VALIDITY,
+                                 PIPE TOP 2-CELL HEAD CLEARANCE,
+                                 AND LAUNCHER 14-TILE PATH
+================================================================================
+
+Generated: 2026-06-10
+Topic:     Documents six refinements to the Iteration 5 chunk structure
+           repair pipeline. These are NOT a separate iteration but
+           continuing work on the same Iteration 5 repair scaffold.
+           The user requested that successive refinements stop being
+           numbered as Iteration 6, 7, 8, 9, 10... because they all
+           belong to the same broader iteration (Iteration 5: the
+           chunk structure repair pipeline that began on 2026-06-10).
+           Subsequent refinement reports will use the
+           "repair-revision-<topic>" naming convention.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           implementation committed on the iteration-5-chunk-structure-repair
+           branch on 2026-06-10.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260610.iteration-5-chunk-structure-repair.txt
+           docs/260610.iteration-6-support-and-ground-repair.txt
+           docs/260610.iteration-7-clearance-height-and-biome-rules.txt
+           docs/260610.iteration-8-biome-propagation-pipe-guarantee-and-launcher-clearance.txt
+           docs/260610.iteration-9-question-below-clearance-and-pipe-injection.txt
+           docs/260610.iteration-10-ground-protection-pipe-spacing-and-3-cell-question-clearance.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Visual inspection of the prior generated chunks revealed three
+remaining issues:
+
+   (1) Pipes were either too short (a 2-row stub with only 1 body
+       row) or implausibly tall (an 8 to 12 row tower). Real SMB
+       pipes are typically 3 to 5 rows.
+
+   (2) QuestionEmpty (Q in VGLC) blocks were embedded in solid
+       ground or floating in mid-air without sufficient clearance.
+       The previous repair only applied placement rules to
+       QuestionFull (?) blocks even though Q is more common in the
+       training data and reads visually as a hit-? block.
+
+   (3) Pipes had only 1 row of head clearance above the cap. Mario
+       big is 2 tiles tall; entering from above requires 2 rows of
+       head clearance.
+
+   (4) Bullet bill launcher had only 3 cells of horizontal clearance
+       which left a wall just past the clearance zone that
+       immediately blocked the bullet trajectory.
+
+This revision implements:
+
+   New rules: MinPipeRows = 3, MaxPipeRows = 5, removal of the
+   must-have-at-least-one override.
+
+   QuestionBlockRepair applies the same placement rules to both
+   QuestionFull and QuestionEmpty.
+
+   PipeTopClearance now requires 2 cells of head clearance above
+   the cap.
+
+   BulletBillLauncherClearance extends to a 14-tile single-direction
+   clearance path.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: PIPE HEIGHT BOUNDS [3, 5]
+PART 2: QUESTIONEMPTY VALIDITY
+PART 3: PIPE TOP 2-CELL HEAD CLEARANCE
+PART 4: LAUNCHER 14-TILE PATH
+PART 5: TESTS AND BUILD VERIFICATION
+PART 6: NEXT STEPS
+APPENDIX A: GRANULAR COMMIT LIST
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+
+
+================================================================================
+PART 1: PIPE HEIGHT BOUNDS [3, 5]
+================================================================================
+
+1.1 RULES
+
+   Minimum pipe height: 3 tiles (top + 2 body rows). The canonical
+   short SMB pipe is 3 tiles tall; shorter pipes look stunted and
+   break the SMB silhouette.
+
+   Maximum pipe height: 5 tiles. This matches Mario big's jump
+   reach from the ground (about 4 tiles upward). Pipes taller than
+   5 tiles cannot be landed on from the ground without external
+   scenery, which the chunk does not guarantee.
+
+   The must-have-at-least-one override is removed: previously,
+   PipeSupportRepair extended the first floating pipe regardless
+   of height to guarantee chunks had at least one pipe. With
+   PipeInjection now reliably injecting short pipes near the
+   ground when needed, the override is no longer necessary. Tall
+   pipes are now strictly removed.
+
+1.2 ENFORCEMENT POINTS
+
+   PipeRepair early-reject: PipeTopLeft at y >= chunk.Height - 3
+   cannot satisfy MinPipeRows = 3 without writing body into the
+   ground row. The PipeTopLeft is replaced.
+
+   PipeRepair completion: FillCompletion now writes 5 tiles
+   (right cap + 2 body rows on both columns) instead of 3 tiles.
+   The completion produces a 3-row pipe directly.
+
+   PipeSupportRepair RemoveTooShortPipes: scans complete pipe
+   anchors at the top of each pass and removes any whose total
+   column height is below MinPipeRows.
+
+   PipeSupportRepair main loop: strict MaxPipeRows enforcement
+   without override. WouldFitMaxPipeHeight rejects pipes whose
+   extension to ground would exceed 5 rows.
+
+   PipeInjection: InjectedPipeHeight = 3, matching MinPipeRows.
+
+
+================================================================================
+PART 2: QUESTIONEMPTY VALIDITY
+================================================================================
+
+2.1 RULE
+
+QuestionBlockRepair now applies the same placement validity rules
+to both QuestionFull and QuestionEmpty:
+
+   Not on the bottom row.
+   3 cells of clearance directly below (HasEmptyDirectlyBelow).
+   Not buried in solid (at least 2 of 4 cardinal neighbors Empty).
+   Has Solid or Breakable within 8 rows below (HasGroundBelow).
+   Not adjacent to pipe or bullet bill structures.
+
+2.2 RATIONALE
+
+QuestionEmpty (Q in VGLC encoding) appears 1788 times in the
+training corpus, more than twice as often as QuestionFull (768
+times). Level designers pre-place Q as decorative hit-blocks at
+jump height; visually they read the same as ? blocks. A Q embedded
+in solid ground looks just as wrong as a ? embedded in solid
+ground, so the placement rules apply equally.
+
+
+================================================================================
+PART 3: PIPE TOP 2-CELL HEAD CLEARANCE
+================================================================================
+
+3.1 RULE
+
+For each complete PipeTopLeft + PipeTopRight anchor, the cells at
+both (x, y-1) AND (x, y-2) above the cap must be Empty. Solid,
+Breakable, Coin, Question*, and Enemy tiles in either of those
+two rows are replaced with Empty.
+
+3.2 RATIONALE
+
+Mario big is 2 tiles tall. To enter a pipe from above, both his
+feet position (immediately above the pipe cap) and his head
+position (one cell higher) must be unobstructed. A single cell of
+clearance lets Mario small enter but not Mario big.
+
+3.3 UNDERGROUND CEILING INTERACTION
+
+The Underground biome guard now widens to y <= 2: a pipe at y == 1
+or y == 2 in an Underground chunk cannot have 2 cells of clearance
+without overwriting the cave ceiling. Those pipes are skipped by
+PipeTopClearance and flagged as structurally implausible edge cases.
+
+
+================================================================================
+PART 4: LAUNCHER 14-TILE PATH
+================================================================================
+
+4.1 RULE
+
+For each BulletBillLauncher, the pass clears Solid and Breakable
+tiles up to LongClearanceTiles = 14 cells (or until the chunk
+edge) on the longer side of the launcher (the side with more
+distance to the chunk edge). The shorter side is not modified.
+
+4.2 RATIONALE
+
+Real SMB bullet bill cannons sit at the end of long open stretches
+so bullets have travel distance before reaching the screen edge
+or Mario. A 3-cell symmetric clearance left a wall just past the
+clearance zone, immediately blocking the trajectory. A 14-cell
+single-direction clearance gives meaningful travel distance and
+matches the half-chunk visual rule the user proposed.
+
+
+================================================================================
+PART 5: TESTS AND BUILD VERIFICATION
+================================================================================
+
+5.1 COMPILE-TIME VERIFICATION
+
+   dotnet build c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj --verbosity minimal
+
+   Result: Build succeeded. 0 Warning(s). 0 Error(s).
+
+5.2 LOGIC TESTS
+
+Total: 58 logic tests passing, 0 failing on 2026-06-10.
+
+Tests updated for the new rules:
+
+   3-row pipe setups: TestCompletePipeIsUnchanged, TestPipeTopClearance,
+   TestPipeTopClearanceSkipsPipeAtTopOfChunk, TestPipeRestingOnSolidIsUnchanged,
+   TestExtendedPipeDoesNotOverwriteBottomRowGround.
+
+   PipeTopClearance 2-cell test: obstructions placed at both y-1 and
+   y-2 above the cap; assertion checks both rows are cleared.
+
+   Launcher 14-tile clearance tests: now assert the LONGER side
+   (up to 14 cells) is cleared, not both sides at 3 cells.
+
+   TestTallPipeIsKeptIfFirstInChunk renamed to
+   TestTallPipeIsAlwaysRemoved with inverted assertion.
+
+   QuestionFull "valid placement" tests moved to column 20 to
+   avoid conflict with PipeInjection scan range.
+
+   TestExtendedPipeDoesNotOverwriteBottomRowGround simplified to
+   pre-built 3-row pipe with ground via BottomRowCompletion.
+
+
+================================================================================
+PART 6: NEXT STEPS
+================================================================================
+
+6.1 IMMEDIATE (BEFORE RASCUNHO 2026-06-15)
+
+   (1) Run B.3 below, paste AGGREGATE blocks.
+   (2) Visual inspection: no stunted (2-row) or towering (>5-row)
+       pipes; Q blocks behave like ? blocks for placement;
+       launchers have a clear horizontal stretch on one side.
+   (3) Continue Chapter 4 writeup.
+
+
+================================================================================
+APPENDIX A: GRANULAR COMMIT LIST
+================================================================================
+
+Repair revision commits on iteration-5-chunk-structure-repair branch:
+
+   8c0c556  tighten pipe height range to [MinPipeRows, MaxPipeRows] = [3, 5]
+   3103346  remove tall-pipe override and enforce 3-row minimum in support pass
+   8d43cf3  require 2 cells of head clearance above pipe cap
+   3f92e05  extend launcher clearance to 14-tile path on best-side direction
+   d3a28a3  apply question-block validity rules to QuestionEmpty as well as QuestionFull
+   82ecbf1  update tests for 3-row pipes 2-cell head clearance and 14-tile launcher path
+
+
+================================================================================
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+================================================================================
+
+B.1 PULL THE LATEST BRANCH
+
+   git fetch origin
+   git checkout iteration-5-chunk-structure-repair
+   git pull origin iteration-5-chunk-structure-repair
+
+B.2 VERIFY BUILD AND LOGIC TESTS
+
+   dotnet build procgen-flow-matching.sln --verbosity minimal
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+   Expected: Build succeeded. 0 Warning(s). 0 Error(s).
+             58 passed, 0 failed.
+
+B.3 RUN GENERATE FOR EACH BIOME
+
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Overworld --png-dir generated-png-rev1-overworld 2>&1 | tee rev1-overworld.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Underground --png-dir generated-png-rev1-underground 2>&1 | tee rev1-underground.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Treetop --png-dir generated-png-rev1-treetop 2>&1 | tee rev1-treetop.log
+
+B.4 VISUAL VERIFICATION
+
+   (1) Every pipe is between 3 and 5 rows tall (no 2-row stubs
+       and no 6+ row towers).
+   (2) Every Q (QuestionEmpty) block has the same clearance
+       requirements as ? (QuestionFull): 3 cells of air directly
+       below, not buried in solid.
+   (3) Every pipe cap has 2 rows of head clearance above it.
+   (4) Every bullet bill launcher has at least 14 tiles of clear
+       horizontal path on one side (or fewer if launcher is close
+       to an edge).
+
+
+================================================================================
+END OF REPORT
+================================================================================
