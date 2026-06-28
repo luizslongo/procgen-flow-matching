@@ -1,0 +1,191 @@
+using c2_pcg.flowMatchingDataloader;
+
+namespace c2_pcg.flowMatchingEval;
+
+// Repairs misplaced QuestionFull tiles in a TileMap.
+// Action class: pure functions on the TileMap, no internal state.
+//
+// In real Super Mario Bros level layouts, QuestionFull (the interactive
+// '?' block) follows several placement conventions:
+//
+//   1. Never on the bottom row. The bottom row is ground (Solid);
+//      QuestionFull always floats above it.
+//   2. Not buried in solid walls. At least two of the four cardinal
+//      neighbors should be Empty so Mario can approach the block from
+//      below or from the side and hit it.
+//   3. Above some ground. There should be a Solid or Breakable tile
+//      within a small vertical distance below, so Mario can stand
+//      somewhere to jump into the block. The 8-row search distance
+//      accommodates chunks where the visible ground is several rows
+//      below jump height.
+//   4. Not adjacent to a pipe or bullet bill structure. QuestionFull
+//      tiles never overlap or share edges with these structures in
+//      canonical SMB content.
+//
+// Tiles failing any of these checks are replaced via SelectReplacementTile.
+// Unlike pipes and bullet bills, no COMPLETE option is offered because
+// QuestionFull is a single-tile structure with no missing-component
+// counterpart to add; misplaced blocks are simply removed.
+public class QuestionBlockRepair
+{
+    // Runs one pass of question block repair on the chunk in place.
+    // Returns true if any tile was modified.
+    //
+    // Both QuestionFull (the interactive `?` block) and QuestionEmpty
+    // (the already-hit `Q` block, often pre-placed as decoration) are
+    // checked against the same placement rules. The VGLC training data
+    // contains more QuestionEmpty than QuestionFull tiles (1788 vs 768
+    // tile occurrences) because level designers use Q as decorative
+    // pre-placed hit-blocks. Visually they read the same as `?` blocks
+    // so they need the same accessibility rules: a Q embedded in solid
+    // ground would have looked wrong in a real SMB level too.
+    public static bool RepairOnce(TileMap chunk)
+    {
+        bool anyChange = false;
+
+        for (int y = 0; y < chunk.Height; y++)
+        {
+            for (int x = 0; x < chunk.Width; x++)
+            {
+                TileTypeEnum tile = StructureCounter.GetTile(chunk, x, y);
+                bool isQuestionTile = tile == TileTypeEnum.QuestionFull ||
+                                      tile == TileTypeEnum.QuestionEmpty;
+                if (!isQuestionTile)
+                {
+                    continue;
+                }
+
+                if (IsValidQuestionFullPlacement(chunk, x, y))
+                {
+                    continue;
+                }
+
+                StructureCounter.SetTile(chunk, x, y,
+                    StructureCounter.SelectReplacementTile(y, chunk.Height));
+                anyChange = true;
+            }
+        }
+
+        return anyChange;
+    }
+
+    // Applies the four placement validity rules described in the class
+    // header. Returns true if ALL rules pass.
+    private static bool IsValidQuestionFullPlacement(TileMap chunk, int x, int y)
+    {
+        if (IsOnBottomRow(chunk, y))
+        {
+            return false;
+        }
+        if (!HasEmptyDirectlyBelow(chunk, x, y))
+        {
+            return false;
+        }
+        if (IsBuriedInSolid(chunk, x, y))
+        {
+            return false;
+        }
+        if (!HasGroundBelow(chunk, x, y))
+        {
+            return false;
+        }
+        if (IsAdjacentToOtherStructure(chunk, x, y))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // Rule: the three cells directly below (x, y+1), (x, y+2), and
+    // (x, y+3) must ALL be Empty. Mario big jumping to head-impact a
+    // QuestionFull at (x, y) requires the column from y+1 to y+3 to
+    // be clear: at the start of the jump Mario big stands with feet
+    // on the ground tile somewhere below y+3 and head at the next
+    // row up; during the jump his hitbox sweeps through (x, y+1) and
+    // (x, y+2). Solid or Breakable tiles anywhere in y+1..y+3 block
+    // the jump arc and the block cannot be triggered. The 3-cell
+    // clearance is exactly the minimum Mario big needs for the
+    // jump-and-hit motion.
+    private static bool HasEmptyDirectlyBelow(TileMap chunk, int x, int y)
+    {
+        for (int dy = 1; dy <= 3; dy++)
+        {
+            int probeY = y + dy;
+            if (probeY >= chunk.Height)
+            {
+                return false;
+            }
+            if (StructureCounter.GetTile(chunk, x, probeY) != TileTypeEnum.Empty)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Rule 1: bottom row is always ground in canonical SMB.
+    private static bool IsOnBottomRow(TileMap chunk, int y)
+    {
+        return y >= chunk.Height - 1;
+    }
+
+    // Rule 2: a buried QuestionFull cannot be hit by Mario. The threshold
+    // is fewer than 2 Empty cardinal neighbors. With 2 or more Empty
+    // neighbors there is at least one direction from which the block
+    // is reachable.
+    private static bool IsBuriedInSolid(TileMap chunk, int x, int y)
+    {
+        int emptyNeighbors = 0;
+        if (StructureCounter.GetTile(chunk, x - 1, y) == TileTypeEnum.Empty) emptyNeighbors++;
+        if (StructureCounter.GetTile(chunk, x + 1, y) == TileTypeEnum.Empty) emptyNeighbors++;
+        if (StructureCounter.GetTile(chunk, x, y - 1) == TileTypeEnum.Empty) emptyNeighbors++;
+        if (StructureCounter.GetTile(chunk, x, y + 1) == TileTypeEnum.Empty) emptyNeighbors++;
+        return emptyNeighbors < 2;
+    }
+
+    // Rule 3: a ground tile (Solid or Breakable) must exist within 8
+    // rows below this position so Mario has a surface to jump from.
+    // The 8-row range is a generous approximation of the chunk-height
+    // distance over which an Overworld block is still considered
+    // "reachable" without explicit pathfinding. Search starts at y+4
+    // because y+1, y+2, and y+3 are all required to be Empty by
+    // HasEmptyDirectlyBelow (the 3-cell jump-arc clearance rule).
+    private static bool HasGroundBelow(TileMap chunk, int x, int y)
+    {
+        for (int dy = 4; dy <= 8; dy++)
+        {
+            TileTypeEnum below = StructureCounter.GetTile(chunk, x, y + dy);
+            if (below == TileTypeEnum.Solid)
+            {
+                return true;
+            }
+            if (below == TileTypeEnum.Breakable)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Rule 4: QuestionFull never shares an edge with pipe or bullet
+    // bill structures in canonical SMB content.
+    private static bool IsAdjacentToOtherStructure(TileMap chunk, int x, int y)
+    {
+        TileTypeEnum left = StructureCounter.GetTile(chunk, x - 1, y);
+        TileTypeEnum right = StructureCounter.GetTile(chunk, x + 1, y);
+        TileTypeEnum above = StructureCounter.GetTile(chunk, x, y - 1);
+        TileTypeEnum below = StructureCounter.GetTile(chunk, x, y + 1);
+
+        if (StructureCounter.IsPipeTile(left)) return true;
+        if (StructureCounter.IsPipeTile(right)) return true;
+        if (StructureCounter.IsPipeTile(above)) return true;
+        if (StructureCounter.IsPipeTile(below)) return true;
+
+        if (StructureCounter.IsBulletBillTile(left)) return true;
+        if (StructureCounter.IsBulletBillTile(right)) return true;
+        if (StructureCounter.IsBulletBillTile(above)) return true;
+        if (StructureCounter.IsBulletBillTile(below)) return true;
+
+        return false;
+    }
+}

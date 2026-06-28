@@ -1,0 +1,38 @@
+# PCG Flow Matching DevSecOps stack: the HTTP API plus its Postgres database.
+# Brings up a self-contained target for dynamic scanning (DAST):
+#   echo "a-strong-password" > secrets/db_password.txt   # gitignored, never committed
+#   docker compose up --build
+#   curl http://localhost:8080/status/health
+#
+# The database credential is provided via a Docker secret (secrets/db_password.txt)
+# mounted at /run/secrets/db_password; it is NOT inlined here and is never committed.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pcg
+      POSTGRES_USER: pcg
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pcg -d pcg"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt

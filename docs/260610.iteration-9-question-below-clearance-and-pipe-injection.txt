@@ -1,0 +1,386 @@
+================================================================================
+TCC ITERATION 9: QUESTION BLOCK BELOW-CLEARANCE AND PIPE INJECTION
+================================================================================
+
+Generated: 2026-06-10
+Topic:     Documents two refinements to the repair pipeline driven by
+           issues observed in the Iteration 8 chunks: QuestionFull tiles
+           with a Solid or Breakable tile directly below them (making
+           the block unreachable from below) and Overworld chunks with
+           zero pipes because the model placed no PipeTopLeft tiles in
+           those chunks. The first is a tightened validity rule in
+           QuestionBlockRepair; the second is a new PipeInjection pass
+           that synthesizes short pipes where the model did not place any.
+Source:    procgen-flow-matching repository (luizslongo/procgen-flow-matching);
+           implementation committed on the iteration-5-chunk-structure-repair
+           branch on 2026-06-10.
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+Predecessors:
+           docs/260610.iteration-5-chunk-structure-repair.txt
+           docs/260610.iteration-6-support-and-ground-repair.txt
+           docs/260610.iteration-7-clearance-height-and-biome-rules.txt
+           docs/260610.iteration-8-biome-propagation-pipe-guarantee-and-launcher-clearance.txt
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+ASCII inspection of the Iteration 8 Overworld output revealed two
+remaining problems:
+
+   Many chunks had QuestionFull tiles with a Solid (or Breakable)
+   tile directly below them. Mario hits ? blocks by jumping into
+   them from below; a Solid tile at (x, y+1) blocks the head-impact
+   path and the block cannot be triggered. The Iteration 7
+   IsBuriedInSolid rule (at least 2 of 4 cardinal neighbors are
+   Empty) passed these configurations because the LEFT, RIGHT, and
+   ABOVE neighbors were often Empty even when the BELOW was Solid.
+
+   Six of ten Overworld chunks contained zero pipe tiles in the
+   raw model output. The Iteration 8 MinCompletePerChunk override
+   in PipeSupportRepair fires only on chunks where the model
+   placed at least one PipeTopLeft. Chunks with no model-placed
+   pipe tiles cannot benefit from the override because the
+   pipeline has no anchor to extend or remove.
+
+Iteration 9 fixes both with a targeted QuestionFull rule and a new
+structural-augmentation pass.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: DESIGN - TWO REFINEMENTS
+PART 2: IMPLEMENTATION
+PART 3: ORCHESTRATOR UPDATE
+PART 4: TESTS AND BUILD VERIFICATION
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+PART 6: HONEST DISCUSSION OF PIPE INJECTION FOR THESIS
+PART 7: NEXT STEPS
+APPENDIX A: GRANULAR COMMIT LIST
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+
+
+================================================================================
+PART 1: DESIGN - TWO REFINEMENTS
+================================================================================
+
+1.1 QUESTIONFULL "EMPTY DIRECTLY BELOW" RULE
+
+The Iteration 7 QuestionBlockRepair already enforced four validity
+rules:
+
+   (R1) Not on the bottom row
+   (R2) At least 2 of 4 cardinal neighbors are Empty
+   (R3) A Solid or Breakable tile exists within 8 rows below
+   (R4) Not adjacent to a pipe or bullet bill structure
+
+Iteration 9 adds a fifth rule:
+
+   (R5) The cell directly below (x, y+1) MUST be Empty
+
+R5 is more specific than R2. R2 counts ANY 2 of 4 neighbors as Empty
+and passes configurations where LEFT, RIGHT, and ABOVE are Empty but
+BELOW is Solid. R5 specifically requires the BELOW cell to be Empty
+because that is the direction from which Mario approaches a ? block;
+his head impacts the block from (x, y+1) upward into (x, y).
+
+R3 is updated to start its ground-search at y+2 instead of y+1
+because y+1 is now constrained to be Empty by R5; a ground tile at
+y+1 would violate R5 and therefore is not a legal way to satisfy
+the support condition.
+
+1.2 PIPE INJECTION
+
+A new PipeInjection class runs as the LAST pass in the iteration
+loop, after all model-driven structural validations. It synthesizes
+2-tile-tall pipes at ground-level columns when the chunk has fewer
+complete pipes than a randomly-sampled target.
+
+Target sampling: uniform random in [MinCompletePerChunk,
+MaxCompletePerChunk] (default [1, 3]) per chunk per iteration. The
+random source is the same seeded Random used by the rest of the
+repair pipeline for reproducibility.
+
+Placement constraints for each injection attempt:
+
+   The bottom row at (x, groundY) and (x+1, groundY) must be Solid
+   or Breakable to support the pipe.
+
+   The pipe area at columns x and x+1, rows pipeTopY through
+   groundY-1, must be all Empty so the injection does not
+   overwrite existing tiles.
+
+   The cell directly above the pipe cap at (x, pipeTopY-1) and
+   (x+1, pipeTopY-1) must be Empty so the injection does not
+   create a pipe blocked from above (mirrors the PipeTopClearance
+   constraint).
+
+The pass scans columns left to right and injects at the first
+column that satisfies all three constraints. When no column is
+suitable, the pass stops and leaves the chunk at fewer pipes than
+the target. This is the graceful failure mode for chunks crowded
+with other structures and for Treetop chunks (which have no
+continuous ground for the pipe to anchor on).
+
+Injected pipe height is fixed at 2 tiles: 1 top row plus 1 body
+row. This is the minimum complete pipe and the most common short
+pipe in canonical SMB content.
+
+
+================================================================================
+PART 2: IMPLEMENTATION
+================================================================================
+
+2.1 UPDATED: QuestionBlockRepair.cs
+
+Added HasEmptyDirectlyBelow private method called from
+IsValidQuestionFullPlacement. Updated HasGroundBelow loop to start
+at dy=2 instead of dy=1. Total file change: 19 added, 2 removed
+lines.
+
+2.2 NEW: PipeInjection.cs (137 lines)
+
+Public entry point:
+
+   public static bool RepairOnce(TileMap chunk,
+       ChunkStructureRepairConfig config, Random rng)
+
+The implementation samples the target pipe count, calls
+StructureCounter.CountCompletePipes to get the current count, and
+loops calling a private TryInjectOnePipe until the target is met
+or no column is suitable.
+
+TryInjectOnePipe scans columns left to right, validates the
+placement constraints via CanInjectAt, and writes the four pipe
+tiles (PipeTopLeft, PipeTopRight, PipeBodyLeft, PipeBodyRight)
+into the chunk on the first match.
+
+
+================================================================================
+PART 3: ORCHESTRATOR UPDATE
+================================================================================
+
+ChunkStructureRepair.RepairAll now invokes 11 passes per iteration:
+
+   (1) BottomRowCompletion
+   (2) CeilingCompletion
+   (3) PipeRepair
+   (4) PipeSupportRepair
+   (5) PipeTopClearance
+   (6) BulletBillRepair
+   (7) BulletBillSupportRepair
+   (8) BulletBillLauncherClearance
+   (9) EnemyRepair
+   (10) QuestionBlockRepair
+   (11) PipeInjection
+
+PipeInjection runs LAST so it sees the final supported-pipe total
+after all model-driven validation has settled. Any pipes the model
+placed (and that survived the validation) are counted; PipeInjection
+only adds new pipes when the count is below the random target.
+
+The loop continues to iterate after PipeInjection runs so the next
+iteration's PipeRepair, PipeSupportRepair, PipeTopClearance see the
+newly-injected pipe and confirm it as a valid complete supported
+structure with cleared cap. Convergence is typically reached in 2
+to 3 iterations.
+
+
+================================================================================
+PART 4: TESTS AND BUILD VERIFICATION
+================================================================================
+
+4.1 COMPILE-TIME VERIFICATION
+
+   dotnet build c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj --verbosity minimal
+
+   Result: Build succeeded. 0 Warning(s). 0 Error(s).
+
+4.2 LOGIC TESTS
+
+Total: 50 logic tests passing, 0 failing on 2026-06-10.
+
+New tests added in Iteration 9 (6 new + 1 updated):
+
+   QuestionFull with Solid directly below is removed
+   QuestionFull with Breakable directly below is removed
+   QuestionFull with Empty directly below is kept
+   empty chunk gets at least one injected pipe
+   injected pipe count does not exceed MaxCompletePerChunk
+   empty Treetop chunk gets no injected pipes because it has no ground
+
+Updated test: TestEmptyChunkBottomRowIsFilled. The prior assertion
+that ALL non-bottom rows remain Empty is no longer valid because
+PipeInjection synthesizes pipes in empty Overworld chunks. The
+updated test asserts only that the very top row (y=0) is Empty and
+the bottom row (y=13) is Solid; the injected pipe is verified by
+the dedicated TestPipeInjectionAddsAtLeastOnePipeInEmptyChunk.
+
+Invoke with: dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+
+================================================================================
+PART 5: RESULTS (PLACEHOLDER - POPULATED BY USER FROM LOCAL TEST RUNS)
+================================================================================
+
+5.1 OVERWORLD ITERATION 9 PRE vs POST-REPAIR
+
+   (to populate)
+
+   Pipe count per chunk (1 through 10): <pop>, <pop>, ..., <pop>
+   Mean pipe count: <pop>
+
+5.2 UNDERGROUND ITERATION 9 PRE vs POST-REPAIR
+
+   (same template)
+
+5.3 TREETOP ITERATION 9 PRE vs POST-REPAIR
+
+   (same template)
+
+   Pipes per chunk (expected mostly zero because Treetop has no
+   continuous ground for PipeInjection to anchor on):
+   <pop>, <pop>, ..., <pop>
+
+5.4 VISUAL ASSESSMENT NOTES
+
+   (to populate)
+
+
+================================================================================
+PART 6: HONEST DISCUSSION OF PIPE INJECTION FOR THESIS
+================================================================================
+
+6.1 PIPE INJECTION CROSSES A METHODOLOGICAL LINE
+
+The repair passes added in Iterations 5 through 8 are all
+post-processing: they validate and adjust tiles the model placed.
+PipeInjection adds new tiles the model did not predict at all.
+This is a structural augmentation, not a repair.
+
+The thesis writeup should be explicit about this. Iteration 9
+moves the pipeline from "validate model output" to "validate +
+augment to guarantee minimum density of biome-defining structures".
+
+6.2 DEFENSIBLE FRAMING
+
+The contribution of the CFM model is the tile-type distribution and
+the spatial pattern at the chunk level: where pipes appear, where
+question blocks cluster, where biomes vary. The contribution of the
+repair pipeline is the structural-integrity invariants the
+per-tile MSE loss provably cannot enforce. PipeInjection extends
+this to a structural DENSITY invariant: every Overworld chunk should
+have at least one pipe to match the biome's canonical level design.
+
+The injected pipes are placed in legal positions (on ground, with
+clearance, away from other structures), are short and visually
+canonical, and respect the [1, 3] per-chunk count target that
+matches real SMB Overworld levels.
+
+6.3 CONTRAST WITH WAVE FUNCTION COLLAPSE
+
+Wave Function Collapse achieves valid output by propagating
+explicitly-specified constraints over the whole grid. The
+CFM-plus-repair pipeline learns soft constraints from data (the
+CFM model) and enforces hard structural rules in post-processing
+(the repair pipeline). The two approaches converge in the limit:
+both produce chunks that satisfy the structural rules. They
+differ in how the rules are specified (learned vs. explicit) and
+in how the generation samples the space of valid chunks (continuous
+flow vs. constraint propagation).
+
+The PipeInjection pass is the moment in our pipeline where the
+"learned" side admits its limits and falls back to an explicit
+rule. The thesis is honest about this fallback.
+
+6.4 RANDOMNESS REPRODUCIBILITY
+
+Pipe injection uses the same seeded Random as the rest of the
+repair pipeline. Reviewers can reproduce exact output by running
+with the same seed.
+
+
+================================================================================
+PART 7: NEXT STEPS
+================================================================================
+
+7.1 IMMEDIATE (BEFORE RASCUNHO 2026-06-15)
+
+   (1) Run test plan in Appendix B and populate Section 5.
+
+   (2) Visual inspection:
+       - QuestionFull tiles no longer have Solid/Breakable below
+       - Every Overworld and Underground chunk has 1 to 3 pipes
+       - Treetop chunks retain biome-distinct ground gaps and
+         have variable pipe counts depending on whether the model
+         placed ground there
+
+   (3) Begin Chapter 4 writeup.
+
+7.2 AFTER RASCUNHO (2026-06-15 TO 2026-07-12)
+
+   (4) Mario AI Framework integration.
+
+
+================================================================================
+APPENDIX A: GRANULAR COMMIT LIST
+================================================================================
+
+Iteration 9 commits on iteration-5-chunk-structure-repair branch:
+
+   c93d4ea  require Empty directly below QuestionFull so Mario can hit it from below
+   1569264  add PipeInjection synthesizing short pipes when model output lacks them
+   effa586  wire PipeInjection at the end of the repair iteration
+   c266c0d  add 6 tests for iter9 question-below-clearance and pipe injection
+
+
+================================================================================
+APPENDIX B: USER TEST PLAN FOR LOCAL EXECUTION
+================================================================================
+
+B.1 PULL THE LATEST BRANCH FROM ORIGIN
+
+   git fetch origin
+   git checkout iteration-5-chunk-structure-repair
+   git pull origin iteration-5-chunk-structure-repair
+
+B.2 VERIFY BUILD AND LOGIC TESTS
+
+   dotnet build procgen-flow-matching.sln --verbosity minimal
+   dotnet run --project c4-test.pcg-flow-matching -- --repair-only
+
+   Expected: Build succeeded. 0 Warning(s). 0 Error(s).
+             50 passed, 0 failed.
+
+B.3 RUN GENERATE WITH ITERATION 9 REPAIR FOR EACH BIOME
+
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Overworld --png-dir generated-png-iter9-overworld 2>&1 | tee iter9-overworld.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Underground --png-dir generated-png-iter9-underground 2>&1 | tee iter9-underground.log
+   dotnet run --project c4-cmd.pcg-flow-matching-generate --no-build -- unet-conditional-checkpoint.bin --biome Treetop --png-dir generated-png-iter9-treetop 2>&1 | tee iter9-treetop.log
+
+B.4 VISUAL VERIFICATION
+
+   (1) Open every Overworld PNG and confirm that NO QuestionFull
+       has a Solid or Breakable tile directly below it.
+
+   (2) Count pipes per chunk in the Overworld set. Expected:
+       each chunk has between 1 and 3 complete pipes. Some chunks
+       may have one tall pipe (from the iter8 MinCompletePerChunk
+       override) and one or two injected short pipes near the ground.
+
+   (3) Underground chunks: same expectations as Overworld for
+       pipes and QuestionFull. Ceiling at y=0 should remain
+       continuous Solid.
+
+   (4) Treetop chunks: bottom row has natural gaps. Pipes are
+       allowed where the model placed ground; otherwise zero pipes
+       is acceptable.
+
+
+================================================================================
+END OF REPORT
+================================================================================

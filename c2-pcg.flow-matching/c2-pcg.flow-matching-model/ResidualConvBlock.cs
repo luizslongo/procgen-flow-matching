@@ -38,6 +38,21 @@ public class ResidualConvBlock : torch.nn.Module
         register_module("secondNorm", SecondNorm);
         register_module("timeProjection", TimeProjection);
         register_module("shortcut", Shortcut);
+
+        // Zero-initialize SecondConv weights and bias so that at init time
+        // the residual block computes result = 0 + shortcut = shortcut.
+        // Without this, the unnormalized shortcut adds variance every block
+        // and the forward pass overflows FP32 at BaseChannels >= 128 with
+        // the seed-42 random init. Canonical pattern used by DDPM (Ho et al.
+        // 2020), Stable Diffusion (Rombach et al. 2022), and FLUX.
+        using (torch.no_grad())
+        {
+            SecondConv.weight.zero_();
+            if (SecondConv.bias is not null)
+            {
+                SecondConv.bias.zero_();
+            }
+        }
     }
 
     public torch.Tensor Forward(torch.Tensor x, torch.Tensor timeEmbedding)

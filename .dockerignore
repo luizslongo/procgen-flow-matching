@@ -1,0 +1,24 @@
+# Keep the build context small: the repo working tree holds ~19GB of checkpoints,
+# logs and core dumps that must never enter the image build context.
+**/bin/
+**/obj/
+.git/
+.venv/
+.idea/
+.vs/
+*.bin
+*.bin.step*
+core.*
+*.log
+nohup.out
+generated-png/
+sprites/
+TheVGLC/
+docs/
+*.png
+*.csv
+# Local/secret configs (the container uses config/api.docker.example.txt)
+config/api.txt
+config/api.docker.txt
+# Docker secrets are mounted at runtime, never baked into the image
+secrets/

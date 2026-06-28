@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup>
+    <!-- Emit packages.lock.json per project so SCA tools (Trivy / dotnet list) can read pinned dependency versions -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="TorchSharp-cuda-windows" Condition="'$(OS)' == 'Windows_NT' And '$(UseCPU)' != 'true'" />
     <PackageReference Include="TorchSharp-cuda-linux" Condition="'$(OS)' != 'Windows_NT' And '$(UseCPU)' != 'true'" />

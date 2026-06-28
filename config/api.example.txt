@@ -1,0 +1,29 @@
+# ============================================================
+# PCG Flow Matching API configuration (template)
+# Copy to config/api.txt and fill in values. config/api.txt is gitignored.
+# Usage: dotnet run -p:UseCPU=true --project c4-api.pcg-flow-matching -- --config config/api.txt
+# ============================================================
+
+# HTTP listen URL. This is an HttpListener prefix and MUST end with '/'.
+# Use http://+:8080/ to listen on all interfaces (required inside containers).
+server.url = http://+:8080/
+
+# Path to the trained model checkpoint.
+model.checkpoint_path = ./unet-baseline-checkpoint.bin
+
+# U-Net hyperparameters. These MUST match the training run that produced the checkpoint.
+model.base_channels = 64
+model.time_embedding_dim = 128
+model.num_biomes = 4
+
+# ------------------------------------------------------------
+# Database
+# ------------------------------------------------------------
+# Backend: inmemory (no persistence) or postgres
+database.backend = inmemory
+# Npgsql connection string WITHOUT the password. Required when backend = postgres.
+# Secret: never commit credentials. This template ships empty.
+database.connection_string =
+# Path to a file containing only the DB password (e.g. a Docker/K8s secret).
+# Read at startup and appended to the connection string in memory. Empty for inmemory.
+database.password_file =

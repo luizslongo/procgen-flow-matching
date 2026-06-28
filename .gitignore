@@ -37,3 +37,14 @@ __pycache__/
 
 # Core dumps
 core.*
+
+# Editor backups
+*.bak
+
+# Config files contain secrets (DB password, etc.); commit only *.example.txt templates
+config/*.txt
+!config/*.example.txt
+
+# Docker secrets; commit only the *.example.txt placeholder
+secrets/*.txt
+!secrets/*.example.txt

@@ -1,0 +1,17 @@
+# ============================================================
+# Container runtime configuration for the PCG Flow Matching API.
+# Baked into the image as /app/config/api.txt (see Dockerfile).
+# No secret is stored here: the DB password is read at runtime from a Docker
+# secret mounted at /run/secrets/db_password (see docker-compose.yml).
+# ============================================================
+
+server.url = http://+:8080/
+
+model.checkpoint_path = /app/unet-baseline-checkpoint.bin
+model.base_channels = 64
+model.time_embedding_dim = 128
+model.num_biomes = 4
+
+database.backend = postgres
+database.connection_string = Host=db;Port=5432;Database=pcg;Username=pcg
+database.password_file = /run/secrets/db_password
