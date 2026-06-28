@@ -1,0 +1,468 @@
+================================================================================
+TCC ITERATION 2 EXPERIMENT D RESULT REPORT - BIOME-CONDITIONAL GENERATION
+================================================================================
+
+Generated: 2026-06-03
+Topic:     Per-biome qualitative analysis of the output produced by the
+           Iteration 2 Experiment D run (biome-conditional Conditional
+           Flow Matching with square-root inverse-frequency class
+           weighting). Establishes that biome conditioning successfully
+           resolves the biome-averaging structural failure mode
+           documented in docs/260603.iteration-2-exp-b-v2-and-biome-
+           averaging-finding.txt. Concludes Iteration 2 with a clear
+           three-checkpoint ablation showing the iterative refinement.
+           Includes a Dataset Scope section documenting the inherent
+           limits of the VGLC encoding so the manuscript Chapter 4 can
+           bound the claims appropriately.
+Source:    procgen-flow-matching repository
+           (luizslongo/procgen-flow-matching). Experiment D training
+           executed on 2026-06-03 with BaseChannels = 64,
+           BatchSize = 32, NumSteps = 20000, LearningRate = 5e-5,
+           NumBiomes = 4, sqrt inverse-frequency weights, manual seed
+           42, gradient clip max_norm = 0.5, on the local RTX 5060
+           (Blackwell sm_120). Checkpoint at
+           unet-conditional-checkpoint.bin. Per-biome chunks at
+           generated-png-overworld/chunk-001.png through chunk-010.png,
+           generated-png-underground/..., generated-png-treetop/...
+Author:    Luiz Gabriel Slongo
+Advisor:   Prof. Elder Rizzon Santos
+
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+
+Iteration 2 Experiment B v2 (sqrt inverse-frequency class-balanced loss,
+docs/260603.iteration-2-exp-b-v2-and-biome-averaging-finding.txt)
+produced the best unconditional Conditional Flow Matching model of the
+three loss variants tried (Iteration 1 unweighted, Exp B v1 raw inverse,
+Exp B v2 sqrt inverse). It also exposed a structural limitation that no
+loss-shape modification could fix: the unconditional model averages
+across the biomes in the training corpus, baking the underground biome's
+cave-ceiling pattern (a horizontal Breakable run at the top of the
+chunk) into nearly every generated sample regardless of intended biome.
+
+Experiment D adds biome conditioning to the U-Net. Each VGLC level is
+assigned a biome label (Overworld, Underground, Treetop), every chunk
+inherits the label from its parent level via TileMapChunker, and the
+U-Net receives a learnable per-biome embedding that is summed with the
+sinusoidal time embedding before injection into each ResidualConvBlock.
+At inference, the user requests a specific biome via the --biome
+overworld|underground|treetop flag on the generate CLI.
+
+This report documents the result. The hypothesis being tested is that
+biome-conditional generation produces visibly different content per
+biome, with each biome's content matching the structural properties of
+that biome in the training data. Specifically:
+  - Overworld generations should have NO cave ceiling and should be
+    sky-dominant with floating brick platforms and pipes.
+  - Underground generations should have a Breakable cave ceiling on
+    every chunk.
+  - Treetop generations should have elevated brick platforms with
+    sky around them and few or no full pipes.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+
+PART 1: EXPERIMENT D CONFIGURATION RECAP
+PART 2: PER-BIOME CHUNK ANALYSIS (30 CHUNKS)
+PART 3: HYPOTHESIS VERIFICATION
+PART 4: FOUR-WAY ABLATION COMPARISON
+PART 5: DATASET SCOPE - WHAT VGLC CAN AND CANNOT REPRESENT
+PART 6: CONCLUSION - ITERATION 2 CLOSED
+
+
+================================================================================
+PART 1: EXPERIMENT D CONFIGURATION RECAP
+================================================================================
+
+Code changes that distinguish Experiment D from Experiment B v2 (the
+unconditional sqrt-balanced baseline):
+
+  New files:
+    c2-pcg.flow-matching-dataloader/BiomeTypeEnum.cs
+      Enum: Error=0, Overworld, Underground, Treetop (4 values total).
+    c2-pcg.flow-matching-dataloader/BiomeFromVglcLevelName.cs
+      Maps each VGLC level stem to a biome:
+        Overworld:   mario-1-1, 2-1, 3-1, 4-1, 5-1, 6-1, 6-2, 7-1, 8-1
+        Underground: mario-1-2, 4-2
+        Treetop:     mario-1-3, 3-3, 5-3, 6-3
+
+  Modified files:
+    TileMap.cs                  Added BiomeLabel field.
+    VglcLevelParser.cs          Sets BiomeLabel from the file stem.
+    TileMapChunker.cs           Chunks inherit BiomeLabel from source.
+    UnetBaseline.cs             Added Embedding(NumBiomes, TimeEmbDim)
+                                lookup. Forward signature now takes
+                                biomeLabels tensor. Biome embedding is
+                                summed with time embedding before
+                                injection into each ResidualConvBlock.
+    CfmLossComputer.cs          ComputeLoss + ComputeWeightedLoss take
+                                biomeLabels parameter and pass through.
+    CfmTrainingLoop.cs          Assembles per-batch biome label tensor
+                                from the sampled chunks.
+    EulerOdeSolverConfig.cs     Added NumBiomes + BiomeLabel fields.
+    EulerOdeSolver.cs           Solve takes biomeLabels and threads
+                                through every model.Forward call.
+    MapGenerator.cs             Builds NumSamples copies of the
+                                requested biome label.
+    PcgFlowMatchingGenerateEntryPoint.cs
+                                Added --biome overworld|underground|
+                                treetop flag.
+    PcgFlowMatchingTrainEntryPoint.cs
+                                Output renamed to
+                                unet-conditional-checkpoint.bin.
+    FeatureTestRunner.cs        Updated UnetBaseline test to pass
+                                numBiomes and a constant biome label.
+
+Hyperparameters identical to Experiment B v2:
+    LearningRate     5e-5
+    BatchSize        32
+    NumSteps         20000
+    BaseChannels     64
+    TimeEmbeddingDim 128
+    NumBiomes        4
+    Seed             42
+    Gradient clip    max_norm = 0.5
+
+The class-balanced sqrt-inverse-frequency weighting from Experiment B v2
+is retained. The only architectural change vs B v2 is the addition of
+the biome embedding lookup table (4 by 128 = 512 new parameters out of
+approximately 3 million total) and its summation into the time
+embedding within Forward.
+
+Loss trajectory was nearly identical to Experiment B v2: step 0 = 1.035
+(vs B v2 1.033), final values in the 0.06 to 0.08 range (vs B v2 0.06
+to 0.10). The biome embedding addition did not destabilize training and
+did not change the optimization difficulty.
+
+
+================================================================================
+PART 2: PER-BIOME CHUNK ANALYSIS
+================================================================================
+
+The 10 chunks generated for each of the 3 biomes were inspected at 2x
+upscale (672 by 336 pixels). Patterns observed within each biome are
+nearly uniform across the 10 samples, so each biome is described as a
+single profile with notable per-chunk variations called out.
+
+2.1 OVERWORLD (10 chunks, generated-png-overworld/)
+
+    UNIFORM PROPERTIES (all 10 chunks):
+      - No Breakable tiles in the upper 3 rows. The top of every chunk
+        is pure Empty (sky blue).
+      - Continuous Solid (ground) row at the bottom, zero gaps.
+      - Multiple green Pipe structures, several of which are
+        structurally valid 2-wide 2-tall pipes with PipeTopLeft +
+        PipeTopRight on top and PipeBodyLeft + PipeBodyRight below.
+      - Goombas placed correctly: either standing on Solid ground at
+        the bottom row, or standing on top of a Pipe.
+      - Floating brick platforms (short Breakable runs of 3 to 8
+        tiles) at mid-screen heights, not touching the top.
+
+    NOTABLE PER-CHUNK FEATURES:
+      Chunk 002:  Goombas standing ON TOP of pipes (the canonical
+                  Mario 1-1 enemy placement). Multiple pipes of
+                  varying heights.
+      Chunk 003:  Bullet Bill cannon (B + b stacked) visible at lower
+                  left, on the ground. Adjacent brick "mountain"
+                  structure on the right.
+      Chunk 005:  Three pipes of varying heights plus a large brick
+                  "castle" structure on the right that resembles the
+                  end-of-level fortress.
+      Chunk 010:  Densest with pipes (5 pipes) plus a brick mountain
+                  on the right.
+
+    INTERPRETATION:
+      The overworld generations look like sections of a real Super
+      Mario Bros 1-1, 5-1, or 8-1 overworld level. The model has
+      learned that overworld biome means: sky-dominant top, ground at
+      bottom, pipes are the primary non-ground vertical feature, brick
+      platforms float at mid-height, enemies sit on ground or pipes.
+
+2.2 UNDERGROUND (10 chunks, generated-png-underground/)
+
+    UNIFORM PROPERTIES (all 10 chunks):
+      - Continuous Breakable cave ceiling spanning the top 1 to 3
+        rows. EVERY chunk has this. None of the overworld or treetop
+        chunks have it.
+      - Brick "stalactites" hanging from the ceiling into the lower
+        cave interior, of varying lengths.
+      - Coins scattered at floor level and inside the cave interior
+        (consistent with Mario 1-2 / 4-2 coin-room patterns).
+      - Continuous Solid ground row at the bottom.
+      - Sparse pipes (few chunks have any) and few question blocks
+        (mario-1-2 and mario-4-2 also have few of these in the
+        training data).
+      - Goombas at ground level, some inside the cave interior.
+
+    NOTABLE PER-CHUNK FEATURES:
+      Chunk 001:  Cave ceiling with 3 question blocks embedded near
+                  the upper-left side. Stalactite reaching down to
+                  mid-screen.
+      Chunk 003:  Pipes on the lower platform (one of the few
+                  underground chunks with pipes).
+      Chunk 005:  Pipes integrated with a brick "platform" extending
+                  out from the cave wall.
+      Chunk 010:  Cave with a row of pipes at the bottom; lower
+                  ceiling coverage than other chunks (about 60 percent
+                  of the top row).
+
+    INTERPRETATION:
+      The underground generations look like sections of Mario 1-2 or
+      Mario 4-2. The model has learned that underground biome means:
+      Breakable ceiling, brick walls and stalactites, coins inside
+      the cave, ground at the bottom, sparse pipes and question
+      blocks.
+
+2.3 TREETOP (10 chunks, generated-png-treetop/)
+
+    UNIFORM PROPERTIES (all 10 chunks):
+      - No Breakable cave ceiling. The top of every chunk is pure
+        Empty (sky blue).
+      - Floating brick platforms at multiple heights. The platforms
+        are SHORT (3 to 8 tiles wide) and ELEVATED.
+      - Many coins (more per chunk than overworld or underground)
+        arranged in horizontal lines just above the platforms.
+        This is the canonical "coin trail above platform" Mario
+        treetop pattern.
+      - NO green pipes in 9 of 10 chunks; chunk 008 has a
+        single short pipe fragment. The training-data treetop
+        levels (mario-1-3, 3-3, 5-3, 6-3) have minimal pipe content.
+      - NO question blocks in 8 of 10 chunks.
+      - NO bullet bills in any chunk.
+      - Bottom row is MIXED: some chunks have a continuous Solid
+        ground row, others have a partial floor with gaps, others
+        have only floating platforms with NO bottom ground at all
+        (matching the canonical "tree platforms over a void"
+        treetop layout).
+      - Goombas standing on platforms or at floor level when ground
+        is present.
+
+    NOTABLE PER-CHUNK FEATURES:
+      Chunk 002:  Long horizontal coin line of approximately 8 coins
+                  above a brick platform.
+      Chunk 005:  Multiple elevated platforms with coin lines above
+                  each.
+      Chunk 010:  Coin trail spanning most of the chunk width with
+                  Goombas on the platform below.
+
+    INTERPRETATION:
+      The treetop generations look like sections of Mario 1-3 or
+      Mario 5-3. The model has learned that treetop biome means:
+      sky-dominant, floating short brick platforms, coin trails above
+      platforms, no cave structures, no pipes, often no continuous
+      ground.
+
+
+================================================================================
+PART 3: HYPOTHESIS VERIFICATION
+================================================================================
+
+The three hypotheses stated in the Objective are evaluated against the
+10-chunk samples:
+
+3.1 HYPOTHESIS: Overworld generations should have NO cave ceiling
+    and should be sky-dominant with floating brick platforms and pipes.
+
+    RESULT: CONFIRMED. 10 of 10 overworld chunks have no Breakable
+    tile in the upper 3 rows. 10 of 10 have multiple pipes. Sky
+    coverage is approximately 50 to 65 percent of each chunk.
+
+3.2 HYPOTHESIS: Underground generations should have a Breakable cave
+    ceiling on every chunk.
+
+    RESULT: CONFIRMED. 10 of 10 underground chunks have a horizontal
+    Breakable run in the upper rows. 8 of 10 have ceiling coverage
+    above 70 percent of the chunk width.
+
+3.3 HYPOTHESIS: Treetop generations should have elevated brick
+    platforms with sky around them and few or no full pipes.
+
+    RESULT: CONFIRMED. 10 of 10 treetop chunks have floating
+    elevated platforms with sky on multiple sides. 9 of 10 have
+    zero pipes (the 10th has one pipe fragment).
+
+All three hypotheses are met. Biome conditioning works.
+
+
+================================================================================
+PART 4: FOUR-WAY ABLATION COMPARISON
+================================================================================
+
+Direct head-to-head comparison of the four trained checkpoints, drawing
+on the per-chunk analyses in this report and in
+docs/260529.tcc-iteration-1-first-end-to-end-result.txt,
+docs/260602.iteration-2-exp-b-class-balanced-results.txt,
+docs/260603.iteration-2-exp-b-v2-and-biome-averaging-finding.txt:
+
+  Property                  Iter 1       Exp B v1       Exp B v2       Exp D
+                            unweighted   raw 1/freq     sqrt 1/freq    sqrt + biome
+  ------------------------  -----------  -------------  -------------  ----------------
+  Ground continuity         poor (gaps)  perfect        good (1 gap)   biome-dependent
+                                                                       (overworld and
+                                                                       underground:
+                                                                       perfect;
+                                                                       treetop: mixed)
+  Sky preservation          good         poor           good           biome-dependent
+                                                                       (overworld and
+                                                                       treetop: high;
+                                                                       underground:
+                                                                       low by design)
+  Top-region content        mostly sky   brick + cannon brick row      sky for
+                                                       (cave-style)    overworld and
+                                                                       treetop; cave
+                                                                       ceiling for
+                                                                       underground
+  Pipe structures           rare,        sometimes      sometimes      common and
+                            broken       valid          valid          mostly valid in
+                                                                       overworld;
+                                                                       absent in
+                                                                       treetop
+  Floating enemies          common       very common    some           rare; enemies
+                                                                       usually on
+                                                                       ground or pipe
+  Biome differentiation     none         none           none           strong:
+                                                                       per-biome
+                                                                       content matches
+                                                                       per-biome
+                                                                       training data
+  Overall verdict           underfit     rare-class     biome-          biome-clean
+                            with         spam           averaging      per-biome
+                            structure                                  generation
+                            missing
+
+
+================================================================================
+PART 5: DATASET SCOPE - WHAT VGLC CAN AND CANNOT REPRESENT
+================================================================================
+
+The VGLC Super Mario Bros corpus encodes 13 structural tile types
+(per smb.json): Empty, Solid, Breakable, QuestionFull, QuestionEmpty,
+Enemy, PipeTopLeft, PipeTopRight, PipeBodyLeft, PipeBodyRight, Coin,
+BulletBillLauncher, BulletBillBody.
+
+This encoding is deliberately lossy. The original NES Mario level
+graphics contain many visual elements that are NOT representable in
+the 13-character vocabulary, because the VGLC researchers
+(Summerville et al. 2016) chose to encode at the level of
+"gameplay-relevant structure" rather than at the level of pixel
+appearance.
+
+Elements present in the original PNGs but NOT in the VGLC encoding:
+
+    Visual element                Why not encoded
+    ----------------------------  ----------------------------------
+    Clouds                        purely decorative, no gameplay
+    Bushes, hills (decorative)    purely decorative
+    Castle, flagpole              level-end fixtures, not tiles
+    Mushroom powerup              emerges from a Question block at
+                                  runtime; not a tile in the static
+                                  level data
+    Fire Flower powerup           same as Mushroom
+    Star powerup                  same
+    Piranha Plant                 emerges from a pipe at runtime
+    Bullet (projectile)           fired by a BulletBill cannon at
+                                  runtime; not a tile
+    Distinct enemy varieties      Koopa Troopa (turtle), Bullet Bill
+                                  (in flight), Lakitu, Spiny, etc.
+                                  are all collapsed into the single
+                                  Enemy character "E" in VGLC
+    Distinct solid-block types    The indestructible 3D cube block is
+                                  encoded as the same character X as
+                                  the flat ground floor; no
+                                  visual distinction in VGLC
+    Vine / beanstalk              emerges from a special Question
+                                  block at runtime
+    Spring trampoline             rare object, not encoded
+
+Implication for the generated chunks: our model can NEVER produce
+clouds, mushrooms, piranha plants, distinct enemy varieties, or
+bullet projectiles. These are not failures of the model; they are
+absent from the training vocabulary the model learned. A pixel-
+perfect-fidelity model would require a different dataset (e.g., one
+that classifies every 16 by 16 NES tile into approximately 200
+distinct visual classes instead of 13 structural classes). That is
+out of scope for this TCC.
+
+Implication for the manuscript: Chapter 4 should explicitly bound
+the claim to "the model produces structurally-valid Mario-like
+chunks within the VGLC structural vocabulary," citing
+Summerville et al. 2016 for the encoding convention.
+
+
+================================================================================
+PART 6: CONCLUSION - ITERATION 2 CLOSED
+================================================================================
+
+Iteration 2 set out to address four failure modes observed in
+Iteration 1 (DiscontinuousGround, BrokenPipe, FloatingEnemy,
+fragmented BulletBill cannons). Iteration 2 explored four experiments
+of which three were executed:
+
+  Experiment A (LARGER MODEL CAPACITY): BLOCKED on an architectural
+  initialization-stability issue when scaling BaseChannels beyond 64.
+  Documented in docs/260602.iteration-2-plan.txt Part 2 and in
+  docs/260603.unetbaseline-channels-scaling-fix-plan.txt (this
+  report's companion document). Fix proposed, deferred to
+  Iteration 3.
+
+  Experiment B (CLASS-BALANCED LOSS): partial success. Two variants
+  run.
+    v1 (raw inverse-frequency): rare-class spam dominates; documented
+       as a failure mode.
+    v2 (sqrt inverse-frequency): best of the unconditional models;
+       resolves ground discontinuity; surfaces the biome-averaging
+       structural limitation.
+
+  Experiment D (CONDITIONAL GENERATION): SUCCESS. The final
+  Iteration 2 configuration combines sqrt inverse-frequency class
+  weighting with learnable biome embeddings summed into the time
+  embedding. Produces biome-clean per-biome generations matching the
+  structural properties of each training biome.
+
+  Experiment C (DISCRETE FLOW MATCHING): not executed. Not needed
+  given the success of Experiment D for the TCC scope.
+
+Final configuration:
+  unet-conditional-checkpoint.bin trained with sqrt inverse-frequency
+  class weights + biome embedding conditioning. This is the model
+  that will produce all generated samples for the TCC Chapter 4
+  results section. The user invokes per-biome generation via:
+
+    dotnet run --project c4-cmd.pcg-flow-matching-generate
+      -- unet-conditional-checkpoint.bin --biome overworld
+
+  Replace "overworld" with "underground" or "treetop" to target
+  other biomes.
+
+Ablation evidence preserved:
+
+  unet-baseline-checkpoint.bin           Iteration 1 unweighted
+  unet-class-balanced-checkpoint.bin     Exp B v1 raw inverse
+  unet-sqrt-balanced-checkpoint.bin      Exp B v2 sqrt inverse
+  unet-conditional-checkpoint.bin        Exp D sqrt + biome
+                                         (FINAL CONFIGURATION)
+
+The four checkpoints together form the iterative research narrative
+for Chapter 4: we identified a problem, we tried a fix, the fix had
+its own problem, we found a deeper cause, we addressed that cause, we
+got biome-clean generation. Each step is supported by its own
+ablation checkpoint and its own per-chunk analysis report.
+
+Iteration 2 is closed. Remaining work for the TCC manuscript
+deadline (2026-06-17):
+  1. Draft Chapter 4 from the four ablation reports.
+  2. Optional polish: implement Iteration 3 improvements (see the
+     companion document docs/260603.iteration-3-improvements-plan.txt
+     for the prioritized list).
+  3. Optional polish: implement the BaseChannels scaling fix
+     described in docs/260603.unetbaseline-channels-scaling-fix-plan.txt
+     and run one larger-model experiment for the Chapter 4 conclusion.
+
+
+================================================================================
+END OF REPORT
+================================================================================
