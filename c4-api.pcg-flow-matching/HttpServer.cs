@@ -44,7 +44,16 @@ public class HttpServer
             }
             catch (Exception)
             {
-                HttpResponseWriter.WriteError(context, 500, "internal error");
+                // Best-effort 500. If the handler already began writing the response,
+                // WriteError can throw as well; swallow that so a single bad request can
+                // never tear down the single-threaded accept loop.
+                try
+                {
+                    HttpResponseWriter.WriteError(context, 500, "internal error");
+                }
+                catch (Exception)
+                {
+                }
             }
         }
     }

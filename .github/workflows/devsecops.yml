@@ -37,7 +37,7 @@ jobs:
       - name: Run Gitleaks over full history
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
             detect --source=/repo \
             --report-format sarif --report-path /repo/gitleaks.sarif \
             --redact -v
@@ -69,7 +69,7 @@ jobs:
       - name: Trivy dependency scan (reads packages.lock.json)
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/repo" aquasec/trivy:latest \
+          docker run --rm -v "$PWD:/repo" aquasec/trivy@sha256:f5d0e600ecda7449e2a9b272805aef698631d3bb3f3a739a750de2c6819acdc9 \
             fs --scanners vuln \
             --format sarif --output /repo/trivy-sca.sarif /repo
 
@@ -130,7 +130,7 @@ jobs:
       - name: Checkov (auto-detects Dockerfile, Terraform, YAML, secrets)
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/repo" bridgecrew/checkov:latest \
+          docker run --rm -v "$PWD:/repo" bridgecrew/checkov@sha256:0da2f9821acf6f4854c7abc648954c897121acb5e55c891394998f920d258665 \
             -d /repo \
             --skip-path bin --skip-path obj \
             --soft-fail \
@@ -139,7 +139,7 @@ jobs:
       - name: Trivy config scan (IaC misconfigurations)
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/repo" aquasec/trivy:latest \
+          docker run --rm -v "$PWD:/repo" aquasec/trivy@sha256:f5d0e600ecda7449e2a9b272805aef698631d3bb3f3a739a750de2c6819acdc9 \
             config --format sarif --output /repo/trivy-iac.sarif /repo
 
       - name: Upload IaC reports (artifact)
@@ -193,7 +193,7 @@ jobs:
         continue-on-error: true
         run: |
           docker run --rm --network host -v "$PWD/zap-out:/zap/wrk:rw" \
-            ghcr.io/zaproxy/zaproxy:stable \
+            ghcr.io/zaproxy/zaproxy@sha256:461415b7526ca60af0ddc15389419d05df243aed1b665b64d3a8c3ebd67c6056 \
             zap-baseline.py -t http://localhost:8080 \
             -J zap-report.json -r zap-report.html -I
 
