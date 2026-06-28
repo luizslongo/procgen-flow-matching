@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2-pcg.flow-matching-infere
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-cmd.pcg-flow-matching-generate", "c4-cmd.pcg-flow-matching-generate\c4-cmd.pcg-flow-matching-generate.csproj", "{DF641E13-C31A-4A86-8EAA-6D6517B310FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c4-api.pcg-flow-matching", "c4-api.pcg-flow-matching\c4-api.pcg-flow-matching.csproj", "{7AB440C1-458D-40E9-BA2A-42321BF0675D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF641E13-C31A-4A86-8EAA-6D6517B310FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AB440C1-458D-40E9-BA2A-42321BF0675D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AB440C1-458D-40E9-BA2A-42321BF0675D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AB440C1-458D-40E9-BA2A-42321BF0675D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AB440C1-458D-40E9-BA2A-42321BF0675D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A1577FA2-94E0-44EF-8442-878306DC9098} = {71C7A932-B36B-4E91-937A-2BA449C80FC5}
