@@ -9,8 +9,6 @@ public class GenerationHttpOut
     public string Id;
     public long CreatedAtUnixSeconds;
     public string Biome;
-    public long Seed;
-    public float CfgScale;
     public int NumSteps;
     public bool IsRepairApplied;
     public int TotalViolations;

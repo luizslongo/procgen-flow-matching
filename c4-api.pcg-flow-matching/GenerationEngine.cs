@@ -30,8 +30,6 @@ public class GenerationEngine
         solverConfig.NumBiomes = Config.NumBiomes;
         solverConfig.BiomeLabel = biome;
         solverConfig.CheckpointPath = Config.CheckpointPath;
-        solverConfig.CfgGuidanceScale = input.CfgScale;
-        solverConfig.Seed = input.Seed;
 
         List<TileMap> maps = MapGenerator.Generate(solverConfig);
         TileMap map = maps[0];
@@ -47,8 +45,6 @@ public class GenerationEngine
         result.Id = Guid.NewGuid().ToString("N");
         result.CreatedAtUnixSeconds = UnixTime.Now();
         result.Biome = biome.ToString();
-        result.Seed = input.Seed;
-        result.CfgScale = input.CfgScale;
         result.NumSteps = input.NumSteps;
         result.IsRepairApplied = input.IsRepairApplied;
         result.TotalViolations = analysis.TotalViolations;

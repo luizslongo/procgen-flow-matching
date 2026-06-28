@@ -26,8 +26,6 @@ public class PostgresGenerationStore : GenerationStoreInterface
                 "id TEXT PRIMARY KEY, " +
                 "created_at_unix_seconds BIGINT NOT NULL, " +
                 "biome TEXT NOT NULL, " +
-                "seed BIGINT NOT NULL, " +
-                "cfg_scale REAL NOT NULL, " +
                 "num_steps INTEGER NOT NULL, " +
                 "is_repair_applied BOOLEAN NOT NULL, " +
                 "total_violations INTEGER NOT NULL, " +
@@ -48,11 +46,10 @@ public class PostgresGenerationStore : GenerationStoreInterface
     public void InsertGeneration(GenerationHttpOut record)
     {
         string insertSql =
-            "INSERT INTO generations (id, created_at_unix_seconds, biome, seed, cfg_scale, num_steps, " +
-            "is_repair_applied, total_violations, violation_rate, broken_pipe_horizontal_count, " +
-            "broken_pipe_top_left_count, broken_pipe_top_right_count, broken_bullet_bill_count, " +
-            "floating_enemy_count, discontinuous_ground_count) " +
-            "VALUES (@id, @created, @biome, @seed, @cfg, @steps, @repair, @total, @rate, @bph, @bptl, @bptr, @bbb, @fe, @dg)";
+            "INSERT INTO generations (id, created_at_unix_seconds, biome, num_steps, is_repair_applied, " +
+            "total_violations, violation_rate, broken_pipe_horizontal_count, broken_pipe_top_left_count, " +
+            "broken_pipe_top_right_count, broken_bullet_bill_count, floating_enemy_count, discontinuous_ground_count) " +
+            "VALUES (@id, @created, @biome, @steps, @repair, @total, @rate, @bph, @bptl, @bptr, @bbb, @fe, @dg)";
         using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
         {
             connection.Open();
@@ -61,8 +58,6 @@ public class PostgresGenerationStore : GenerationStoreInterface
                 command.Parameters.AddWithValue("id", record.Id);
                 command.Parameters.AddWithValue("created", record.CreatedAtUnixSeconds);
                 command.Parameters.AddWithValue("biome", record.Biome);
-                command.Parameters.AddWithValue("seed", record.Seed);
-                command.Parameters.AddWithValue("cfg", record.CfgScale);
                 command.Parameters.AddWithValue("steps", record.NumSteps);
                 command.Parameters.AddWithValue("repair", record.IsRepairApplied);
                 command.Parameters.AddWithValue("total", record.TotalViolations);
@@ -122,8 +117,8 @@ public class PostgresGenerationStore : GenerationStoreInterface
 
     static string ColumnList()
     {
-        return "id, created_at_unix_seconds, biome, seed, cfg_scale, num_steps, is_repair_applied, " +
-            "total_violations, violation_rate, broken_pipe_horizontal_count, broken_pipe_top_left_count, " +
+        return "id, created_at_unix_seconds, biome, num_steps, is_repair_applied, total_violations, " +
+            "violation_rate, broken_pipe_horizontal_count, broken_pipe_top_left_count, " +
             "broken_pipe_top_right_count, broken_bullet_bill_count, floating_enemy_count, discontinuous_ground_count";
     }
 
@@ -133,18 +128,16 @@ public class PostgresGenerationStore : GenerationStoreInterface
         record.Id = reader.GetString(0);
         record.CreatedAtUnixSeconds = reader.GetInt64(1);
         record.Biome = reader.GetString(2);
-        record.Seed = reader.GetInt64(3);
-        record.CfgScale = reader.GetFloat(4);
-        record.NumSteps = reader.GetInt32(5);
-        record.IsRepairApplied = reader.GetBoolean(6);
-        record.TotalViolations = reader.GetInt32(7);
-        record.ViolationRate = reader.GetDouble(8);
-        record.BrokenPipeHorizontalCount = reader.GetInt32(9);
-        record.BrokenPipeTopLeftCount = reader.GetInt32(10);
-        record.BrokenPipeTopRightCount = reader.GetInt32(11);
-        record.BrokenBulletBillCount = reader.GetInt32(12);
-        record.FloatingEnemyCount = reader.GetInt32(13);
-        record.DiscontinuousGroundCount = reader.GetInt32(14);
+        record.NumSteps = reader.GetInt32(3);
+        record.IsRepairApplied = reader.GetBoolean(4);
+        record.TotalViolations = reader.GetInt32(5);
+        record.ViolationRate = reader.GetDouble(6);
+        record.BrokenPipeHorizontalCount = reader.GetInt32(7);
+        record.BrokenPipeTopLeftCount = reader.GetInt32(8);
+        record.BrokenPipeTopRightCount = reader.GetInt32(9);
+        record.BrokenBulletBillCount = reader.GetInt32(10);
+        record.FloatingEnemyCount = reader.GetInt32(11);
+        record.DiscontinuousGroundCount = reader.GetInt32(12);
         return record;
     }
 }

@@ -8,8 +8,7 @@ namespace c4_api.pcgFlowMatching;
 // Handler: POST /pcg-entity-generation/add
 // Usage:
 //   POST /pcg-entity-generation/add
-//   Request:  { "Biome": "overworld", "Seed": 0, "CfgScale": 1.0,
-//               "NumSteps": 20, "NumSamples": 1, "IsRepairApplied": true }
+//   Request:  { "Biome": "overworld", "NumSteps": 20, "NumSamples": 1, "IsRepairApplied": true }
 //   Response (200): GenerationHttpOut (id, violation counts, ...)
 //   Response (500): { "Type": "ErrorHttpOut", "Message": "<reason>" }
 public class GenerationAddHandler

@@ -27,14 +27,6 @@ public class GenerationRequestValidator
         {
             return BuildError("numSamples must be between 1 and 16");
         }
-        if (input.CfgScale < 0.0f || input.CfgScale > 10.0f)
-        {
-            return BuildError("cfgScale must be between 0 and 10");
-        }
-        if (input.Seed < 0)
-        {
-            return BuildError("seed must be greater than or equal to 0");
-        }
         return null;
     }
 

@@ -7,8 +7,6 @@ public class GenerationAddHttpIn
 {
     public string Type = "GenerationAddHttpIn";
     public string Biome;
-    public long Seed;
-    public float CfgScale;
     public int NumSteps;
     public int NumSamples;
     public bool IsRepairApplied;
