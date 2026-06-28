@@ -27,6 +27,8 @@ public class PcgFlowMatchingGenerateEntryPoint
         string spriteDir = "./sprites";
         BiomeTypeEnum biome = BiomeTypeEnum.Overworld;
         bool applyRepair = true;
+        float cfgScale = 1.0f;
+        long seed = 0;
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -61,9 +63,21 @@ public class PcgFlowMatchingGenerateEntryPoint
             {
                 applyRepair = false;
             }
+            else if (args[i] == "--cfg-scale" && i + 1 < args.Length)
+            {
+                cfgScale = float.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture);
+                i++;
+            }
+            else if (args[i] == "--seed" && i + 1 < args.Length)
+            {
+                seed = long.Parse(args[i + 1]);
+                i++;
+            }
         }
         Console.WriteLine("Conditioning generation on biome: " + biome);
         Console.WriteLine("Structure repair: " + (applyRepair ? "enabled" : "disabled"));
+        Console.WriteLine("CFG guidance scale: " + cfgScale + (cfgScale == 1.0f ? " (single forward pass)" : " (two forward passes, blended)"));
+        Console.WriteLine("Seed: " + (seed > 0 ? seed.ToString() : "random"));
 
         // === RENDERING SETUP ===
         if (renderPng && !Directory.Exists(spriteDir))
@@ -92,6 +106,8 @@ public class PcgFlowMatchingGenerateEntryPoint
         config.NumBiomes = 4;
         config.BiomeLabel = biome;
         config.CheckpointPath = checkpointPath;
+        config.CfgGuidanceScale = cfgScale;
+        config.Seed = seed;
 
         Console.WriteLine("Generating " + config.NumSamples + " chunks with NFE=" + config.NumSteps);
         List<TileMap> maps = MapGenerator.Generate(config);
@@ -160,6 +176,16 @@ public class PcgFlowMatchingGenerateEntryPoint
 
             if (renderPng)
             {
+                // When repair is enabled, also render the raw pre-repair chunk
+                // so the post-repair edits can be inspected position-by-position
+                // against the unmodified model output. Same chunk index → same
+                // underlying noise sample → true before/after pair.
+                if (applyRepair)
+                {
+                    string preFile = Path.Combine(pngOutputDir, "chunk-" + (i + 1).ToString("D3") + "-pre.png");
+                    MapPngRenderer.RenderMapToPng(rawMap, rendererConfig, preFile);
+                    Console.WriteLine("  PNG (pre):  " + preFile);
+                }
                 string pngFile = Path.Combine(pngOutputDir, "chunk-" + (i + 1).ToString("D3") + ".png");
                 MapPngRenderer.RenderMapToPng(finalMap, rendererConfig, pngFile);
                 Console.WriteLine("  PNG: " + pngFile);
@@ -212,8 +238,10 @@ public class PcgFlowMatchingGenerateEntryPoint
         Console.WriteLine("  --sprite-dir <path>    Sprite source directory (default: ./sprites)");
         Console.WriteLine("  --biome <name>         Biome to condition on: overworld|underground|treetop (default: overworld)");
         Console.WriteLine("  --no-repair            Disable post-generation ChunkStructureRepair (default: enabled)");
+        Console.WriteLine("  --cfg-scale <F>        Classifier-free guidance scale (default: 1.0). Values > 1.0 amplify biome conditioning at the cost of doubling NFE.");
+        Console.WriteLine("  --seed <N>             Fixed RNG seed for reproducible noise (default: 0 = random).");
         Console.WriteLine();
-        Console.WriteLine("Example: dotnet run -- unet-conditional-checkpoint.bin --biome underground");
+        Console.WriteLine("Example: dotnet run -- unet-conditional-v2-checkpoint.bin --biome underground --cfg-scale 4.0 --seed 42 --no-repair");
     }
 
     // Renders a TileMap as ASCII using the VGLC character mapping.

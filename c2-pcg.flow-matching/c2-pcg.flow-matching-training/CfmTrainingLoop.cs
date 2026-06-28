@@ -108,17 +108,35 @@ public class CfmTrainingLoop
                 long[] biomeLabelData = new long[config.BatchSize];
                 for (int j = 0; j < config.BatchSize; j++)
                 {
-                    biomeLabelData[j] = (long)batchChunks[j].BiomeLabel;
+                    long trueLabel = (long)batchChunks[j].BiomeLabel;
+
+                    // Classifier-free guidance dropout: with probability
+                    // CfgDropoutProb, replace the true biome label with
+                    // Error (index 0). The model must therefore learn
+                    // both the conditional and unconditional distributions
+                    // from the same training signal, which makes CFG-style
+                    // amplification at inference possible.
+                    double draw = rng.NextDouble();
+                    if (draw < (double)config.CfgDropoutProb)
+                    {
+                        biomeLabelData[j] = 0L;
+                    }
+                    else
+                    {
+                        biomeLabelData[j] = trueLabel;
+                    }
                 }
                 torch.Tensor biomeLabels = torch.tensor(biomeLabelData, dtype: torch.int64).to(device);
 
-                // Forward + loss. Class-balanced variant: rare tile types
-                // (BulletBill, Coin) contribute proportionally more gradient
-                // than common ones (Empty, Solid). See PR #11 / Iteration 2
-                // Experiment B in docs/260602.iteration-2-plan.txt. Biome
-                // labels condition the model on the desired biome per
-                // sample (Experiment D).
-                torch.Tensor loss = CfmLossComputer.ComputeLoss(model, x1, biomeLabels);
+                // Forward + loss. Sqrt inverse-frequency class-balanced
+                // variant: rare tile types (BulletBill, Coin, Pipe pieces)
+                // contribute proportionally more gradient than common ones
+                // (Empty, Solid). See docs/260602.iteration-2-plan.txt
+                // Part 3 for the rationale. Biome labels condition the
+                // model on the desired biome per sample (Experiment D
+                // retrained with FiLM injection + CFG dropout).
+                torch.Tensor loss = CfmLossComputer.ComputeWeightedLoss(
+                    model, x1, biomeLabels, classWeights);
 
                 // Backward + optimizer step.
                 optimizer.zero_grad();

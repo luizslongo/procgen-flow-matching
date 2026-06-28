@@ -34,9 +34,22 @@ public class MapGenerator
             config.TimeEmbeddingDim,
             config.NumBiomes,
             "unetBaseline");
-        model.load(config.CheckpointPath);
+        model.load(config.CheckpointPath, strict: false);
         model.to(device);
         model.eval();
+
+        // === SEED ===
+        // When config.Seed > 0, fix the global manual seed so the noise
+        // tensor and any other random draws this call makes are
+        // reproducible across runs. The most useful application is
+        // A/B testing biome conditioning: same seed, different biome
+        // labels, then visually compare whether outputs differ on
+        // biome-distinguishing features (ceiling for Underground,
+        // ground gaps for Treetop, etc.).
+        if (config.Seed > 0)
+        {
+            torch.manual_seed(config.Seed);
+        }
 
         // === NOISE ===
         // Mario chunks are 14 (height) x 28 (width).
@@ -55,7 +68,8 @@ public class MapGenerator
         torch.Tensor biomeLabels = torch.tensor(biomeLabelData, dtype: torch.int64).to(device);
 
         // === SOLVE ===
-        torch.Tensor generated = EulerOdeSolver.Solve(model, x0, biomeLabels, config.NumSteps);
+        torch.Tensor generated = EulerOdeSolver.Solve(
+            model, x0, biomeLabels, config.NumSteps, config.CfgGuidanceScale);
 
         // === DISCRETIZE ===
         // Move to CPU, then convert each sample to a TileMap via per-pixel argmax.
