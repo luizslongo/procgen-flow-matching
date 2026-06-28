@@ -181,10 +181,13 @@ jobs:
           done
           echo "API did not become healthy in time"; docker compose logs api; exit 1
 
+      - name: Prepare ZAP output directory
+        run: mkdir -p zap-out && chmod 777 zap-out   # ZAP runs as non-root and must write here
+
       - name: OWASP ZAP baseline scan
         continue-on-error: true
         run: |
-          docker run --rm --network host -v "$PWD:/zap/wrk:rw" \
+          docker run --rm --network host -v "$PWD/zap-out:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t http://localhost:8080 \
             -J zap-report.json -r zap-report.html -I
@@ -194,9 +197,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dast-zap-report
-          path: |
-            zap-report.html
-            zap-report.json
+          path: zap-out/zap-report.*
 
       - name: Tear down the stack
         if: always()
