@@ -1,0 +1,203 @@
+name: DevSecOps Pipeline
+
+# Five mandatory security stages over the procgen-flow-matching system:
+#   1. Secret Detection (Gitleaks)        - leaked credentials in git history
+#   2. SCA            (Trivy + dotnet)     - vulnerable third-party dependencies
+#   3. SAST           (CodeQL)             - insecure patterns in our C# code
+#   4. IaC Scanning   (Checkov + Trivy)    - Dockerfile / compose / Terraform
+#   5. DAST           (OWASP ZAP)          - the running, containerized API
+#
+# Scan steps use continue-on-error so every stage still produces a report
+# (the goal is evidence + analysis, not a green gate). Reports upload as
+# artifacts and, where supported, to the GitHub code-scanning (Security) tab.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # ------------------------------------------------------------------
+  # 1. SECRET DETECTION
+  # ------------------------------------------------------------------
+  secret-detection:
+    name: Secret Detection (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so leaked secrets in old commits are found
+
+      - name: Run Gitleaks over full history
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            detect --source=/repo \
+            --report-format sarif --report-path /repo/gitleaks.sarif \
+            --redact -v
+
+      - name: Upload Gitleaks report (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks.sarif
+
+      - name: Upload Gitleaks SARIF to code scanning
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+  # ------------------------------------------------------------------
+  # 2. SCA (Software Composition Analysis)
+  # ------------------------------------------------------------------
+  sca:
+    name: SCA (Trivy + dotnet list)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy dependency scan (reads packages.lock.json)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" aquasec/trivy:latest \
+            fs --scanners vuln \
+            --format sarif --output /repo/trivy-sca.sarif /repo
+
+      - name: dotnet list vulnerable packages (readable evidence)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            mcr.microsoft.com/dotnet/sdk:8.0-noble bash -c "
+              dotnet restore -p:UseCPU=true &&
+              dotnet list package --vulnerable --include-transitive | tee /repo/dotnet-vulnerable.txt"
+
+      - name: Upload SCA reports (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-report
+          path: |
+            trivy-sca.sarif
+            dotnet-vulnerable.txt
+
+      - name: Upload Trivy SCA SARIF to code scanning
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-sca.sarif
+          category: trivy-sca
+
+  # ------------------------------------------------------------------
+  # 3. SAST (Static Application Security Testing)
+  # ------------------------------------------------------------------
+  sast:
+    name: SAST (CodeQL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: none   # buildless analysis (no TorchSharp restore needed)
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql-csharp
+
+  # ------------------------------------------------------------------
+  # 4. IaC SCANNING
+  # ------------------------------------------------------------------
+  iac-scanning:
+    name: IaC Scanning (Checkov + Trivy config)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkov (auto-detects Dockerfile, Terraform, YAML, secrets)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" bridgecrew/checkov:latest \
+            -d /repo \
+            --skip-path bin --skip-path obj \
+            --soft-fail \
+            -o sarif --output-file-path /repo
+
+      - name: Trivy config scan (IaC misconfigurations)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" aquasec/trivy:latest \
+            config --format sarif --output /repo/trivy-iac.sarif /repo
+
+      - name: Upload IaC reports (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iac-report
+          path: |
+            results_sarif.sarif
+            trivy-iac.sarif
+
+      - name: Upload Trivy IaC SARIF to code scanning
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-iac.sarif
+          category: trivy-iac
+
+  # ------------------------------------------------------------------
+  # 5. DAST (Dynamic Application Security Testing)
+  # ------------------------------------------------------------------
+  dast:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start the stack (API + Postgres)
+        run: docker compose up -d --build
+
+      - name: Wait for the API to become healthy
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/status/health >/dev/null 2>&1; then
+              echo "API is up"; exit 0
+            fi
+            echo "waiting for API... ($i)"; sleep 5
+          done
+          echo "API did not become healthy in time"; docker compose logs api; exit 1
+
+      - name: OWASP ZAP baseline scan
+        continue-on-error: true
+        run: |
+          docker run --rm --network host -v "$PWD:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:8080 \
+            -J zap-report.json -r zap-report.html -I
+
+      - name: Upload ZAP report (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-zap-report
+          path: |
+            zap-report.html
+            zap-report.json
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose down -v
