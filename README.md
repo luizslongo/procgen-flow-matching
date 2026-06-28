@@ -167,4 +167,5 @@ To be decided. MIT is suggested for open scientific reuse.
 ## Acknowledgements
 
 - Prof. Elder Rizzon Santos (UFSC) for advising the thesis;
+- Brandon Joseph Smietana for helping come up with this idea;
 - The Iosys team for GPU infrastructure access (devbox with 3× RTX 3090 Ti).
