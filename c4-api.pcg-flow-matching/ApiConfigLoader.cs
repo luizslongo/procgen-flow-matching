@@ -21,9 +21,19 @@ public class ApiConfigLoader
         config.BaseChannels = lookup.GetInt("model.base_channels");
         config.TimeEmbeddingDim = lookup.GetInt("model.time_embedding_dim");
         config.NumBiomes = lookup.GetInt("model.num_biomes");
+        config.DatabaseBackend = lookup.GetString("database.backend");
+        config.DatabaseConnectionString = lookup.GetString("database.connection_string");
 
         ApiUtils.Assert(config.ServerUrl.Length > 0, "server.url cannot be empty");
         ApiUtils.Assert(config.CheckpointPath.Length > 0, "model.checkpoint_path cannot be empty");
+
+        bool isInMemory = config.DatabaseBackend == "inmemory";
+        bool isPostgres = config.DatabaseBackend == "postgres";
+        ApiUtils.Assert(isInMemory || isPostgres, "database.backend must be 'inmemory' or 'postgres', got: " + config.DatabaseBackend);
+        if (isPostgres)
+        {
+            ApiUtils.Assert(config.DatabaseConnectionString.Length > 0, "database.connection_string is required when database.backend = postgres");
+        }
         return config;
     }
 }

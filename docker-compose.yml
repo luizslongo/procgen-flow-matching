@@ -1,0 +1,30 @@
+# PCG Flow Matching DevSecOps stack: the HTTP API plus its Postgres database.
+# Brings up a self-contained target for dynamic scanning (DAST):
+#   docker compose up --build
+#   curl http://localhost:8080/status/health
+#
+# SECURITY NOTE (intentional finding): POSTGRES_PASSWORD is inlined here for a
+# reproducible local/CI stack. Secret Detection and IaC Scanning will flag it;
+# the report documents moving it to Docker/K8s secrets.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pcg
+      POSTGRES_USER: pcg
+      POSTGRES_PASSWORD: Pcg7xKq2Mv9Rtz4Wn1Lb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pcg -d pcg"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"

@@ -34,7 +34,7 @@ public class GenerationAddHandler
 
         BiomeTypeEnum biome = BiomeNameMapper.MapBiomeName(input.Biome);
         GenerationHttpOut result = engine.RunGeneration(input, biome);
-        store.SaveGeneration(result);
+        store.InsertGeneration(result);
         HttpResponseWriter.WriteJson(context, 200, result);
     }
 

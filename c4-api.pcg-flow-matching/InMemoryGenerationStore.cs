@@ -14,7 +14,7 @@ public class InMemoryGenerationStore : GenerationStoreInterface
         Records = new List<GenerationHttpOut>();
     }
 
-    public void SaveGeneration(GenerationHttpOut record)
+    public void InsertGeneration(GenerationHttpOut record)
     {
         Records.Add(record);
     }

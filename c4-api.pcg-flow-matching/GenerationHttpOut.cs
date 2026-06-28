@@ -7,7 +7,7 @@ public class GenerationHttpOut
 {
     public string Type = "GenerationHttpOut";
     public string Id;
-    public long CreatedAtUnixMs;
+    public long CreatedAtUnixSeconds;
     public string Biome;
     public long Seed;
     public float CfgScale;

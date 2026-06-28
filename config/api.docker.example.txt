@@ -1,0 +1,20 @@
+# ============================================================
+# Container runtime configuration for the PCG Flow Matching API.
+# Baked into the image as /app/config/api.txt (see Dockerfile).
+#
+# SECURITY NOTE (intentional finding for the DevSecOps report):
+# this committed file carries a development-only database password. Secret
+# Detection (Gitleaks) and IaC Scanning will flag it. Real deployments MUST
+# inject credentials at runtime via Docker/Kubernetes secrets and keep this
+# file free of real secrets. The remediation is documented in the report.
+# ============================================================
+
+server.url = http://+:8080/
+
+model.checkpoint_path = /app/unet-baseline-checkpoint.bin
+model.base_channels = 64
+model.time_embedding_dim = 128
+model.num_biomes = 4
+
+database.backend = postgres
+database.connection_string = Host=db;Port=5432;Database=pcg;Username=pcg;Password=Pcg7xKq2Mv9Rtz4Wn1Lb

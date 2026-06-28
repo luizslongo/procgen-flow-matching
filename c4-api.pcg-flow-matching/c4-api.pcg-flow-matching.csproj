@@ -8,7 +8,11 @@
         <Nullable>disable</Nullable>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="Npgsql" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/c2-pcg.flow-matching-dataloader.csproj" />
+        <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-model/c2-pcg.flow-matching-model.csproj" />
         <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-inference/c2-pcg.flow-matching-inference.csproj" />
         <ProjectReference Include="../c2-pcg.flow-matching/c2-pcg.flow-matching-eval/c2-pcg.flow-matching-eval.csproj" />
     </ItemGroup>

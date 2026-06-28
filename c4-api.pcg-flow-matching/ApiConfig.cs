@@ -9,4 +9,6 @@ public class ApiConfig
     public int BaseChannels;
     public int TimeEmbeddingDim;
     public int NumBiomes;
+    public string DatabaseBackend;
+    public string DatabaseConnectionString;
 }

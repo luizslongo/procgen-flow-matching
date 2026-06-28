@@ -7,7 +7,7 @@ namespace c4_api.pcgFlowMatching;
 // Phase 2 without changing the HTTP handlers.
 public interface GenerationStoreInterface
 {
-    void SaveGeneration(GenerationHttpOut record);
+    void InsertGeneration(GenerationHttpOut record);
     GenerationHttpOut GetGeneration(string id);
     List<GenerationHttpOut> ListGenerations();
 }

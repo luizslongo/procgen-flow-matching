@@ -45,7 +45,7 @@ public class GenerationEngine
 
         GenerationHttpOut result = new GenerationHttpOut();
         result.Id = Guid.NewGuid().ToString("N");
-        result.CreatedAtUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        result.CreatedAtUnixSeconds = UnixTime.Now();
         result.Biome = biome.ToString();
         result.Seed = input.Seed;
         result.CfgScale = input.CfgScale;
