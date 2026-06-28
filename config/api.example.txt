@@ -21,6 +21,9 @@ model.num_biomes = 4
 # ------------------------------------------------------------
 # Backend: inmemory (no persistence) or postgres
 database.backend = inmemory
-# Npgsql connection string. Required when backend = postgres; leave empty for inmemory.
-# Secret: never commit a real connection string. This template ships empty.
+# Npgsql connection string WITHOUT the password. Required when backend = postgres.
+# Secret: never commit credentials. This template ships empty.
 database.connection_string =
+# Path to a file containing only the DB password (e.g. a Docker/K8s secret).
+# Read at startup and appended to the connection string in memory. Empty for inmemory.
+database.password_file =

@@ -20,3 +20,5 @@ docs/
 # Local/secret configs (the container uses config/api.docker.example.txt)
 config/api.txt
 config/api.docker.txt
+# Docker secrets are mounted at runtime, never baked into the image
+secrets/

@@ -20,6 +20,13 @@ public class HttpResponseWriter
         string json = JsonSerializer.Serialize(payload, payload.GetType(), options);
         byte[] bytes = Encoding.UTF8.GetBytes(json);
 
+        // Security headers: blank the Server banner (HttpListener re-adds a versioned
+        // Server header on send, so Remove() is not enough — overwrite it to empty),
+        // forbid MIME sniffing, and mark JSON as non-cacheable.
+        context.Response.Headers["Server"] = "";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["Cache-Control"] = "no-store";
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
         context.Response.ContentLength64 = bytes.LongLength;

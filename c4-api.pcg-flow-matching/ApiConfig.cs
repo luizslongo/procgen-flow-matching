@@ -11,4 +11,5 @@ public class ApiConfig
     public int NumBiomes;
     public string DatabaseBackend;
     public string DatabaseConnectionString;
+    public string DatabasePasswordFile;
 }

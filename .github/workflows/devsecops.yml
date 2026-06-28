@@ -168,6 +168,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Provision DB secret for the stack (random, never committed)
+        run: |
+          mkdir -p secrets
+          openssl rand -hex 24 > secrets/db_password.txt
+
       - name: Build and start the stack (API + Postgres)
         run: docker compose up -d --build
 

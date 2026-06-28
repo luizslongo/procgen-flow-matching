@@ -23,6 +23,7 @@ public class ApiConfigLoader
         config.NumBiomes = lookup.GetInt("model.num_biomes");
         config.DatabaseBackend = lookup.GetString("database.backend");
         config.DatabaseConnectionString = lookup.GetString("database.connection_string");
+        config.DatabasePasswordFile = lookup.GetString("database.password_file");
 
         ApiUtils.Assert(config.ServerUrl.Length > 0, "server.url cannot be empty");
         ApiUtils.Assert(config.CheckpointPath.Length > 0, "model.checkpoint_path cannot be empty");
@@ -33,6 +34,17 @@ public class ApiConfigLoader
         if (isPostgres)
         {
             ApiUtils.Assert(config.DatabaseConnectionString.Length > 0, "database.connection_string is required when database.backend = postgres");
+
+            // The password is never stored in the connection string in source control.
+            // It is read at startup from a secret file (e.g. a Docker/K8s secret) and
+            // appended in memory only.
+            if (config.DatabasePasswordFile.Length > 0)
+            {
+                ApiUtils.Assert(File.Exists(config.DatabasePasswordFile), "database.password_file not found: " + config.DatabasePasswordFile);
+                string password = File.ReadAllText(config.DatabasePasswordFile).Trim();
+                ApiUtils.Assert(password.Length > 0, "database.password_file is empty: " + config.DatabasePasswordFile);
+                config.DatabaseConnectionString = config.DatabaseConnectionString + ";Password=" + password;
+            }
         }
         return config;
     }

@@ -20,11 +20,11 @@ variable "container_image" {
   default     = "pcg-flow-matching/api:latest"
 }
 
-# SECURITY NOTE (intentional finding): a default database password in source is
-# flagged by Secret Detection and IaC scanning. Real deployments pass this via a
-# secrets manager and leave no default. Documented in the report.
+# Provided at apply time (TF_VAR_db_password or a secrets backend). No default in
+# source: keeping credentials out of version control. Marked sensitive so it is
+# redacted from Terraform plan/apply output.
 variable "db_password" {
   description = "Master password for the RDS Postgres instance"
   type        = string
-  default     = "Pcg7xKq2Mv9Rtz4Wn1Lb"
+  sensitive   = true
 }

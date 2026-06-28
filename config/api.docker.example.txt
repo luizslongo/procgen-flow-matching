@@ -1,12 +1,8 @@
 # ============================================================
 # Container runtime configuration for the PCG Flow Matching API.
 # Baked into the image as /app/config/api.txt (see Dockerfile).
-#
-# SECURITY NOTE (intentional finding for the DevSecOps report):
-# this committed file carries a development-only database password. Secret
-# Detection (Gitleaks) and IaC Scanning will flag it. Real deployments MUST
-# inject credentials at runtime via Docker/Kubernetes secrets and keep this
-# file free of real secrets. The remediation is documented in the report.
+# No secret is stored here: the DB password is read at runtime from a Docker
+# secret mounted at /run/secrets/db_password (see docker-compose.yml).
 # ============================================================
 
 server.url = http://+:8080/
@@ -17,4 +13,5 @@ model.time_embedding_dim = 128
 model.num_biomes = 4
 
 database.backend = postgres
-database.connection_string = Host=db;Port=5432;Database=pcg;Username=pcg;Password=Pcg7xKq2Mv9Rtz4Wn1Lb
+database.connection_string = Host=db;Port=5432;Database=pcg;Username=pcg
+database.password_file = /run/secrets/db_password

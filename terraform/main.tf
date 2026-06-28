@@ -30,10 +30,10 @@ data "aws_subnets" "default" {
 # ---------------------------------------------------------------------------
 resource "aws_ecr_repository" "api" {
   name                 = "${var.project_name}-api"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
-    scan_on_push = false
+    scan_on_push = true
   }
 }
 
@@ -67,11 +67,11 @@ resource "aws_security_group" "db" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "Postgres"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Postgres reachable only from the API service security group"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.api.id]
   }
 
   egress {
@@ -92,11 +92,14 @@ resource "aws_db_instance" "pcg" {
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
   db_name                = "pcg"
-  username               = "pcg"
-  password               = var.db_password
-  publicly_accessible    = true
-  skip_final_snapshot    = true
-  vpc_security_group_ids = [aws_security_group.db.id]
+  username                = "pcg"
+  password                = var.db_password
+  publicly_accessible     = false
+  storage_encrypted       = true
+  backup_retention_period = 7
+  deletion_protection     = true
+  skip_final_snapshot     = true
+  vpc_security_group_ids  = [aws_security_group.db.id]
 }
 
 # ---------------------------------------------------------------------------
