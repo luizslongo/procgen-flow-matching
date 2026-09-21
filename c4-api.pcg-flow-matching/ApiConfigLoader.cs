@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Npgsql;
 
 namespace c4_api.pcgFlowMatching;
 
@@ -43,7 +44,11 @@ public class ApiConfigLoader
                 ApiUtils.Assert(File.Exists(config.DatabasePasswordFile), "database.password_file not found: " + config.DatabasePasswordFile);
                 string password = File.ReadAllText(config.DatabasePasswordFile).Trim();
                 ApiUtils.Assert(password.Length > 0, "database.password_file is empty: " + config.DatabasePasswordFile);
-                config.DatabaseConnectionString = config.DatabaseConnectionString + ";Password=" + password;
+                // Use the builder so a password containing ';' '=' or quotes is escaped
+                // correctly, instead of fragile string concatenation.
+                NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder(config.DatabaseConnectionString);
+                builder.Password = password;
+                config.DatabaseConnectionString = builder.ConnectionString;
             }
         }
         return config;
