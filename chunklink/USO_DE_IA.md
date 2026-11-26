@@ -7,7 +7,7 @@ pelo autor do que foi produzido pela ferramenta, e registrando como o resultado 
 
 - **Claude** (Anthropic), modelo Claude Opus 5.5, usado pelo **Claude Code** (assistente em linha de
   comando com acesso aos arquivos locais e ao terminal).
-- Sessões de 19/10/2026 (DSM1), 03/11/2026 (DSM2), 11/11/2026 (apresentação) e 18/11/2026 (DSM3).
+- Sessões de 19/10/2026 (DSM1), 03/11/2026 (DSM2), 11/11/2026 (apresentação) 18/11/2026 (DSM3) e 26/11/2026 (publicação na branch `chunklink` e CI).
 
 ## Papel do autor
 
@@ -104,8 +104,12 @@ pelo autor do que foi produzido pela ferramenta, e registrando como o resultado 
 - **Resultados desfavoráveis mantidos no texto**:
   - sob escassez de chunks, o ChunkLink monta menos que o baseline central;
   - no underground, o KL do ChunkLink é um pouco pior que o dos baselines.
-- **Limites**: os lotes têm 10 sementes e não têm testes estatísticos; o *workflow* de CI não foi
-  executado no GitHub (o projeto não está publicado num repositório).
+- **Limites**: os lotes têm 10 sementes e não têm testes estatísticos.
+- **Integração contínua (26/11/2026)**: o projeto foi publicado, a pedido do autor, na branch
+  `chunklink` do repositório público do TCC.
+  - Na primeira execução do *workflow* `chunklink.yml` no GitHub Actions, os 68 testes passaram com
+    .NET e dentro do Docker construído a partir do zip.
+  - A assinatura do cenário controlado foi `64ABEE0053DB3764`, a mesma da máquina do autor.
 
 ## Checklist do autor antes da entrega
 

@@ -2,7 +2,8 @@
 
 Todos os números deste documento foram gerados pelos comandos indicados, com saída guardada em
 `exemplos/`. A suíte automatizada tem **68 testes** (`dotnet test`), que passam também num contêiner
-Docker construído a partir do zip da entrega (`docker build .`), sem .NET instalado na máquina.
+Docker construído a partir do zip da entrega (`docker build .`), sem .NET instalado na máquina, e no
+GitHub Actions: *workflow* `chunklink.yml`, branch `chunklink` do repositório do TCC.
 
 ## 1. Validação do simulador contra o jogo
 
