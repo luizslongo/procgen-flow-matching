@@ -1,0 +1,9 @@
+pool: 30 chunks · referência: 2 níveis de Underground · original pareado: mario-1-2 (158 colunas) · slots: 5
+sucesso: True
+sequência: und-r001 | und-r002 | und-r004 | und-r008 | und-r016
+conclusão por perfil (M1): P-Peq=sim, P-Gde=sim
+tiles editados (M4): 0 · backtracks (M5): 0 · mensagens (M6): 262 · ticks: 15
+KL padrões 2×2 (M12): 0.732 · costuras visíveis (M13): 0 · menor distância a originais (N4): 90.5 %
+assinatura do trace (RNF01): CF75DA3DDCA0EB7A
+PNG do nível: exemplos/montagem-underground/nivel-montado.png · par cego: exemplos/montagem-underground/teste-cego/par-underground-mario-1-2.png (gabarito em teste-cego/gabarito.csv)
+trace e métricas em exemplos/montagem-underground/

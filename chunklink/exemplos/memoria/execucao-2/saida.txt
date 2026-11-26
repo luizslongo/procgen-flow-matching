@@ -1,0 +1,8 @@
+pool: 30 chunks · referência: 4 níveis de Treetop · original pareado: mario-1-3 (150 colunas) · slots: 5
+sucesso: True
+sequência: tre-b001 | tre-b014 | tre-b006 | tre-b019 | tre-b007
+conclusão por perfil (M1): P-Peq=sim, P-Gde=sim
+tiles editados (M4): 0 · backtracks (M5): 0 · mensagens (M6): 306 · ticks: 19
+KL padrões 2×2 (M12): 0.733 · costuras visíveis (M13): 0 · menor distância a originais (N4): 87.2 %
+assinatura do trace (RNF01): F13E2F75880E8489
+trace e métricas em exemplos/memoria/execucao-2/

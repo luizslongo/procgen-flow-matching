@@ -1,0 +1,30 @@
+flowchart TB
+  subgraph AG["Agentes — interações P1, P3, P4 (mensagens tipadas no MessageBus)"]
+    direction LR
+    PLY["Playtester ×2<br/>deliberativo · A*<br/>P-Peq · P-Gde"] <-->|"P1 playtest"| ARQ["LevelArchitect<br/>cognitivo · BDI"]
+    ARQ <-->|"P4 estilo · aprovação<br/>+ restrição proativa"| CUR["Curator<br/>cognitivo · BDI"]
+    ARQ <-->|"P3 Contract Net"| REPA["Repair ×3<br/>costura · folga · suporte"]
+  end
+  subgraph AMB["Ambiente — artefatos compartilhados"]
+    direction LR
+    POOL[("Pool congelado<br/>chunks gerados · hash")]
+    REF[("Corpus de referência<br/>níveis originais VGLC")]
+    NIV[["Nível<br/>slots · reservas (P5) · edição provisória<br/>registro de aceites e aprovações (uso único)<br/>impõe N1 · N2 · N4 · N5 · papel"]]
+  end
+  subgraph RT["Runtime ChunkLink — .NET 8, um processo"]
+    direction LR
+    ESC["Escalonador<br/>round-robin · tempo lógico"] --> BUS["MessageBus<br/>credenciais · política por papel<br/>idempotência"]
+    BDI["MotorBdi<br/>crenças · desejos · intenções<br/>planos = corrotinas"]
+    BUS --> TR["Tracer JSONL"]
+    MEM[("Memória episódica<br/>SQLite · TTL")]
+  end
+  subgraph FER["Ferramentas (não são agentes)"]
+    direction LR
+    AST["A* + modelo<br/>de movimento"]
+    EST["ConhecimentoEstilo<br/>KL 2×2 · costura · cópia"]
+    TCCR["11 primitivas<br/>de reparo (TCC)"]
+    PNG["MapPngRenderer<br/>(TCC)"]
+  end
+  AG ==>|"percebem e agem sobre"| AMB
+  AG ==>|"executam sobre"| RT
+  AG ==>|"invocam"| FER

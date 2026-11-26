@@ -1,0 +1,6 @@
+Taxa de sucesso do cenário controlado sob falhas de entrega (chunklink depurar, sementes 1–20)
+
+perda 0.05: 20/20 montaram o nível
+perda 0.10: 19/20 montaram o nível
+perda 0.20: 15/20 montaram o nível
+duplicação 0.3: 20/20 com o mesmo nível da execução sem falhas

@@ -1,0 +1,20 @@
+alcance do salto d = 5 · altura h = 4
+
+nível       bioma        colunas  P-Peq                         P-Gde                         P-Gde sem quebra              
+mario-1-1   Overworld    202      completa                      completa                      completa                      
+mario-2-1   Overworld    197      completa                      completa                      completa                      
+mario-3-1   Overworld    197      completa                      completa                      completa                      
+mario-4-1   Overworld    222      completa                      completa                      completa                      
+mario-5-1   Overworld    198      completa                      completa                      completa                      
+mario-6-1   Overworld    184      completa                      completa                      completa                      
+mario-6-2   Overworld    215      completa                      completa                      completa                      
+mario-7-1   Overworld    176      completa                      completa                      completa                      
+mario-8-1   Overworld    373      falha Buraco col. 214 (57 %)  falha Buraco col. 214 (57 %)  falha Buraco col. 214 (57 %)  
+mario-1-2   Underground  158      completa                      falha Teto col. 54 (34 %)     falha Teto col. 54 (34 %)     
+mario-4-2   Underground  187      completa                      completa                      completa                      
+mario-1-3   Treetop      150      falha Indeterminada col. 68 (45 %)falha Indeterminada col. 68 (45 %)falha Indeterminada col. 68 (45 %)
+mario-3-3   Treetop      149      completa                      completa                      completa                      
+mario-5-3   Treetop      150      falha Indeterminada col. 68 (45 %)falha Indeterminada col. 68 (45 %)falha Indeterminada col. 68 (45 %)
+mario-6-3   Treetop      165      falha Indeterminada col. 23 (13 %)falha Indeterminada col. 23 (13 %)falha Indeterminada col. 23 (13 %)
+
+perfis-alvo (P-Peq, P-Gde): 21/30 combinações nível × perfil completáveis

@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant A as arquiteto
+    participant R as reparadores (×3)
+    participant C as curador
+    participant N as Nível
+    A->>R: Cfp(ChamadaReparo{falha, candidato, reply_by})
+    R-->>A: Propose(PropostaReparo{diff, custo}) ou Refuse(motivo)
+    Note over A: janela fecha em reply_by — proposta tardia: cn.descartada + RejectProposal
+    loop propostas em ordem de custo
+        A->>C: Request(PedidoAprovacao{slot, chunk, diff, conversa})
+        C->>N: RegistrarAprovacao(conversa, slot, chunk, hash)
+        C-->>A: Agree(Aprovacao{id}) ou Refuse(RecusaAprovacao{norma})
+        A->>R: AcceptProposal (vencedor)
+        R->>N: AbrirEdicao(conversa, slot, chunk, diff) — reserva colunas (P5)
+        R-->>A: Inform(EdicaoAplicada{id}) ou Failure(motivo)
+        A->>A: P1 com a edição provisória (dois perfis)
+        alt todos concluem
+            A->>N: Commit(edição, aprovação.id) — confere papel, vínculo, uso único, N1 N2 N4
+        else algum falha
+            A->>N: Rollback(edição) — tenta a próxima proposta
+        end
+    end
+    A->>R: RejectProposal (pendentes) — edições abertas da conversa são desfeitas

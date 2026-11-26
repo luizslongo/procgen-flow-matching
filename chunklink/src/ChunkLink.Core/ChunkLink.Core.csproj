@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ChunkLink</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+  <!--
+    Reuso direto do TCC: os arquivos abaixo são compilados a partir do repositório do TCC,
+    sem cópia e sem TorchSharp (TileMapTensorConverter fica de fora).
+  -->
+  <ItemGroup>
+    <Compile Include="$(TccDir)c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/*.cs" Exclude="$(TccDir)c2-pcg.flow-matching/c2-pcg.flow-matching-dataloader/TileMapTensorConverter.cs" Link="Tcc/Dataloader/%(Filename)%(Extension)" />
+    <Compile Include="$(TccDir)c2-pcg.flow-matching/c2-pcg.flow-matching-eval/*.cs" Link="Tcc/Eval/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <Target Name="VerificarTcc" BeforeTargets="CoreCompile">
+    <Error Condition="!Exists('$(TccDir)c2-pcg.flow-matching')" Text="Código do TCC não encontrado em '$(TccDir)'. Clone https://github.com/luizslongo/procgen-flow-matching ao lado deste diretório ou use -p:TccDir=caminho/." />
+  </Target>
+</Project>

@@ -1,0 +1,6 @@
+# PNGs de exemplo usam sprites da Nintendo: não são publicados no repositório.
+exemplos/**/*.png
+saida/
+tcc-vendor/
+*.zip
+docs/diagramas/.render/

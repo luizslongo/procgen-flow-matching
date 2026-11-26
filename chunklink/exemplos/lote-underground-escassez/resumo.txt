@@ -1,0 +1,28 @@
+Underground · original mario-1-2 · 5 slots · 10 sementes · subconjuntos de 10 de 30 chunks
+
+estratégia  montou    KL médio*  costuras*  tiles*   mensagens* 
+E0          10/10     0.72       0.00       311.30   0.00       
+E1          10/10     0.73       0.00       300.70   0.00       
+E2          8/10      0.88       0.00       0.00     293.88     
+E2-a        0/10      —          —          —        —          
+* média só das execuções que montaram o nível
+
+comportamento coletivo de E2 (soma nas sementes):
+  playtests_pedidos             1154
+  pareceres_de_estilo             95
+  restricoes_proativas             9
+  vetos                            0
+  concessoes                      18
+  suspensoes_de_estilo             8
+  reconsideracoes_arquiteto        1
+  recuos                          29
+  contract_nets                   20
+  propostas                       25
+  recusas_de_reparadores          35
+  aprovacoes                       0
+  recusas_do_curador              25
+  commits                          0
+  rollbacks                        0
+  mensagens                     2800
+
+CSV em exemplos/lote-underground-escassez/metricas.csv e exemplos/lote-underground-escassez/coletivo-e2.csv

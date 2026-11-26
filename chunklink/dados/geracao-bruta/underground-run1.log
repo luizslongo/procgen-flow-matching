@@ -1,0 +1,321 @@
+Conditioning generation on biome: Underground
+Structure repair: disabled
+Generating 10 chunks with NFE=50
+
+=== Generated chunk 1 / 10 ===
+B---------------------------
+>---------------------------
+S--X--->---S-<E-Q--------B-X
+----------------------------
+----------------------------
+-----------------------oSQ--
+----------------------------
+---------------S------------
+---<----X-----B------------E
+----------------b----B--XX<X
+---------------X--X>-B-X]---
+-b[------------X-X]SXX-X>---
+B---------X-X---XXX[-X]-----
+XXXXXXXXXXXXXXXXXXXXXXXXX--<
+Violations (pre-repair):  19
+  BrokenPipeHorizontal: 2
+  BrokenPipeTopLeft:    4
+  BrokenPipeTopRight:   4
+  BrokenBulletBill:     6
+  FloatingEnemy:        1
+  DiscontinuousGround:  2
+Violations (post-repair): 19
+  BrokenPipeHorizontal: 2
+  BrokenPipeTopLeft:    4
+  BrokenPipeTopRight:   4
+  BrokenBulletBill:     6
+  FloatingEnemy:        1
+  DiscontinuousGround:  2
+
+=== Generated chunk 2 / 10 ===
+----------------------------
+----------------------------
+---E---o----S?-----o--------
+----------------------------
+-----------?b---------------
+---------E>-----------------
+[------S-X------------------
+----------]--b--]-----------
+-------->------------------Q
+------------o---------------
+------------o---------------
+----b----------------------o
+-------]--------------------
+XXXXXXXXXXXXXXXX-E-XXXXXXXXX
+Violations (pre-repair):  6
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   2
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  2
+Violations (post-repair): 6
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   2
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  2
+
+=== Generated chunk 3 / 10 ===
+----------------------------
+---------->-----------------
+---------X--------------S---
+-----------------------BX---
+----?------------------?----
+------------S---------------
+----------------------------
+--------------------------Q-
+---------------BS--------b--
+----------------]-----------
+----------------------------
+---------------------->-----
+-------->-------E-----------
+XX--S-XXXXXXXXXXX-XXXXXXXXX-
+Violations (pre-repair):  10
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  5
+Violations (post-repair): 10
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  5
+
+=== Generated chunk 4 / 10 ===
+----------------------------
+->----]---------------------
+---------------------------b
+----------------------------
+------------------E------Q--
+-o-X---------------------S]S
+-------------------X-S------
+----------------------------
+------------------B---X----X
+------------]---->X>[X------
+----------------------------
+-----------------<---?------
+-X-------------X------------
+-----------X-XXE---------S--
+Violations (pre-repair):  30
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     1
+  FloatingEnemy:        1
+  DiscontinuousGround:  23
+Violations (post-repair): 30
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     1
+  FloatingEnemy:        1
+  DiscontinuousGround:  23
+
+=== Generated chunk 5 / 10 ===
+----------------------------
+----------------------------
+----------------------------
+X---------------------------
+----------------------------
+-----------o----------------
+----------------------------
+------S---------------------
+----------------------------
+o---X------------S-E-------S
+----S---X-X-----------------
+----------------EX----------
+----b----X-------X[?---]E---
+S-----X-[----?]]XXXXXXXXXXXX
+Violations (pre-repair):  14
+  BrokenPipeHorizontal: 2
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   0
+  BrokenBulletBill:     0
+  FloatingEnemy:        2
+  DiscontinuousGround:  10
+Violations (post-repair): 14
+  BrokenPipeHorizontal: 2
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   0
+  BrokenBulletBill:     0
+  FloatingEnemy:        2
+  DiscontinuousGround:  10
+
+=== Generated chunk 6 / 10 ===
+----------------------------
+----------------------------
+----------]-----------------
+---<-----X->---B------------
+----------------------------
+----------------------------
+<S-X--S---S-----------------
+----------------------------
+------?---------------------
+--------------------[-------
+----------------------------
+----------------------------
+ooo-----------------------X-
+-XXXbX]X-BXXXXXXXXXXXXXXXXXX
+Violations (pre-repair):  8
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    2
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  2
+Violations (post-repair): 8
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    2
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  2
+
+=== Generated chunk 7 / 10 ===
+----------------------------
+----------------------------
+------>---------------------
+--------------------------?-
+----------------------------
+-E-S------------------------
+--X-------------------------
+----------------------------
+----------------------------
+---X------------------------
+----------------------------
+---------------------[------
+--------------------b-------
+--------X--------XXXXXX-XXX-
+Violations (pre-repair):  21
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  18
+Violations (post-repair): 21
+  BrokenPipeHorizontal: 1
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  18
+
+=== Generated chunk 8 / 10 ===
+----------------------------
+----------------------------
+----------------------------
+------------------------>---
+----------------------------
+-----------<S---------------
+----------------------------
+---------------------X------
+----------------------------
+-----X--------->XXX---X-----
+-XXE------------------------
+--X-------------Q---------b-
+-X------------------------->
+-------------------------XXo
+Violations (pre-repair):  30
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  25
+Violations (post-repair): 30
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   3
+  BrokenBulletBill:     0
+  FloatingEnemy:        1
+  DiscontinuousGround:  25
+
+=== Generated chunk 9 / 10 ===
+----------------------------
+--------------------------SQ
+------------------------]--X
+----------------------------
+------------------------B---
+------------------SQ-[------
+-------Q-B------------------
+---------]--------o---------
+----------------------------
+----------------------------
+----------------------------
+--Q-----X-------------------
+------------------------->--
+XXXX]--------X--[--b[X--X--X
+Violations (pre-repair):  22
+  BrokenPipeHorizontal: 3
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  16
+Violations (post-repair): 22
+  BrokenPipeHorizontal: 3
+  BrokenPipeTopLeft:    0
+  BrokenPipeTopRight:   1
+  BrokenBulletBill:     2
+  FloatingEnemy:        0
+  DiscontinuousGround:  16
+
+=== Generated chunk 10 / 10 ===
+--------------------------?-
+----------------------------
+SE--SSX-?-------------------
+X--------Q---X--------------
+S-S-------------------------
+---]------------------------
+----------------------------
+-B------o-------------------
+----------------------------
+--X-E---X------------------b
+----------EX<------Bb-------
+b-------XX--SX--------------
+-------EXX--X------------E--
+---X-X-b--XXX-XXXXXXXXXXXXXX
+Violations (pre-repair):  15
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   0
+  BrokenBulletBill:     2
+  FloatingEnemy:        4
+  DiscontinuousGround:  8
+Violations (post-repair): 15
+  BrokenPipeHorizontal: 0
+  BrokenPipeTopLeft:    1
+  BrokenPipeTopRight:   0
+  BrokenBulletBill:     2
+  FloatingEnemy:        4
+  DiscontinuousGround:  8
+
+=== AGGREGATE over 10 chunks (pre-repair) ===
+Total violations:       175
+  BrokenPipeHorizontal: 11
+  BrokenPipeTopLeft:    9
+  BrokenPipeTopRight:   18
+  BrokenBulletBill:     15
+  FloatingEnemy:        11
+  DiscontinuousGround:  111
+
+=== AGGREGATE over 10 chunks (post-repair) ===
+Total violations:       175
+  BrokenPipeHorizontal: 11
+  BrokenPipeTopLeft:    9
+  BrokenPipeTopRight:   18
+  BrokenBulletBill:     15
+  FloatingEnemy:        11
+  DiscontinuousGround:  111

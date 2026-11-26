@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    O ChunkLink declara as versões dos pacotes nos próprios .csproj. Este arquivo impede que,
+    dentro do repositório do TCC (branch chunklink), o gerenciamento central de pacotes da raiz
+    (Directory.Packages.props do TCC) seja herdado.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

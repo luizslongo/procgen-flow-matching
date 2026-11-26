@@ -1,0 +1,24 @@
+{
+  "Sucesso": true,
+  "Motivo": null,
+  "Slots": 5,
+  "Sequencia": [
+    "und-r001",
+    "und-r002",
+    "und-r004",
+    "und-r008",
+    "und-r016"
+  ],
+  "TilesEditados": 0,
+  "Backtracks": 0,
+  "Mensagens": 262,
+  "Ticks": 15,
+  "ConclusaoPorPerfil": {
+    "P-Peq": true,
+    "P-Gde": true
+  },
+  "KlPadroes2x2": 0.7317,
+  "CosturasVisiveis": 0,
+  "MenorDistanciaAOriginais": 0.9053,
+  "AssinaturaTrace": "CF75DA3DDCA0EB7A"
+}

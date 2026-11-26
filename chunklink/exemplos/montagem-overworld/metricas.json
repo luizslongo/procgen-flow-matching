@@ -1,0 +1,26 @@
+{
+  "Sucesso": true,
+  "Motivo": null,
+  "Slots": 7,
+  "Sequencia": [
+    "ove-r001",
+    "ove-r005",
+    "ove-r007",
+    "ove-r008",
+    "ove-r003",
+    "ove-r009",
+    "ove-r011"
+  ],
+  "TilesEditados": 0,
+  "Backtracks": 0,
+  "Mensagens": 286,
+  "Ticks": 17,
+  "ConclusaoPorPerfil": {
+    "P-Peq": true,
+    "P-Gde": true
+  },
+  "KlPadroes2x2": 0.3623,
+  "CosturasVisiveis": 0,
+  "MenorDistanciaAOriginais": 0.7,
+  "AssinaturaTrace": "26310C5D77B85F9F"
+}

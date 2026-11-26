@@ -1,0 +1,28 @@
+Treetop · original mario-1-3 · 5 slots · 10 sementes · subconjuntos de 10 de 30 chunks
+
+estratégia  montou    KL médio*  costuras*  tiles*   mensagens* 
+E0          1/10      1.48       1.00       146.00   0.00       
+E1          9/10      1.37       1.33       147.78   0.00       
+E2          0/10      —          —          —        —          
+E2-a        0/10      —          —          —        —          
+* média só das execuções que montaram o nível
+
+comportamento coletivo de E2 (soma nas sementes):
+  playtests_pedidos              492
+  pareceres_de_estilo             29
+  restricoes_proativas             0
+  vetos                            0
+  concessoes                      16
+  suspensoes_de_estilo             7
+  reconsideracoes_arquiteto        0
+  recuos                           6
+  contract_nets                    1
+  propostas                        1
+  recusas_de_reparadores           2
+  aprovacoes                       0
+  recusas_do_curador               1
+  commits                          0
+  rollbacks                        0
+  mensagens                     1063
+
+CSV em exemplos/lote-treetop-escassez/metricas.csv e exemplos/lote-treetop-escassez/coletivo-e2.csv

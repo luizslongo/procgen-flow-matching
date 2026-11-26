@@ -1,0 +1,206 @@
+t=   0 arquiteto          + crença orcamento(nivel) = 40  [fonte: configuração]
+t=   0 curador            + crença orcamento(nivel) = 40  [fonte: configuração]
+t=   1 arquiteto          • intencao.adotada: {"intencao":1,"desejo":"montar_nivel_jogavel","objetivo":"montar_nivel"}
+t=   1 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"montar_nivel","plano":"montar_slot_a_slot","tratador":false}
+t=   1 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"ranquear_pool","plano":"playtest_individual","tratador":false}
+t=   1 arquiteto          ⚠ falha.duplicacao: {"id":4,"para":"jogador-P-Gde"}
+t=   1 arquiteto          ⚠ falha.duplicacao: {"id":7,"para":"jogador-P-Peq"}
+t=   1 arquiteto          ⚠ falha.duplicacao: {"id":14,"para":"jogador-P-Gde"}
+t=   1 jogador-P-Peq      ⚠ msg.duplicada: {"id":7,"de":"arquiteto","performativa":"Request","conversa":"ranking"}
+t=   1 jogador-P-Peq      ⚠ falha.duplicacao: {"id":20,"para":"arquiteto"}
+t=   1 jogador-P-Gde      ⚠ falha.duplicacao: {"id":23,"para":"arquiteto"}
+t=   1 jogador-P-Gde      ⚠ msg.duplicada: {"id":4,"de":"arquiteto","performativa":"Request","conversa":"ranking"}
+t=   1 jogador-P-Gde      ⚠ falha.duplicacao: {"id":26,"para":"arquiteto"}
+t=   1 jogador-P-Gde      ⚠ falha.duplicacao: {"id":28,"para":"arquiteto"}
+t=   1 jogador-P-Gde      ⚠ msg.duplicada: {"id":14,"de":"arquiteto","performativa":"Request","conversa":"ranking"}
+t=   2 arquiteto          ⚠ msg.duplicada: {"id":20,"de":"jogador-P-Peq","performativa":"Inform","conversa":"ranking"}
+t=   2 arquiteto          ⚠ msg.duplicada: {"id":23,"de":"jogador-P-Gde","performativa":"Inform","conversa":"ranking"}
+t=   2 arquiteto          ⚠ msg.duplicada: {"id":26,"de":"jogador-P-Gde","performativa":"Inform","conversa":"ranking"}
+t=   2 arquiteto          ⚠ msg.duplicada: {"id":28,"de":"jogador-P-Gde","performativa":"Inform","conversa":"ranking"}
+t=   2 arquiteto          + crença ranking(pool) = a-baixo, b-muro1, b-muro2, d-escada, f-copia, c-teto, …  [fonte: inferência]
+t=   2 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(1)","plano":"testar_candidatos","tratador":false}
+t=   2 arquiteto          ⚠ falha.duplicacao: {"id":32,"para":"jogador-P-Gde"}
+t=   2 jogador-P-Peq      ⚠ falha.duplicacao: {"id":33,"para":"arquiteto"}
+t=   2 jogador-P-Peq      ⚠ falha.duplicacao: {"id":34,"para":"arquiteto"}
+t=   2 jogador-P-Gde      ⚠ falha.duplicacao: {"id":35,"para":"arquiteto"}
+t=   2 jogador-P-Gde      ⚠ falha.duplicacao: {"id":36,"para":"arquiteto"}
+t=   2 jogador-P-Gde      ⚠ msg.duplicada: {"id":32,"de":"arquiteto","performativa":"Request","conversa":"slot:1"}
+t=   3 arquiteto          ⚠ msg.duplicada: {"id":33,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:1"}
+t=   3 arquiteto          ⚠ msg.duplicada: {"id":34,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:1"}
+t=   3 arquiteto          ⚠ msg.duplicada: {"id":35,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:1"}
+t=   3 arquiteto          ⚠ msg.duplicada: {"id":36,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:1"}
+t=   3 arquiteto          ✉ Request → curador [estilo:s1r1] {"Slot":1,"candidatos":["a-baixo","b-muro1"]}
+t=   3 curador            • intencao.adotada: {"intencao":1,"desejo":"atender_pedidos","objetivo":"atender_pedido(37)"}
+t=   3 curador            • plano.selecionado: {"intencao":1,"objetivo":"atender_pedido(37)","plano":"avaliar_estilo","tratador":false}
+t=   3 curador            ✉ Inform → arquiteto [estilo:s1r1] {"Slot":1,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["a-baixo: aceitável (típico para Inicio: distância 0.41 ≤ 1.50)","b-muro1: aceitável (típico para Inicio: distância 0.72 ≤ 1.50)"]}
+t=   3 curador            ⚠ falha.duplicacao: {"id":38,"para":"arquiteto"}
+t=   3 curador            ✓ intencao.concluida: {"intencao":1,"desejo":"atender_pedidos"}
+t=   4 arquiteto          ⚠ msg.duplicada: {"id":38,"de":"curador","performativa":"Inform","conversa":"estilo:s1r1"}
+t=   4 arquiteto          ✓ nivel.fixar: {"slot":1,"chunk":"a-baixo","motivo":"típico para Inicio: distância 0.41 ≤ 1.50"}
+t=   4 arquiteto          ✉ Inform → curador [slot:1] {"Slot":1,"ChunkId":"a-baixo","TilesEditados":0}
+t=   4 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","tratador":false}
+t=   4 arquiteto          ⚠ falha.duplicacao: {"id":43,"para":"jogador-P-Gde"}
+t=   4 jogador-P-Peq      ⚠ falha.duplicacao: {"id":44,"para":"arquiteto"}
+t=   4 jogador-P-Gde      ⚠ msg.duplicada: {"id":43,"de":"arquiteto","performativa":"Request","conversa":"slot:2"}
+t=   5 arquiteto          + crença falha_costura(2|b-muro1) = Parede para P-Peq na coluna local 0  [fonte: inferência]
+t=   5 arquiteto          ⚠ msg.duplicada: {"id":44,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:2"}
+t=   5 arquiteto          + crença falha_costura(2|b-muro2) = Parede para P-Peq na coluna local 0  [fonte: inferência]
+t=   5 arquiteto          + crença culpa_costura(2) = 2 candidatos diferentes falham nas primeiras colunas do slot 2; a saída do slot 1 é a causa provável  [fonte: inferência]
+t=   5 arquiteto          + crença exigencia_saida(1) = alta  [fonte: inferência]
+t=   5 arquiteto          + crença falha_costura(2|b-muro1) = Parede para P-Gde na coluna local 0  [fonte: inferência]
+t=   5 arquiteto          + crença falha_costura(2|b-muro2) = Parede para P-Gde na coluna local 0  [fonte: inferência]
+t=   5 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"reparar_slot(2, s2r2, …)","plano":"contract_net_de_reparo","tratador":false}
+t=   6 arquiteto          ⟳ reconsideracao: {"intencao":1,"decisao":"abandonar !preencher","motivo":"crença nova — 2 candidatos diferentes falham nas primeiras colunas do slot 2; a saída do slot 1 é a causa provável; reparar o candidato trataria o sintoma, não a causa"}
+t=   6 arquiteto          • objetivo.abandonado: {"intencao":1,"objetivo":"reparar_slot(2, s2r2, …)"}
+t=   6 arquiteto          ✗ plano.falhou: {"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","motivo":"reconsideração: crença nova — 2 candidatos diferentes falham nas primeiras colunas do slot 2; a saída do slot 1 é a causa provável; reparar o candida…
+t=   6 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(2)","plano":"recuar_por_culpa_da_costura","tratador":true}
+t=   6 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"recuar(2, falhas repetidas na costura apontam o slot anterior)","plano":"liberar_slot_anterior","tratador":false}
+t=   6 arquiteto          + crença culpado(1|a-baixo) = falhas repetidas na costura apontam o slot anterior  [fonte: inferência]
+t=   6 arquiteto          − crença culpa_costura(2)
+t=   6 arquiteto          • nivel.recuar: {"slot_reaberto":1,"chunk_removido":"a-baixo","motivo":"falhas repetidas na costura apontam o slot anterior"}
+t=   6 arquiteto          ✉ Inform → curador [slot:1] {"Slot":1,"Motivo":"falhas repetidas na costura apontam o slot anterior"}
+t=   6 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(1)","plano":"testar_candidatos","tratador":false}
+t=   6 arquiteto          ⚠ falha.duplicacao: {"id":50,"para":"jogador-P-Gde"}
+t=   6 arquiteto          ⚠ falha.duplicacao: {"id":51,"para":"jogador-P-Peq"}
+t=   6 jogador-P-Peq      ⚠ msg.duplicada: {"id":51,"de":"arquiteto","performativa":"Request","conversa":"slot:1"}
+t=   6 jogador-P-Gde      ⚠ msg.duplicada: {"id":50,"de":"arquiteto","performativa":"Request","conversa":"slot:1"}
+t=   7 arquiteto          ✉ Request → curador [estilo:s1r3] {"Slot":1,"candidatos":["d-escada","b-muro2"]}
+t=   7 curador            • intencao.adotada: {"intencao":2,"desejo":"atender_pedidos","objetivo":"atender_pedido(57)"}
+t=   7 curador            • plano.selecionado: {"intencao":2,"objetivo":"atender_pedido(57)","plano":"avaliar_estilo","tratador":false}
+t=   7 curador            ✉ Inform → arquiteto [estilo:s1r3] {"Slot":1,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["d-escada: aceitável (típico para Inicio: distância 0.78 ≤ 1.50)","b-muro2: aceitável (típico para Inicio: distância 0.60 ≤ 1.50)"]}
+t=   7 curador            ⚠ falha.duplicacao: {"id":58,"para":"arquiteto"}
+t=   7 curador            ✓ intencao.concluida: {"intencao":2,"desejo":"atender_pedidos"}
+t=   8 arquiteto          ⚠ msg.duplicada: {"id":58,"de":"curador","performativa":"Inform","conversa":"estilo:s1r3"}
+t=   8 arquiteto          ✓ nivel.fixar: {"slot":1,"chunk":"d-escada","motivo":"típico para Inicio: distância 0.78 ≤ 1.50"}
+t=   8 arquiteto          ✉ Inform → curador [slot:1] {"Slot":1,"ChunkId":"d-escada","TilesEditados":0}
+t=   8 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","tratador":false}
+t=   8 arquiteto          ⚠ falha.duplicacao: {"id":62,"para":"jogador-P-Peq"}
+t=   8 jogador-P-Peq      ⚠ falha.duplicacao: {"id":64,"para":"arquiteto"}
+t=   8 jogador-P-Peq      ⚠ falha.duplicacao: {"id":65,"para":"arquiteto"}
+t=   8 jogador-P-Peq      ⚠ msg.duplicada: {"id":62,"de":"arquiteto","performativa":"Request","conversa":"slot:2"}
+t=   8 jogador-P-Gde      ⚠ falha.duplicacao: {"id":66,"para":"arquiteto"}
+t=   9 arquiteto          ⚠ msg.duplicada: {"id":64,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:2"}
+t=   9 arquiteto          ⚠ msg.duplicada: {"id":65,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:2"}
+t=   9 arquiteto          ⚠ msg.duplicada: {"id":66,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:2"}
+t=   9 arquiteto          ✉ Request → curador [estilo:s2r4] {"Slot":2,"candidatos":["a-baixo","b-muro1"]}
+t=   9 arquiteto          ⚠ falha.duplicacao: {"id":68,"para":"curador"}
+t=   9 curador            ⚠ msg.duplicada: {"id":68,"de":"arquiteto","performativa":"Request","conversa":"estilo:s2r4"}
+t=   9 curador            • intencao.adotada: {"intencao":3,"desejo":"atender_pedidos","objetivo":"atender_pedido(68)"}
+t=   9 curador            • plano.selecionado: {"intencao":3,"objetivo":"atender_pedido(68)","plano":"avaliar_estilo","tratador":false}
+t=   9 curador            ✉ Inform → arquiteto [estilo:s2r4] {"Slot":2,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["a-baixo: recusado (costura visível: salto de chão 5 > 1)","b-muro1: aceitável (típico para Meio: distância 0.80 ≤ 1.50)"]}
+t=   9 curador            ⚠ falha.duplicacao: {"id":69,"para":"arquiteto"}
+t=   9 curador            ✓ intencao.concluida: {"intencao":3,"desejo":"atender_pedidos"}
+t=  10 arquiteto          ⚠ msg.duplicada: {"id":69,"de":"curador","performativa":"Inform","conversa":"estilo:s2r4"}
+t=  10 arquiteto          ✓ nivel.fixar: {"slot":2,"chunk":"b-muro1","motivo":"típico para Meio: distância 0.80 ≤ 1.50"}
+t=  10 arquiteto          ✉ Inform → curador [slot:2] {"Slot":2,"ChunkId":"b-muro1","TilesEditados":0}
+t=  10 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(3)","plano":"testar_candidatos","tratador":false}
+t=  10 curador            • intencao.adotada: {"intencao":4,"desejo":"parecer_original","objetivo":"emitir_restricao(3, esparso, os dois últimos trechos são mais densos que 75% das janelas originais (> 0.033))"}
+t=  10 curador            • plano.selecionado: {"intencao":4,"objetivo":"emitir_restricao(3, esparso, os dois últimos trechos são mais densos que 75% das janelas originais (> 0.033))","plano":"emitir_restricao","tratador":false}
+t=  10 curador            ✉ Inform → arquiteto [restricao:3] {"Slot":3,"Tipo":"esparso","Motivo":"os dois últimos trechos são mais densos que 75% das janelas originais (> 0.033)"}
+t=  10 curador            ⚠ falha.duplicacao: {"id":75,"para":"arquiteto"}
+t=  10 curador            + crença restricao_emitida(3) = esparso  [fonte: deliberação]
+t=  10 curador            ✓ intencao.concluida: {"intencao":4,"desejo":"parecer_original"}
+t=  10 jogador-P-Peq      ⚠ falha.duplicacao: {"id":76,"para":"arquiteto"}
+t=  10 jogador-P-Gde      ⚠ falha.duplicacao: {"id":78,"para":"arquiteto"}
+t=  11 arquiteto          + crença restricao(3) = esparso  [fonte: curador]
+t=  11 arquiteto          ⚠ msg.duplicada: {"id":75,"de":"curador","performativa":"Inform","conversa":"restricao:3"}
+t=  11 arquiteto          ⚠ msg.duplicada: {"id":76,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:3"}
+t=  11 arquiteto          + crença falha_costura(3|b-muro2) = Parede para P-Peq na coluna local 0  [fonte: inferência]
+t=  11 arquiteto          ⚠ msg.duplicada: {"id":78,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:3"}
+t=  11 arquiteto          + crença falha_costura(3|b-muro2) = Parede para P-Gde na coluna local 0  [fonte: inferência]
+t=  11 arquiteto          ✉ Request → curador [estilo:s3r5] {"Slot":3,"candidatos":["a-baixo"]}
+t=  11 curador            • intencao.adotada: {"intencao":5,"desejo":"atender_pedidos","objetivo":"atender_pedido(80)"}
+t=  11 curador            • plano.selecionado: {"intencao":5,"objetivo":"atender_pedido(80)","plano":"avaliar_estilo","tratador":false}
+t=  11 curador            ✉ Inform → arquiteto [estilo:s3r5] {"Slot":3,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["a-baixo: aceitável (típico para Meio: distância 0.51 ≤ 1.50)"]}
+t=  11 curador            ✓ intencao.concluida: {"intencao":5,"desejo":"atender_pedidos"}
+t=  12 arquiteto          ✓ nivel.fixar: {"slot":3,"chunk":"a-baixo","motivo":"típico para Meio: distância 0.51 ≤ 1.50"}
+t=  12 arquiteto          ✉ Inform → curador [slot:3] {"Slot":3,"ChunkId":"a-baixo","TilesEditados":0}
+t=  12 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","tratador":false}
+t=  12 arquiteto          ⚠ falha.duplicacao: {"id":83,"para":"jogador-P-Peq"}
+t=  12 curador            • intencao.adotada: {"intencao":6,"desejo":"parecer_original","objetivo":"emitir_restricao(4, final, nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana)"}
+t=  12 curador            • plano.selecionado: {"intencao":6,"objetivo":"emitir_restricao(4, final, nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana)","plano":"emitir_restricao","tratador":false}
+t=  12 curador            ✉ Inform → arquiteto [restricao:4] {"Slot":4,"Tipo":"final","Motivo":"nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana"}
+t=  12 curador            + crença restricao_emitida(4) = final  [fonte: deliberação]
+t=  12 curador            ✓ intencao.concluida: {"intencao":6,"desejo":"parecer_original"}
+t=  12 jogador-P-Peq      ⚠ falha.duplicacao: {"id":88,"para":"arquiteto"}
+t=  12 jogador-P-Peq      ⚠ msg.duplicada: {"id":83,"de":"arquiteto","performativa":"Request","conversa":"slot:4"}
+t=  12 jogador-P-Gde      ⚠ falha.duplicacao: {"id":90,"para":"arquiteto"}
+t=  13 arquiteto          + crença restricao(4) = final  [fonte: curador]
+t=  13 arquiteto          ⚠ msg.duplicada: {"id":88,"de":"jogador-P-Peq","performativa":"Inform","conversa":"slot:4"}
+t=  13 arquiteto          ⚠ msg.duplicada: {"id":90,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:4"}
+t=  13 arquiteto          ✉ Request → curador [estilo:s4r6] {"Slot":4,"candidatos":["f-copia"]}
+t=  13 curador            • intencao.adotada: {"intencao":7,"desejo":"atender_pedidos","objetivo":"atender_pedido(92)"}
+t=  13 curador            • plano.selecionado: {"intencao":7,"objetivo":"atender_pedido(92)","plano":"avaliar_estilo","tratador":false}
+t=  13 curador            + crença vetado(f-copia) = N4  [fonte: avaliação]
+t=  13 curador            ✉ Inform → arquiteto [estilo:s4r6] {"Slot":4,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["f-copia: recusado (veto N4: cópia de janela original (distância estrutural 8 %))"]}
+t=  13 curador            ✓ intencao.concluida: {"intencao":7,"desejo":"atender_pedidos"}
+t=  14 arquiteto          + crença vetado(f-copia) = N4  [fonte: curador]
+t=  14 arquiteto          ✗ plano.falhou: {"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","motivo":"o curador recusou os 1 candidato(s) aprovados no playtest"}
+t=  14 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(4)","plano":"tentar_outros_candidatos","tratador":true}
+t=  14 arquiteto          • decisao: {"decisao":"nova rodada de candidatos para o slot 4","motivo":"o curador recusou os 1 candidato(s) aprovados no playtest"}
+t=  14 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","tratador":false}
+t=  14 arquiteto          ⚠ falha.duplicacao: {"id":94,"para":"jogador-P-Peq"}
+t=  14 arquiteto          ⚠ falha.duplicacao: {"id":95,"para":"jogador-P-Gde"}
+t=  14 jogador-P-Peq      ⚠ msg.duplicada: {"id":94,"de":"arquiteto","performativa":"Request","conversa":"slot:4"}
+t=  14 jogador-P-Gde      ⚠ falha.duplicacao: {"id":97,"para":"arquiteto"}
+t=  14 jogador-P-Gde      ⚠ msg.duplicada: {"id":95,"de":"arquiteto","performativa":"Request","conversa":"slot:4"}
+t=  15 arquiteto          ⚠ msg.duplicada: {"id":97,"de":"jogador-P-Gde","performativa":"Inform","conversa":"slot:4"}
+t=  15 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"reparar_slot(4, s4r7, …)","plano":"contract_net_de_reparo","tratador":false}
+t=  16 arquiteto          ✉ Cfp → reparador-costura [reparo:4:1] {"Slot":4,"ChunkId":"e-buraco1","causa":"Buraco","perfil":"P-Peq","ColunaLocal":10,"ReplyBy":18}
+t=  16 arquiteto          ✉ Cfp → reparador-folga [reparo:4:1] {"Slot":4,"ChunkId":"e-buraco1","causa":"Buraco","perfil":"P-Peq","ColunaLocal":10,"ReplyBy":18}
+t=  16 arquiteto          ✉ Cfp → reparador-suporte [reparo:4:1] {"Slot":4,"ChunkId":"e-buraco1","causa":"Buraco","perfil":"P-Peq","ColunaLocal":10,"ReplyBy":18}
+t=  16 reparador-costura  ✉ Propose → arquiteto [reparo:4:1] {"Reparador":"reparador-costura","estrategia":"estreitar buraco de 5 para 4","custo":1}
+t=  16 reparador-costura  ⚠ falha.duplicacao: {"id":101,"para":"arquiteto"}
+t=  16 reparador-folga    ✉ Refuse → arquiteto [reparo:4:1] falha Buraco fora da minha especialidade
+t=  16 reparador-suporte  ✉ Propose → arquiteto [reparo:4:1] {"Reparador":"reparador-suporte","estrategia":"pipeline do TCC (11 primitivas)","custo":11}
+t=  17 arquiteto          ⚠ msg.duplicada: {"id":101,"de":"reparador-costura","performativa":"Propose","conversa":"reparo:4:1"}
+t=  17 arquiteto          • cn.propostas: {"conversa":"reparo:4:1","falha":"P-Peq: falhou (Buraco, col. 94, progresso 84 %)","propostas":["reparador-costura: estreitar buraco de 5 para 4, 1 tiles","reparador-suporte: pipeline do TCC (11 primitivas), 11 tiles"]}
+t=  17 arquiteto          ✉ Request → curador [aprov:reparo:4:1:reparador-costura] {"Slot":4,"ChunkId":"e-buraco1","estrategia":"estreitar buraco de 5 para 4","custo":1}
+t=  17 arquiteto          ⚠ falha.duplicacao: {"id":104,"para":"curador"}
+t=  17 curador            ⚠ msg.duplicada: {"id":104,"de":"arquiteto","performativa":"Request","conversa":"aprov:reparo:4:1:reparador-costura"}
+t=  17 curador            • intencao.adotada: {"intencao":8,"desejo":"atender_pedidos","objetivo":"atender_pedido(104)"}
+t=  17 curador            • plano.selecionado: {"intencao":8,"objetivo":"atender_pedido(104)","plano":"decidir_aprovacao","tratador":false}
+t=  17 curador            ✉ Agree → arquiteto [aprov:reparo:4:1:reparador-costura] {"Id":7,"Emissor":"curador","Conversa":"reparo:4:1","Slot":4,"ChunkId":"e-buraco1","HashDiff":"1912B2A91885E698"}
+t=  17 curador            ✓ intencao.concluida: {"intencao":8,"desejo":"atender_pedidos"}
+t=  18 arquiteto          ✉ AcceptProposal → reparador-costura [reparo:4:1] e-buraco1
+t=  18 reparador-costura  • nivel.reserva: {"conversa":"reparo:4:1","edicao":1,"reservas":["reparador-costura:[94,95)"]}
+t=  18 reparador-costura  ✉ Inform → arquiteto [reparo:4:1] {"EdicaoId":1}
+t=  18 reparador-costura  ⚠ falha.duplicacao: {"id":107,"para":"arquiteto"}
+t=  19 arquiteto          ⚠ msg.duplicada: {"id":107,"de":"reparador-costura","performativa":"Inform","conversa":"reparo:4:1"}
+t=  20 arquiteto          + crença orcamento(nivel) = 39  [fonte: ação]
+t=  20 arquiteto          ✓ nivel.commit: {"edicao":1,"slot":4,"chunk":"e-buraco1","reparador":"reparador-costura","tiles":1}
+t=  20 arquiteto          ✉ Inform → curador [slot:4] {"Slot":4,"ChunkId":"e-buraco1","TilesEditados":1}
+t=  20 arquiteto          ✉ RejectProposal → reparador-suporte [reparo:4:1] e-buraco1
+t=  20 arquiteto          • plano.selecionado: {"intencao":1,"objetivo":"validar_nivel","plano":"playtest_do_nivel_completo","tratador":false}
+t=  20 arquiteto          ⚠ falha.duplicacao: {"id":114,"para":"jogador-P-Peq"}
+t=  20 arquiteto          ⚠ falha.duplicacao: {"id":115,"para":"jogador-P-Gde"}
+t=  20 curador            + crença orcamento(nivel) = 39  [fonte: inferência]
+t=  20 jogador-P-Peq      ⚠ msg.duplicada: {"id":114,"de":"arquiteto","performativa":"Request","conversa":"validacao"}
+t=  20 jogador-P-Gde      ⚠ msg.duplicada: {"id":115,"de":"arquiteto","performativa":"Request","conversa":"validacao"}
+t=  21 arquiteto          + crença nivel_concluido(nivel) = true  [fonte: deliberação]
+t=  21 arquiteto          ✓ intencao.concluida: {"intencao":1,"desejo":"montar_nivel_jogavel"}
+
+sucesso: True
+sequência: d-escada | b-muro1 | a-baixo | e-buraco1
+conclusão por perfil (M1): P-Peq=sim, P-Gde=sim
+tiles editados (M4): 1 · backtracks (M5): 1 · mensagens (M6): 117 · ticks: 21
+KL padrões 2×2 (M12): 0.030 · costuras visíveis (M13): 0 · menor distância a originais (N4): 57.1 %
+assinatura do trace (RNF01): 24C596A4DEA4F06C
+
+Nível montado:
+  ----------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------
+  ---------------------------------------ooo----------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------
+  ------------------------XXXXXXX---------------------------------------------------------------------------------
+  ------?----------------XXXXXXXX---------------------------------S?S---------------------?-----------------------
+  ----------------------XXXXXXXXX---------------------------------------------------------------------------------
+  ---------------------XXXXXXXXXX---------------------------------------------------------------------------------
+  --------------------XXXXXXXXXXX---------------------------------------------E-----------------------------------
+  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-----XXXXXXXXXXXXX
+  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX----XXXXXXXXXXXXX
+
+trace: exemplos/falhas/duplicacao-30pct-trace.jsonl (384 eventos)

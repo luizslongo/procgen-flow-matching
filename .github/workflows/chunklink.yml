@@ -1,0 +1,86 @@
+# ChunkLink (INE5628 — Sistemas Multiagentes): SMA que monta níveis de Mario com os chunks deste TCC.
+# Compila e testa o projeto em chunklink/ e verifica o pacote da entrega dentro de um contêiner Docker,
+# sem .NET instalado, que é como um avaliador sem o SDK roda o sistema.
+name: ChunkLink
+
+on:
+  push:
+    branches: [chunklink]
+    paths: ["chunklink/**", ".github/workflows/chunklink.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Build, testes e cenários (.NET 8)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chunklink
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        run: dotnet build ChunkLink.sln -nologo
+
+      - name: Testes (xUnit)
+        run: |
+          dotnet test ChunkLink.sln --no-build -nologo \
+            --logger "trx;LogFileName=testes.trx" --logger "console;verbosity=normal" | tee saida-testes.txt
+
+      - name: Cenário controlado
+        run: |
+          mkdir -p saida/depuracao saida/falhas
+          dotnet run --project src/ChunkLink.Cli --no-build -- depurar --trace saida/depuracao/trace.jsonl \
+            | tee saida/depuracao/narrativa.txt
+
+      - name: Cenário com falhas de entrega injetadas (10% de perda, 30% de duplicação)
+        run: |
+          dotnet run --project src/ChunkLink.Cli --no-build -- depurar --perder 0.10 --duplicar 0.3 --semente 2 \
+            --trace saida/falhas/trace.jsonl | tee saida/falhas/narrativa.txt
+
+      - name: Resumo
+        if: always()
+        run: |
+          {
+            echo "## ChunkLink"
+            echo
+            echo '```'
+            grep -E "Passed!|Failed!" saida-testes.txt || true
+            grep -E "^sucesso|^sequência|assinatura" saida/depuracao/narrativa.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chunklink-resultados
+          path: |
+            chunklink/**/TestResults/*.trx
+            chunklink/saida/
+
+  pacote-docker:
+    name: Pacote da entrega e Docker (sem .NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gerar o zip da entrega (com o snapshot do TCC em tcc-vendor/)
+        run: bash chunklink/ferramentas/empacotar.sh "" "$PWD/DSM3_ChunkLink_LuizSlongo.zip"
+
+      - name: Docker a partir do zip (build roda os testes)
+        run: |
+          mkdir -p /tmp/pacote && unzip -q DSM3_ChunkLink_LuizSlongo.zip -d /tmp/pacote
+          docker build -t chunklink /tmp/pacote/ChunkLink
+          docker run --rm chunklink depurar | tail -n 25
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DSM3_ChunkLink_LuizSlongo
+          path: DSM3_ChunkLink_LuizSlongo.zip

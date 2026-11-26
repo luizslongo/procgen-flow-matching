@@ -1,0 +1,28 @@
+Overworld · original mario-1-1 · 7 slots · 10 sementes · subconjuntos de 10 de 30 chunks
+
+estratégia  montou    KL médio*  costuras*  tiles*   mensagens* 
+E0          10/10     0.42       0.00       272.40   0.00       
+E1          10/10     0.45       0.00       264.60   0.00       
+E2          7/10      0.66       0.00       0.00     282.29     
+E2-a        6/10      0.65       0.00       0.00     328.83     
+* média só das execuções que montaram o nível
+
+comportamento coletivo de E2 (soma nas sementes):
+  playtests_pedidos             1498
+  pareceres_de_estilo            127
+  restricoes_proativas            11
+  vetos                            0
+  concessoes                      12
+  suspensoes_de_estilo             2
+  reconsideracoes_arquiteto        0
+  recuos                          55
+  contract_nets                   25
+  propostas                       25
+  recusas_de_reparadores          50
+  aprovacoes                       0
+  recusas_do_curador              25
+  commits                          0
+  rollbacks                        0
+  mensagens                     3654
+
+CSV em exemplos/lote-overworld-escassez/metricas.csv e exemplos/lote-overworld-escassez/coletivo-e2.csv

@@ -1,0 +1,588 @@
+{"seq":1,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"orcamento","chave":"nivel","valor":40,"fonte":"configuração"}}
+{"seq":2,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"incompativel","chave":"tre-b006|tre-b009","valor":"Buraco","fonte":"memória"}}
+{"seq":3,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"incompativel","chave":"tre-b001|tre-b016","valor":"Teto","fonte":"memória"}}
+{"seq":4,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"incompativel","chave":"tre-b001|tre-b010","valor":"Parede","fonte":"memória"}}
+{"seq":5,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"incompativel","chave":"tre-b001|tre-b004","valor":"Parede","fonte":"memória"}}
+{"seq":6,"tick":0,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"incompativel","chave":"tre-b001|tre-b006","valor":"Parede","fonte":"memória"}}
+{"seq":7,"tick":0,"agente":"arquiteto","tipo":"memoria.carregada","dados":{"execucao":3,"incompatibilidades":5,"vetos":0}}
+{"seq":8,"tick":0,"agente":"curador","tipo":"crenca+","dados":{"predicado":"orcamento","chave":"nivel","valor":40,"fonte":"configuração"}}
+{"seq":9,"tick":1,"agente":"arquiteto","tipo":"intencao.adotada","dados":{"intencao":1,"desejo":"montar_nivel_jogavel","objetivo":"montar_nivel"}}
+{"seq":10,"tick":1,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"montar_nivel","plano":"montar_slot_a_slot","tratador":false}}
+{"seq":11,"tick":1,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"ranquear_pool","plano":"playtest_individual","tratador":false}}
+{"seq":12,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":1,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b001","largura":28}}}
+{"seq":13,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":2,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b001","largura":28}}}
+{"seq":14,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":3,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b002","largura":28}}}
+{"seq":15,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":4,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b002","largura":28}}}
+{"seq":16,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":5,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b003","largura":28}}}
+{"seq":17,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":6,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b003","largura":28}}}
+{"seq":18,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":7,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b004","largura":28}}}
+{"seq":19,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":8,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b004","largura":28}}}
+{"seq":20,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":9,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b005","largura":28}}}
+{"seq":21,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":10,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b005","largura":28}}}
+{"seq":22,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":11,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b006","largura":28}}}
+{"seq":23,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":12,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b006","largura":28}}}
+{"seq":24,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":13,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b007","largura":28}}}
+{"seq":25,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":14,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b007","largura":28}}}
+{"seq":26,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":15,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b008","largura":28}}}
+{"seq":27,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":16,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b008","largura":28}}}
+{"seq":28,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":17,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b009","largura":28}}}
+{"seq":29,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":18,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b009","largura":28}}}
+{"seq":30,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":19,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b010","largura":28}}}
+{"seq":31,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":20,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b010","largura":28}}}
+{"seq":32,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":21,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b011","largura":28}}}
+{"seq":33,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":22,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b011","largura":28}}}
+{"seq":34,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":23,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b012","largura":28}}}
+{"seq":35,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":24,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b012","largura":28}}}
+{"seq":36,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":25,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b013","largura":28}}}
+{"seq":37,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":26,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b013","largura":28}}}
+{"seq":38,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":27,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b014","largura":28}}}
+{"seq":39,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":28,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b014","largura":28}}}
+{"seq":40,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":29,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b015","largura":28}}}
+{"seq":41,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":30,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b015","largura":28}}}
+{"seq":42,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":31,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b016","largura":28}}}
+{"seq":43,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":32,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b016","largura":28}}}
+{"seq":44,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":33,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b017","largura":28}}}
+{"seq":45,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":34,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b017","largura":28}}}
+{"seq":46,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":35,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b018","largura":28}}}
+{"seq":47,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":36,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b018","largura":28}}}
+{"seq":48,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":37,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b019","largura":28}}}
+{"seq":49,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":38,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b019","largura":28}}}
+{"seq":50,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":39,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b020","largura":28}}}
+{"seq":51,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":40,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b020","largura":28}}}
+{"seq":52,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":41,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b021","largura":28}}}
+{"seq":53,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":42,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b021","largura":28}}}
+{"seq":54,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":43,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b022","largura":28}}}
+{"seq":55,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":44,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b022","largura":28}}}
+{"seq":56,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":45,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b023","largura":28}}}
+{"seq":57,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":46,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b023","largura":28}}}
+{"seq":58,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":47,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b024","largura":28}}}
+{"seq":59,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":48,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b024","largura":28}}}
+{"seq":60,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":49,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b025","largura":28}}}
+{"seq":61,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":50,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b025","largura":28}}}
+{"seq":62,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":51,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b026","largura":28}}}
+{"seq":63,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":52,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b026","largura":28}}}
+{"seq":64,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":53,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b027","largura":28}}}
+{"seq":65,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":54,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b027","largura":28}}}
+{"seq":66,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":55,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b028","largura":28}}}
+{"seq":67,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":56,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b028","largura":28}}}
+{"seq":68,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":57,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b029","largura":28}}}
+{"seq":69,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":58,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b029","largura":28}}}
+{"seq":70,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":59,"para":"jogador-P-Peq","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b030","largura":28}}}
+{"seq":71,"tick":1,"agente":"arquiteto","tipo":"msg","dados":{"id":60,"para":"jogador-P-Gde","performativa":"Request","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b030","largura":28}}}
+{"seq":72,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":61,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b001","resultado":"P-Peq: concluiu"}}}
+{"seq":73,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":62,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":74,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":63,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":75,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":64,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b004","resultado":"P-Peq: concluiu"}}}
+{"seq":76,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":65,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b005","resultado":"P-Peq: falhou (Indeterminada, col. 23, progresso 81 %)"}}}
+{"seq":77,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":66,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b006","resultado":"P-Peq: concluiu"}}}
+{"seq":78,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":67,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b007","resultado":"P-Peq: concluiu"}}}
+{"seq":79,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":68,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b008","resultado":"P-Peq: concluiu"}}}
+{"seq":80,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":69,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b009","resultado":"P-Peq: falhou (SemEntrada, col. 0, progresso 0 %)"}}}
+{"seq":81,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":70,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b010","resultado":"P-Peq: concluiu"}}}
+{"seq":82,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":71,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b011","resultado":"P-Peq: concluiu"}}}
+{"seq":83,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":72,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b012","resultado":"P-Peq: concluiu"}}}
+{"seq":84,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":73,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b013","resultado":"P-Peq: concluiu"}}}
+{"seq":85,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":74,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b014","resultado":"P-Peq: concluiu"}}}
+{"seq":86,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":75,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b015","resultado":"P-Peq: concluiu"}}}
+{"seq":87,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":76,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b016","resultado":"P-Peq: concluiu"}}}
+{"seq":88,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":77,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b017","resultado":"P-Peq: concluiu"}}}
+{"seq":89,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":78,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b018","resultado":"P-Peq: concluiu"}}}
+{"seq":90,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":79,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b019","resultado":"P-Peq: concluiu"}}}
+{"seq":91,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":80,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b020","resultado":"P-Peq: concluiu"}}}
+{"seq":92,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":81,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b021","resultado":"P-Peq: falhou (Indeterminada, col. 5, progresso 15 %)"}}}
+{"seq":93,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":82,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b022","resultado":"P-Peq: concluiu"}}}
+{"seq":94,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":83,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b023","resultado":"P-Peq: falhou (Buraco, col. 23, progresso 81 %)"}}}
+{"seq":95,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":84,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b024","resultado":"P-Peq: concluiu"}}}
+{"seq":96,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":85,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b025","resultado":"P-Peq: falhou (Buraco, col. 22, progresso 78 %)"}}}
+{"seq":97,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":86,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b026","resultado":"P-Peq: concluiu"}}}
+{"seq":98,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":87,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b027","resultado":"P-Peq: falhou (Indeterminada, col. 16, progresso 56 %)"}}}
+{"seq":99,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":88,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b028","resultado":"P-Peq: concluiu"}}}
+{"seq":100,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":89,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b029","resultado":"P-Peq: concluiu"}}}
+{"seq":101,"tick":1,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":90,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b030","resultado":"P-Peq: concluiu"}}}
+{"seq":102,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":91,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b001","resultado":"P-Gde: concluiu"}}}
+{"seq":103,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":92,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":104,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":93,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":105,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":94,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b004","resultado":"P-Gde: concluiu"}}}
+{"seq":106,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":95,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b005","resultado":"P-Gde: falhou (Indeterminada, col. 23, progresso 81 %)"}}}
+{"seq":107,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":96,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b006","resultado":"P-Gde: concluiu"}}}
+{"seq":108,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":97,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b007","resultado":"P-Gde: concluiu"}}}
+{"seq":109,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":98,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b008","resultado":"P-Gde: concluiu"}}}
+{"seq":110,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":99,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b009","resultado":"P-Gde: falhou (SemEntrada, col. 0, progresso 0 %)"}}}
+{"seq":111,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":100,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b010","resultado":"P-Gde: concluiu"}}}
+{"seq":112,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":101,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b011","resultado":"P-Gde: concluiu"}}}
+{"seq":113,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":102,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b012","resultado":"P-Gde: concluiu"}}}
+{"seq":114,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":103,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b013","resultado":"P-Gde: concluiu"}}}
+{"seq":115,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":104,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b014","resultado":"P-Gde: concluiu"}}}
+{"seq":116,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":105,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b015","resultado":"P-Gde: concluiu"}}}
+{"seq":117,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":106,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b016","resultado":"P-Gde: concluiu"}}}
+{"seq":118,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":107,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b017","resultado":"P-Gde: concluiu"}}}
+{"seq":119,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":108,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b018","resultado":"P-Gde: concluiu"}}}
+{"seq":120,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":109,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b019","resultado":"P-Gde: concluiu"}}}
+{"seq":121,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":110,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b020","resultado":"P-Gde: concluiu"}}}
+{"seq":122,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":111,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b021","resultado":"P-Gde: falhou (Indeterminada, col. 5, progresso 15 %)"}}}
+{"seq":123,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":112,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b022","resultado":"P-Gde: concluiu"}}}
+{"seq":124,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":113,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b023","resultado":"P-Gde: falhou (Buraco, col. 23, progresso 81 %)"}}}
+{"seq":125,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":114,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b024","resultado":"P-Gde: concluiu"}}}
+{"seq":126,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":115,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b025","resultado":"P-Gde: falhou (Buraco, col. 22, progresso 78 %)"}}}
+{"seq":127,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":116,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b026","resultado":"P-Gde: concluiu"}}}
+{"seq":128,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":117,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b027","resultado":"P-Gde: falhou (Indeterminada, col. 16, progresso 56 %)"}}}
+{"seq":129,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":118,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b028","resultado":"P-Gde: concluiu"}}}
+{"seq":130,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":119,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b029","resultado":"P-Gde: concluiu"}}}
+{"seq":131,"tick":1,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":120,"para":"arquiteto","performativa":"Inform","conversa":"ranking","conteudo":{"Rotulo":"rank|tre-b030","resultado":"P-Gde: concluiu"}}}
+{"seq":132,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b001|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":133,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":134,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":135,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b004|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":136,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b005|P-Peq","valor":"P-Peq: falhou (Indeterminada, col. 23, progresso 81 %)","fonte":"jogador-P-Peq"}}
+{"seq":137,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b006|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":138,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b007|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":139,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b008|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":140,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b009|P-Peq","valor":"P-Peq: falhou (SemEntrada, col. 0, progresso 0 %)","fonte":"jogador-P-Peq"}}
+{"seq":141,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b010|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":142,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b011|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":143,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b012|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":144,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b013|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":145,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b014|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":146,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b015|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":147,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b016|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":148,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b017|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":149,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b018|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":150,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b019|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":151,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b020|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":152,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b021|P-Peq","valor":"P-Peq: falhou (Indeterminada, col. 5, progresso 15 %)","fonte":"jogador-P-Peq"}}
+{"seq":153,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b022|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":154,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b023|P-Peq","valor":"P-Peq: falhou (Buraco, col. 23, progresso 81 %)","fonte":"jogador-P-Peq"}}
+{"seq":155,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b024|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":156,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b025|P-Peq","valor":"P-Peq: falhou (Buraco, col. 22, progresso 78 %)","fonte":"jogador-P-Peq"}}
+{"seq":157,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b026|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":158,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b027|P-Peq","valor":"P-Peq: falhou (Indeterminada, col. 16, progresso 56 %)","fonte":"jogador-P-Peq"}}
+{"seq":159,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b028|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":160,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b029|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":161,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b030|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":162,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b001|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":163,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":164,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":165,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b004|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":166,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b005|P-Gde","valor":"P-Gde: falhou (Indeterminada, col. 23, progresso 81 %)","fonte":"jogador-P-Gde"}}
+{"seq":167,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b006|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":168,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b007|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":169,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b008|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":170,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b009|P-Gde","valor":"P-Gde: falhou (SemEntrada, col. 0, progresso 0 %)","fonte":"jogador-P-Gde"}}
+{"seq":171,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b010|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":172,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b011|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":173,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b012|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":174,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b013|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":175,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b014|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":176,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b015|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":177,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b016|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":178,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b017|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":179,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b018|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":180,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b019|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":181,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b020|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":182,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b021|P-Gde","valor":"P-Gde: falhou (Indeterminada, col. 5, progresso 15 %)","fonte":"jogador-P-Gde"}}
+{"seq":183,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b022|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":184,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b023|P-Gde","valor":"P-Gde: falhou (Buraco, col. 23, progresso 81 %)","fonte":"jogador-P-Gde"}}
+{"seq":185,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b024|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":186,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b025|P-Gde","valor":"P-Gde: falhou (Buraco, col. 22, progresso 78 %)","fonte":"jogador-P-Gde"}}
+{"seq":187,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b026|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":188,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b027|P-Gde","valor":"P-Gde: falhou (Indeterminada, col. 16, progresso 56 %)","fonte":"jogador-P-Gde"}}
+{"seq":189,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b028|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":190,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b029|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":191,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"rank|tre-b030|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":192,"tick":2,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"ranking","chave":"pool","valor":"tre-b001, tre-b002, tre-b003, tre-b004, tre-b006, tre-b007, …","fonte":"inferência"}}
+{"seq":193,"tick":2,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"ranquear_pool","plano":"playtest_individual"}}
+{"seq":194,"tick":2,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(1)","plano":"testar_candidatos","tratador":false}}
+{"seq":195,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":121,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b001","largura":28}}}
+{"seq":196,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":122,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b001","largura":28}}}
+{"seq":197,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":123,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b002","largura":28}}}
+{"seq":198,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":124,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b002","largura":28}}}
+{"seq":199,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":125,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b003","largura":28}}}
+{"seq":200,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":126,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b003","largura":28}}}
+{"seq":201,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":127,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b004","largura":28}}}
+{"seq":202,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":128,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b004","largura":28}}}
+{"seq":203,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":129,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b006","largura":28}}}
+{"seq":204,"tick":2,"agente":"arquiteto","tipo":"msg","dados":{"id":130,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b006","largura":28}}}
+{"seq":205,"tick":2,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":131,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b001","resultado":"P-Peq: concluiu"}}}
+{"seq":206,"tick":2,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":132,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":207,"tick":2,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":133,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":208,"tick":2,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":134,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b004","resultado":"P-Peq: concluiu"}}}
+{"seq":209,"tick":2,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":135,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b006","resultado":"P-Peq: concluiu"}}}
+{"seq":210,"tick":2,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":136,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b001","resultado":"P-Gde: concluiu"}}}
+{"seq":211,"tick":2,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":137,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":212,"tick":2,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":138,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":213,"tick":2,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":139,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b004","resultado":"P-Gde: concluiu"}}}
+{"seq":214,"tick":2,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":140,"para":"arquiteto","performativa":"Inform","conversa":"slot:1","conteudo":{"Rotulo":"s1r1|tre-b006","resultado":"P-Gde: concluiu"}}}
+{"seq":215,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b001|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":216,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":217,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":218,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b004|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":219,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b006|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":220,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b001|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":221,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":222,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":223,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b004|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":224,"tick":3,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s1r1|tre-b006|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":225,"tick":3,"agente":"arquiteto","tipo":"msg","dados":{"id":141,"para":"curador","performativa":"Request","conversa":"estilo:s1r1","conteudo":{"Slot":1,"candidatos":["tre-b001","tre-b002","tre-b003","tre-b004","tre-b006"]}}}
+{"seq":226,"tick":3,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"141","valor":"avaliar estilo de 5 candidato(s) no slot 1","fonte":"arquiteto"}}
+{"seq":227,"tick":3,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":1,"desejo":"atender_pedidos","objetivo":"atender_pedido(141)"}}
+{"seq":228,"tick":3,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"atender_pedido(141)","plano":"avaliar_estilo","tratador":false}}
+{"seq":229,"tick":3,"agente":"curador","tipo":"msg","dados":{"id":142,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s1r1","conteudo":{"Slot":1,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["tre-b001: aceitável (típico para Inicio: distância 1.19 ≤ 1.50)","tre-b002: recusado (atípico para Inicio: blocos (distância 1.96 > 1.50))","tre-b003: recusado (atípico para Inicio: blocos (distância 2.81 > 1.50))","tre-b004: recusado (atípico para Inicio: blocos (distância 2.93 > 1.50))","tre-b006: aceitável (típico para Inicio: distância 1.20 ≤ 1.50)"]}}}
+{"seq":230,"tick":3,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"141"}}
+{"seq":231,"tick":3,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"atender_pedido(141)","plano":"avaliar_estilo"}}
+{"seq":232,"tick":3,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":1,"desejo":"atender_pedidos"}}
+{"seq":233,"tick":4,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s1r1","valor":"RespostaEstilo { Slot = 1, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.5, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":234,"tick":4,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"slot","chave":"1","valor":"tre-b001","fonte":"ação"}}
+{"seq":235,"tick":4,"agente":"arquiteto","tipo":"nivel.fixar","dados":{"slot":1,"chunk":"tre-b001","motivo":"típico para Inicio: distância 1.19 ≤ 1.50"}}
+{"seq":236,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":143,"para":"curador","performativa":"Inform","conversa":"slot:1","conteudo":{"Slot":1,"ChunkId":"tre-b001","TilesEditados":0}}}
+{"seq":237,"tick":4,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(1)","plano":"testar_candidatos"}}
+{"seq":238,"tick":4,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","tratador":false}}
+{"seq":239,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":144,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b002","largura":56}}}
+{"seq":240,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":145,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b002","largura":56}}}
+{"seq":241,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":146,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b003","largura":56}}}
+{"seq":242,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":147,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b003","largura":56}}}
+{"seq":243,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":148,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b007","largura":56}}}
+{"seq":244,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":149,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b007","largura":56}}}
+{"seq":245,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":150,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b008","largura":56}}}
+{"seq":246,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":151,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b008","largura":56}}}
+{"seq":247,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":152,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b011","largura":56}}}
+{"seq":248,"tick":4,"agente":"arquiteto","tipo":"msg","dados":{"id":153,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b011","largura":56}}}
+{"seq":249,"tick":4,"agente":"curador","tipo":"crenca+","dados":{"predicado":"slot","chave":"1","valor":"tre-b001","fonte":"arquiteto"}}
+{"seq":250,"tick":4,"agente":"curador","tipo":"crenca+","dados":{"predicado":"custo","chave":"1","valor":0,"fonte":"arquiteto"}}
+{"seq":251,"tick":4,"agente":"curador","tipo":"crenca+","dados":{"predicado":"densidade","chave":"1","valor":0.048,"fonte":"percepção do nível"}}
+{"seq":252,"tick":4,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":154,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":253,"tick":4,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":155,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":254,"tick":4,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":156,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b007","resultado":"P-Peq: concluiu"}}}
+{"seq":255,"tick":4,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":157,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b008","resultado":"P-Peq: concluiu"}}}
+{"seq":256,"tick":4,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":158,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b011","resultado":"P-Peq: concluiu"}}}
+{"seq":257,"tick":4,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":159,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":258,"tick":4,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":160,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":259,"tick":4,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":161,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b007","resultado":"P-Gde: concluiu"}}}
+{"seq":260,"tick":4,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":162,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b008","resultado":"P-Gde: concluiu"}}}
+{"seq":261,"tick":4,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":163,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r2|tre-b011","resultado":"P-Gde: concluiu"}}}
+{"seq":262,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":263,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":264,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b007|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":265,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b008|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":266,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b011|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":267,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":268,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":269,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b007|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":270,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b008|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":271,"tick":5,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r2|tre-b011|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":272,"tick":5,"agente":"arquiteto","tipo":"msg","dados":{"id":164,"para":"curador","performativa":"Request","conversa":"estilo:s2r2","conteudo":{"Slot":2,"candidatos":["tre-b002","tre-b003","tre-b007","tre-b008","tre-b011"]}}}
+{"seq":273,"tick":5,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"164","valor":"avaliar estilo de 5 candidato(s) no slot 2","fonte":"arquiteto"}}
+{"seq":274,"tick":5,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":2,"desejo":"atender_pedidos","objetivo":"atender_pedido(164)"}}
+{"seq":275,"tick":5,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":2,"objetivo":"atender_pedido(164)","plano":"avaliar_estilo","tratador":false}}
+{"seq":276,"tick":5,"agente":"curador","tipo":"crenca+","dados":{"predicado":"impasse","chave":"2","valor":1,"fonte":"avaliação"}}
+{"seq":277,"tick":5,"agente":"curador","tipo":"msg","dados":{"id":165,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s2r2","conteudo":{"Slot":2,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["tre-b002: recusado (atípico para Meio: blocos (distância 1.97 > 1.50))","tre-b003: recusado (atípico para Meio: blocos (distância 2.79 > 1.50))","tre-b007: recusado (atípico para Meio: chão contínuo (distância 1.55 > 1.50))","tre-b008: recusado (atípico para Meio: blocos (distância 2.05 > 1.50))","tre-b011: recusado (atípico para Meio: blocos (distância 3.74 > 1.50))"]}}}
+{"seq":278,"tick":5,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"164"}}
+{"seq":279,"tick":5,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":2,"objetivo":"atender_pedido(164)","plano":"avaliar_estilo"}}
+{"seq":280,"tick":5,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":2,"desejo":"atender_pedidos"}}
+{"seq":281,"tick":6,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s2r2","valor":"RespostaEstilo { Slot = 2, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.5, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":282,"tick":6,"agente":"arquiteto","tipo":"plano.falhou","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":283,"tick":6,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"tentar_outros_candidatos","tratador":true}}
+{"seq":284,"tick":6,"agente":"arquiteto","tipo":"decisao","dados":{"decisao":"nova rodada de candidatos para o slot 2","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":285,"tick":6,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"tentar_outros_candidatos"}}
+{"seq":286,"tick":6,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos","tratador":false}}
+{"seq":287,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":166,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b012","largura":56}}}
+{"seq":288,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":167,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b012","largura":56}}}
+{"seq":289,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":168,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b013","largura":56}}}
+{"seq":290,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":169,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b013","largura":56}}}
+{"seq":291,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":170,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b014","largura":56}}}
+{"seq":292,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":171,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b014","largura":56}}}
+{"seq":293,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":172,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b015","largura":56}}}
+{"seq":294,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":173,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b015","largura":56}}}
+{"seq":295,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":174,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b017","largura":56}}}
+{"seq":296,"tick":6,"agente":"arquiteto","tipo":"msg","dados":{"id":175,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b017","largura":56}}}
+{"seq":297,"tick":6,"agente":"curador","tipo":"crenca+","dados":{"predicado":"limiar","chave":"2","valor":1.88,"fonte":"deliberação"}}
+{"seq":298,"tick":6,"agente":"curador","tipo":"concessao","dados":{"slot":2,"limiar":1.88,"motivo":"1 recusa(s) por estilo neste slot"}}
+{"seq":299,"tick":6,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":176,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b012","resultado":"P-Peq: concluiu"}}}
+{"seq":300,"tick":6,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":177,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b013","resultado":"P-Peq: concluiu"}}}
+{"seq":301,"tick":6,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":178,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b014","resultado":"P-Peq: concluiu"}}}
+{"seq":302,"tick":6,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":179,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b015","resultado":"P-Peq: concluiu"}}}
+{"seq":303,"tick":6,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":180,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b017","resultado":"P-Peq: concluiu"}}}
+{"seq":304,"tick":6,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":181,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b012","resultado":"P-Gde: concluiu"}}}
+{"seq":305,"tick":6,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":182,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b013","resultado":"P-Gde: concluiu"}}}
+{"seq":306,"tick":6,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":183,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b014","resultado":"P-Gde: concluiu"}}}
+{"seq":307,"tick":6,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":184,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b015","resultado":"P-Gde: concluiu"}}}
+{"seq":308,"tick":6,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":185,"para":"arquiteto","performativa":"Inform","conversa":"slot:2","conteudo":{"Rotulo":"s2r3|tre-b017","resultado":"P-Gde: concluiu"}}}
+{"seq":309,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b012|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":310,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b013|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":311,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b014|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":312,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b015|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":313,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b017|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":314,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b012|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":315,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b013|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":316,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b014|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":317,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b015|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":318,"tick":7,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s2r3|tre-b017|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":319,"tick":7,"agente":"arquiteto","tipo":"msg","dados":{"id":186,"para":"curador","performativa":"Request","conversa":"estilo:s2r3","conteudo":{"Slot":2,"candidatos":["tre-b012","tre-b013","tre-b014","tre-b015","tre-b017"]}}}
+{"seq":320,"tick":7,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"186","valor":"avaliar estilo de 5 candidato(s) no slot 2","fonte":"arquiteto"}}
+{"seq":321,"tick":7,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":3,"desejo":"atender_pedidos","objetivo":"atender_pedido(186)"}}
+{"seq":322,"tick":7,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":3,"objetivo":"atender_pedido(186)","plano":"avaliar_estilo","tratador":false}}
+{"seq":323,"tick":7,"agente":"curador","tipo":"msg","dados":{"id":187,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s2r3","conteudo":{"Slot":2,"limiar":1.88,"EstiloRelaxado":false,"pareceres":["tre-b012: recusado (atípico para Meio: blocos (distância 4.02 > 1.88))","tre-b013: recusado (atípico para Meio: blocos (distância 2.07 > 1.88))","tre-b014: aceitável (típico para Meio: distância 1.78 ≤ 1.88)","tre-b015: recusado (atípico para Meio: blocos (distância 3.58 > 1.88))","tre-b017: recusado (atípico para Meio: blocos (distância 2.48 > 1.88))"]}}}
+{"seq":324,"tick":7,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"186"}}
+{"seq":325,"tick":7,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":3,"objetivo":"atender_pedido(186)","plano":"avaliar_estilo"}}
+{"seq":326,"tick":7,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":3,"desejo":"atender_pedidos"}}
+{"seq":327,"tick":8,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s2r3","valor":"RespostaEstilo { Slot = 2, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.88, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":328,"tick":8,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"slot","chave":"2","valor":"tre-b014","fonte":"ação"}}
+{"seq":329,"tick":8,"agente":"arquiteto","tipo":"nivel.fixar","dados":{"slot":2,"chunk":"tre-b014","motivo":"típico para Meio: distância 1.78 ≤ 1.88"}}
+{"seq":330,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":188,"para":"curador","performativa":"Inform","conversa":"slot:2","conteudo":{"Slot":2,"ChunkId":"tre-b014","TilesEditados":0}}}
+{"seq":331,"tick":8,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(2)","plano":"testar_candidatos"}}
+{"seq":332,"tick":8,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(3)","plano":"testar_candidatos","tratador":false}}
+{"seq":333,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":189,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b002","largura":84}}}
+{"seq":334,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":190,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b002","largura":84}}}
+{"seq":335,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":191,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b003","largura":84}}}
+{"seq":336,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":192,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b003","largura":84}}}
+{"seq":337,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":193,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b004","largura":84}}}
+{"seq":338,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":194,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b004","largura":84}}}
+{"seq":339,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":195,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b006","largura":84}}}
+{"seq":340,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":196,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b006","largura":84}}}
+{"seq":341,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":197,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b007","largura":84}}}
+{"seq":342,"tick":8,"agente":"arquiteto","tipo":"msg","dados":{"id":198,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b007","largura":84}}}
+{"seq":343,"tick":8,"agente":"curador","tipo":"crenca+","dados":{"predicado":"slot","chave":"2","valor":"tre-b014","fonte":"arquiteto"}}
+{"seq":344,"tick":8,"agente":"curador","tipo":"crenca+","dados":{"predicado":"custo","chave":"2","valor":0,"fonte":"arquiteto"}}
+{"seq":345,"tick":8,"agente":"curador","tipo":"crenca+","dados":{"predicado":"densidade","chave":"2","valor":0.03,"fonte":"percepção do nível"}}
+{"seq":346,"tick":8,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":199,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":347,"tick":8,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":200,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":348,"tick":8,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":201,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b004","resultado":"P-Peq: concluiu"}}}
+{"seq":349,"tick":8,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":202,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b006","resultado":"P-Peq: concluiu"}}}
+{"seq":350,"tick":8,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":203,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b007","resultado":"P-Peq: concluiu"}}}
+{"seq":351,"tick":8,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":204,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":352,"tick":8,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":205,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":353,"tick":8,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":206,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b004","resultado":"P-Gde: concluiu"}}}
+{"seq":354,"tick":8,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":207,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b006","resultado":"P-Gde: concluiu"}}}
+{"seq":355,"tick":8,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":208,"para":"arquiteto","performativa":"Inform","conversa":"slot:3","conteudo":{"Rotulo":"s3r4|tre-b007","resultado":"P-Gde: concluiu"}}}
+{"seq":356,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":357,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":358,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b004|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":359,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b006|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":360,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b007|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":361,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":362,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":363,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b004|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":364,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b006|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":365,"tick":9,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s3r4|tre-b007|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":366,"tick":9,"agente":"arquiteto","tipo":"msg","dados":{"id":209,"para":"curador","performativa":"Request","conversa":"estilo:s3r4","conteudo":{"Slot":3,"candidatos":["tre-b002","tre-b003","tre-b004","tre-b006","tre-b007"]}}}
+{"seq":367,"tick":9,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"209","valor":"avaliar estilo de 5 candidato(s) no slot 3","fonte":"arquiteto"}}
+{"seq":368,"tick":9,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":4,"desejo":"atender_pedidos","objetivo":"atender_pedido(209)"}}
+{"seq":369,"tick":9,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":4,"objetivo":"atender_pedido(209)","plano":"avaliar_estilo","tratador":false}}
+{"seq":370,"tick":9,"agente":"curador","tipo":"msg","dados":{"id":210,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s3r4","conteudo":{"Slot":3,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["tre-b002: recusado (atípico para Meio: blocos (distância 1.97 > 1.50))","tre-b003: recusado (atípico para Meio: blocos (distância 2.79 > 1.50))","tre-b004: recusado (atípico para Meio: blocos (distância 2.83 > 1.50))","tre-b006: aceitável (típico para Meio: distância 1.46 ≤ 1.50)","tre-b007: recusado (atípico para Meio: chão contínuo (distância 1.55 > 1.50))"]}}}
+{"seq":371,"tick":9,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"209"}}
+{"seq":372,"tick":9,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":4,"objetivo":"atender_pedido(209)","plano":"avaliar_estilo"}}
+{"seq":373,"tick":9,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":4,"desejo":"atender_pedidos"}}
+{"seq":374,"tick":10,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s3r4","valor":"RespostaEstilo { Slot = 3, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.5, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":375,"tick":10,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"slot","chave":"3","valor":"tre-b006","fonte":"ação"}}
+{"seq":376,"tick":10,"agente":"arquiteto","tipo":"nivel.fixar","dados":{"slot":3,"chunk":"tre-b006","motivo":"típico para Meio: distância 1.46 ≤ 1.50"}}
+{"seq":377,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":211,"para":"curador","performativa":"Inform","conversa":"slot:3","conteudo":{"Slot":3,"ChunkId":"tre-b006","TilesEditados":0}}}
+{"seq":378,"tick":10,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(3)","plano":"testar_candidatos"}}
+{"seq":379,"tick":10,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","tratador":false}}
+{"seq":380,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":212,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b002","largura":112}}}
+{"seq":381,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":213,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b002","largura":112}}}
+{"seq":382,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":214,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b003","largura":112}}}
+{"seq":383,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":215,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b003","largura":112}}}
+{"seq":384,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":216,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b004","largura":112}}}
+{"seq":385,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":217,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b004","largura":112}}}
+{"seq":386,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":218,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b007","largura":112}}}
+{"seq":387,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":219,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b007","largura":112}}}
+{"seq":388,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":220,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b008","largura":112}}}
+{"seq":389,"tick":10,"agente":"arquiteto","tipo":"msg","dados":{"id":221,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b008","largura":112}}}
+{"seq":390,"tick":10,"agente":"curador","tipo":"crenca+","dados":{"predicado":"slot","chave":"3","valor":"tre-b006","fonte":"arquiteto"}}
+{"seq":391,"tick":10,"agente":"curador","tipo":"crenca+","dados":{"predicado":"custo","chave":"3","valor":0,"fonte":"arquiteto"}}
+{"seq":392,"tick":10,"agente":"curador","tipo":"crenca+","dados":{"predicado":"densidade","chave":"3","valor":0.036,"fonte":"percepção do nível"}}
+{"seq":393,"tick":10,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":222,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":394,"tick":10,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":223,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":395,"tick":10,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":224,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b004","resultado":"P-Peq: concluiu"}}}
+{"seq":396,"tick":10,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":225,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b007","resultado":"P-Peq: concluiu"}}}
+{"seq":397,"tick":10,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":226,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b008","resultado":"P-Peq: concluiu"}}}
+{"seq":398,"tick":10,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":227,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":399,"tick":10,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":228,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":400,"tick":10,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":229,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b004","resultado":"P-Gde: concluiu"}}}
+{"seq":401,"tick":10,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":230,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b007","resultado":"P-Gde: concluiu"}}}
+{"seq":402,"tick":10,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":231,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r5|tre-b008","resultado":"P-Gde: concluiu"}}}
+{"seq":403,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":404,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":405,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b004|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":406,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b007|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":407,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b008|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":408,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":409,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":410,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b004|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":411,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b007|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":412,"tick":11,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r5|tre-b008|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":413,"tick":11,"agente":"arquiteto","tipo":"msg","dados":{"id":232,"para":"curador","performativa":"Request","conversa":"estilo:s4r5","conteudo":{"Slot":4,"candidatos":["tre-b002","tre-b003","tre-b004","tre-b007","tre-b008"]}}}
+{"seq":414,"tick":11,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"232","valor":"avaliar estilo de 5 candidato(s) no slot 4","fonte":"arquiteto"}}
+{"seq":415,"tick":11,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":5,"desejo":"atender_pedidos","objetivo":"atender_pedido(232)"}}
+{"seq":416,"tick":11,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":5,"objetivo":"atender_pedido(232)","plano":"avaliar_estilo","tratador":false}}
+{"seq":417,"tick":11,"agente":"curador","tipo":"crenca+","dados":{"predicado":"impasse","chave":"4","valor":1,"fonte":"avaliação"}}
+{"seq":418,"tick":11,"agente":"curador","tipo":"msg","dados":{"id":233,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s4r5","conteudo":{"Slot":4,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["tre-b002: recusado (atípico para Meio: blocos (distância 1.97 > 1.50))","tre-b003: recusado (atípico para Meio: blocos (distância 2.79 > 1.50))","tre-b004: recusado (atípico para Meio: blocos (distância 2.83 > 1.50))","tre-b007: recusado (atípico para Meio: chão contínuo (distância 1.55 > 1.50))","tre-b008: recusado (atípico para Meio: blocos (distância 2.05 > 1.50))"]}}}
+{"seq":419,"tick":11,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"232"}}
+{"seq":420,"tick":11,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":5,"objetivo":"atender_pedido(232)","plano":"avaliar_estilo"}}
+{"seq":421,"tick":11,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":5,"desejo":"atender_pedidos"}}
+{"seq":422,"tick":12,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s4r5","valor":"RespostaEstilo { Slot = 4, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.5, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":423,"tick":12,"agente":"arquiteto","tipo":"plano.falhou","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":424,"tick":12,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"tentar_outros_candidatos","tratador":true}}
+{"seq":425,"tick":12,"agente":"arquiteto","tipo":"decisao","dados":{"decisao":"nova rodada de candidatos para o slot 4","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":426,"tick":12,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"tentar_outros_candidatos"}}
+{"seq":427,"tick":12,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","tratador":false}}
+{"seq":428,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":234,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b010","largura":112}}}
+{"seq":429,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":235,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b010","largura":112}}}
+{"seq":430,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":236,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b011","largura":112}}}
+{"seq":431,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":237,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b011","largura":112}}}
+{"seq":432,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":238,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b012","largura":112}}}
+{"seq":433,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":239,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b012","largura":112}}}
+{"seq":434,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":240,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b013","largura":112}}}
+{"seq":435,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":241,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b013","largura":112}}}
+{"seq":436,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":242,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b015","largura":112}}}
+{"seq":437,"tick":12,"agente":"arquiteto","tipo":"msg","dados":{"id":243,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b015","largura":112}}}
+{"seq":438,"tick":12,"agente":"curador","tipo":"crenca+","dados":{"predicado":"limiar","chave":"4","valor":1.88,"fonte":"deliberação"}}
+{"seq":439,"tick":12,"agente":"curador","tipo":"concessao","dados":{"slot":4,"limiar":1.88,"motivo":"1 recusa(s) por estilo neste slot"}}
+{"seq":440,"tick":12,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":244,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b010","resultado":"P-Peq: concluiu"}}}
+{"seq":441,"tick":12,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":245,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b011","resultado":"P-Peq: concluiu"}}}
+{"seq":442,"tick":12,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":246,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b012","resultado":"P-Peq: concluiu"}}}
+{"seq":443,"tick":12,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":247,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b013","resultado":"P-Peq: concluiu"}}}
+{"seq":444,"tick":12,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":248,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b015","resultado":"P-Peq: concluiu"}}}
+{"seq":445,"tick":12,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":249,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b010","resultado":"P-Gde: concluiu"}}}
+{"seq":446,"tick":12,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":250,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b011","resultado":"P-Gde: concluiu"}}}
+{"seq":447,"tick":12,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":251,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b012","resultado":"P-Gde: concluiu"}}}
+{"seq":448,"tick":12,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":252,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b013","resultado":"P-Gde: concluiu"}}}
+{"seq":449,"tick":12,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":253,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r6|tre-b015","resultado":"P-Gde: concluiu"}}}
+{"seq":450,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b010|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":451,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b011|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":452,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b012|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":453,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b013|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":454,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b015|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":455,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b010|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":456,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b011|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":457,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b012|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":458,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b013|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":459,"tick":13,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r6|tre-b015|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":460,"tick":13,"agente":"arquiteto","tipo":"msg","dados":{"id":254,"para":"curador","performativa":"Request","conversa":"estilo:s4r6","conteudo":{"Slot":4,"candidatos":["tre-b010","tre-b011","tre-b012","tre-b013","tre-b015"]}}}
+{"seq":461,"tick":13,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"254","valor":"avaliar estilo de 5 candidato(s) no slot 4","fonte":"arquiteto"}}
+{"seq":462,"tick":13,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":6,"desejo":"atender_pedidos","objetivo":"atender_pedido(254)"}}
+{"seq":463,"tick":13,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":6,"objetivo":"atender_pedido(254)","plano":"avaliar_estilo","tratador":false}}
+{"seq":464,"tick":13,"agente":"curador","tipo":"crenca+","dados":{"predicado":"impasse","chave":"4","valor":2,"fonte":"avaliação"}}
+{"seq":465,"tick":13,"agente":"curador","tipo":"msg","dados":{"id":255,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s4r6","conteudo":{"Slot":4,"limiar":1.88,"EstiloRelaxado":false,"pareceres":["tre-b010: recusado (atípico para Meio: blocos (distância 2.63 > 1.88))","tre-b011: recusado (atípico para Meio: blocos (distância 3.74 > 1.88))","tre-b012: recusado (atípico para Meio: blocos (distância 4.02 > 1.88))","tre-b013: recusado (atípico para Meio: blocos (distância 2.07 > 1.88))","tre-b015: recusado (atípico para Meio: blocos (distância 3.58 > 1.88))"]}}}
+{"seq":466,"tick":13,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"254"}}
+{"seq":467,"tick":13,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":6,"objetivo":"atender_pedido(254)","plano":"avaliar_estilo"}}
+{"seq":468,"tick":13,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":6,"desejo":"atender_pedidos"}}
+{"seq":469,"tick":14,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s4r6","valor":"RespostaEstilo { Slot = 4, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.88, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":470,"tick":14,"agente":"arquiteto","tipo":"plano.falhou","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":471,"tick":14,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"tentar_outros_candidatos","tratador":true}}
+{"seq":472,"tick":14,"agente":"arquiteto","tipo":"decisao","dados":{"decisao":"nova rodada de candidatos para o slot 4","motivo":"o curador recusou os 5 candidato(s) aprovados no playtest"}}
+{"seq":473,"tick":14,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"tentar_outros_candidatos"}}
+{"seq":474,"tick":14,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos","tratador":false}}
+{"seq":475,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":256,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b016","largura":112}}}
+{"seq":476,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":257,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b016","largura":112}}}
+{"seq":477,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":258,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b017","largura":112}}}
+{"seq":478,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":259,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b017","largura":112}}}
+{"seq":479,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":260,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b018","largura":112}}}
+{"seq":480,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":261,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b018","largura":112}}}
+{"seq":481,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":262,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b019","largura":112}}}
+{"seq":482,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":263,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b019","largura":112}}}
+{"seq":483,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":264,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b020","largura":112}}}
+{"seq":484,"tick":14,"agente":"arquiteto","tipo":"msg","dados":{"id":265,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b020","largura":112}}}
+{"seq":485,"tick":14,"agente":"curador","tipo":"crenca+","dados":{"predicado":"estilo_relaxado","chave":"4","valor":true,"fonte":"deliberação"}}
+{"seq":486,"tick":14,"agente":"curador","tipo":"reconsideracao","dados":{"decisao":"suspender o desejo parecer_original no slot 4","motivo":"2 recusas por estilo seguidas bloqueiam a montagem; as normas N1, N2 e N4 continuam valendo"}}
+{"seq":487,"tick":14,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":266,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b016","resultado":"P-Peq: concluiu"}}}
+{"seq":488,"tick":14,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":267,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b017","resultado":"P-Peq: concluiu"}}}
+{"seq":489,"tick":14,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":268,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b018","resultado":"P-Peq: concluiu"}}}
+{"seq":490,"tick":14,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":269,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b019","resultado":"P-Peq: concluiu"}}}
+{"seq":491,"tick":14,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":270,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b020","resultado":"P-Peq: concluiu"}}}
+{"seq":492,"tick":14,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":271,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b016","resultado":"P-Gde: concluiu"}}}
+{"seq":493,"tick":14,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":272,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b017","resultado":"P-Gde: concluiu"}}}
+{"seq":494,"tick":14,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":273,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b018","resultado":"P-Gde: concluiu"}}}
+{"seq":495,"tick":14,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":274,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b019","resultado":"P-Gde: concluiu"}}}
+{"seq":496,"tick":14,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":275,"para":"arquiteto","performativa":"Inform","conversa":"slot:4","conteudo":{"Rotulo":"s4r7|tre-b020","resultado":"P-Gde: concluiu"}}}
+{"seq":497,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b016|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":498,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b017|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":499,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b018|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":500,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b019|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":501,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b020|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":502,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b016|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":503,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b017|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":504,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b018|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":505,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b019|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":506,"tick":15,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s4r7|tre-b020|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":507,"tick":15,"agente":"arquiteto","tipo":"msg","dados":{"id":276,"para":"curador","performativa":"Request","conversa":"estilo:s4r7","conteudo":{"Slot":4,"candidatos":["tre-b016","tre-b017","tre-b018","tre-b019","tre-b020"]}}}
+{"seq":508,"tick":15,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"276","valor":"avaliar estilo de 5 candidato(s) no slot 4","fonte":"arquiteto"}}
+{"seq":509,"tick":15,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":7,"desejo":"atender_pedidos","objetivo":"atender_pedido(276)"}}
+{"seq":510,"tick":15,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":7,"objetivo":"atender_pedido(276)","plano":"avaliar_estilo","tratador":false}}
+{"seq":511,"tick":15,"agente":"curador","tipo":"msg","dados":{"id":277,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s4r7","conteudo":{"Slot":4,"limiar":1.88,"EstiloRelaxado":true,"pareceres":["tre-b016: aceitável (aceito por concessão (estilo relaxado): distância 2.29)","tre-b017: aceitável (aceito por concessão (estilo relaxado): distância 2.48)","tre-b018: aceitável (típico para Meio: distância 1.64 ≤ 1.88)","tre-b019: aceitável (típico para Meio: distância 1.27 ≤ 1.88)","tre-b020: aceitável (aceito por concessão (estilo relaxado): distância 5.73)"]}}}
+{"seq":512,"tick":15,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"276"}}
+{"seq":513,"tick":15,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":7,"objetivo":"atender_pedido(276)","plano":"avaliar_estilo"}}
+{"seq":514,"tick":15,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":7,"desejo":"atender_pedidos"}}
+{"seq":515,"tick":16,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s4r7","valor":"RespostaEstilo { Slot = 4, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.88, EstiloRelaxado = True }","fonte":"curador"}}
+{"seq":516,"tick":16,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"slot","chave":"4","valor":"tre-b019","fonte":"ação"}}
+{"seq":517,"tick":16,"agente":"arquiteto","tipo":"nivel.fixar","dados":{"slot":4,"chunk":"tre-b019","motivo":"típico para Meio: distância 1.27 ≤ 1.88"}}
+{"seq":518,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":278,"para":"curador","performativa":"Inform","conversa":"slot:4","conteudo":{"Slot":4,"ChunkId":"tre-b019","TilesEditados":0}}}
+{"seq":519,"tick":16,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(4)","plano":"testar_candidatos"}}
+{"seq":520,"tick":16,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"preencher(5)","plano":"testar_candidatos","tratador":false}}
+{"seq":521,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":279,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b002","largura":140}}}
+{"seq":522,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":280,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b002","largura":140}}}
+{"seq":523,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":281,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b003","largura":140}}}
+{"seq":524,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":282,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b003","largura":140}}}
+{"seq":525,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":283,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b004","largura":140}}}
+{"seq":526,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":284,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b004","largura":140}}}
+{"seq":527,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":285,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b007","largura":140}}}
+{"seq":528,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":286,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b007","largura":140}}}
+{"seq":529,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":287,"para":"jogador-P-Peq","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b008","largura":140}}}
+{"seq":530,"tick":16,"agente":"arquiteto","tipo":"msg","dados":{"id":288,"para":"jogador-P-Gde","performativa":"Request","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b008","largura":140}}}
+{"seq":531,"tick":16,"agente":"curador","tipo":"crenca+","dados":{"predicado":"slot","chave":"4","valor":"tre-b019","fonte":"arquiteto"}}
+{"seq":532,"tick":16,"agente":"curador","tipo":"crenca+","dados":{"predicado":"custo","chave":"4","valor":0,"fonte":"arquiteto"}}
+{"seq":533,"tick":16,"agente":"curador","tipo":"crenca+","dados":{"predicado":"densidade","chave":"4","valor":0.057,"fonte":"percepção do nível"}}
+{"seq":534,"tick":16,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":8,"desejo":"parecer_original","objetivo":"emitir_restricao(5, final, nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana)"}}
+{"seq":535,"tick":16,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":8,"objetivo":"emitir_restricao(5, final, nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana)","plano":"emitir_restricao","tratador":false}}
+{"seq":536,"tick":16,"agente":"curador","tipo":"msg","dados":{"id":289,"para":"arquiteto","performativa":"Inform","conversa":"restricao:5","conteudo":{"Slot":5,"Tipo":"final","Motivo":"nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana"}}}
+{"seq":537,"tick":16,"agente":"curador","tipo":"crenca+","dados":{"predicado":"restricao_emitida","chave":"5","valor":"final","fonte":"deliberação"}}
+{"seq":538,"tick":16,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":8,"objetivo":"emitir_restricao(5, final, nos níveis originais o trecho final termina com chão contínuo; priorize candidatos de saída plana)","plano":"emitir_restricao"}}
+{"seq":539,"tick":16,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":8,"desejo":"parecer_original"}}
+{"seq":540,"tick":16,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":290,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b002","resultado":"P-Peq: concluiu"}}}
+{"seq":541,"tick":16,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":291,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b003","resultado":"P-Peq: concluiu"}}}
+{"seq":542,"tick":16,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":292,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b004","resultado":"P-Peq: concluiu"}}}
+{"seq":543,"tick":16,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":293,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b007","resultado":"P-Peq: concluiu"}}}
+{"seq":544,"tick":16,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":294,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b008","resultado":"P-Peq: concluiu"}}}
+{"seq":545,"tick":16,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":295,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b002","resultado":"P-Gde: concluiu"}}}
+{"seq":546,"tick":16,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":296,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b003","resultado":"P-Gde: concluiu"}}}
+{"seq":547,"tick":16,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":297,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b004","resultado":"P-Gde: concluiu"}}}
+{"seq":548,"tick":16,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":298,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b007","resultado":"P-Gde: concluiu"}}}
+{"seq":549,"tick":16,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":299,"para":"arquiteto","performativa":"Inform","conversa":"slot:5","conteudo":{"Rotulo":"s5r8|tre-b008","resultado":"P-Gde: concluiu"}}}
+{"seq":550,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"restricao","chave":"5","valor":"final","fonte":"curador"}}
+{"seq":551,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b002|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":552,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b003|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":553,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b004|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":554,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b007|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":555,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b008|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":556,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b002|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":557,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b003|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":558,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b004|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":559,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b007|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":560,"tick":17,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"s5r8|tre-b008|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":561,"tick":17,"agente":"arquiteto","tipo":"msg","dados":{"id":300,"para":"curador","performativa":"Request","conversa":"estilo:s5r8","conteudo":{"Slot":5,"candidatos":["tre-b002","tre-b003","tre-b004","tre-b007","tre-b008"]}}}
+{"seq":562,"tick":17,"agente":"curador","tipo":"crenca+","dados":{"predicado":"pedido","chave":"300","valor":"avaliar estilo de 5 candidato(s) no slot 5","fonte":"arquiteto"}}
+{"seq":563,"tick":17,"agente":"curador","tipo":"intencao.adotada","dados":{"intencao":9,"desejo":"atender_pedidos","objetivo":"atender_pedido(300)"}}
+{"seq":564,"tick":17,"agente":"curador","tipo":"plano.selecionado","dados":{"intencao":9,"objetivo":"atender_pedido(300)","plano":"avaliar_estilo","tratador":false}}
+{"seq":565,"tick":17,"agente":"curador","tipo":"msg","dados":{"id":301,"para":"arquiteto","performativa":"Inform","conversa":"estilo:s5r8","conteudo":{"Slot":5,"limiar":1.5,"EstiloRelaxado":false,"pareceres":["tre-b002: recusado (atípico para Fim: blocos (distância 1.95 > 1.50))","tre-b003: recusado (atípico para Fim: blocos (distância 2.70 > 1.50))","tre-b004: recusado (atípico para Fim: blocos (distância 2.80 > 1.50))","tre-b007: aceitável (típico para Fim: distância 1.43 ≤ 1.50)","tre-b008: recusado (atípico para Fim: blocos (distância 2.03 > 1.50))"]}}}
+{"seq":566,"tick":17,"agente":"curador","tipo":"crenca-","dados":{"predicado":"pedido","chave":"300"}}
+{"seq":567,"tick":17,"agente":"curador","tipo":"objetivo.atingido","dados":{"intencao":9,"objetivo":"atender_pedido(300)","plano":"avaliar_estilo"}}
+{"seq":568,"tick":17,"agente":"curador","tipo":"intencao.concluida","dados":{"intencao":9,"desejo":"atender_pedidos"}}
+{"seq":569,"tick":18,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"parecer","chave":"estilo:s5r8","valor":"RespostaEstilo { Slot = 5, Pareceres = System.Collections.Generic.List`1[ChunkLink.Comunicacao.ParecerEstilo], LimiarUsado = 1.5, EstiloRelaxado = False }","fonte":"curador"}}
+{"seq":570,"tick":18,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"slot","chave":"5","valor":"tre-b007","fonte":"ação"}}
+{"seq":571,"tick":18,"agente":"arquiteto","tipo":"nivel.fixar","dados":{"slot":5,"chunk":"tre-b007","motivo":"típico para Fim: distância 1.43 ≤ 1.50"}}
+{"seq":572,"tick":18,"agente":"arquiteto","tipo":"msg","dados":{"id":302,"para":"curador","performativa":"Inform","conversa":"slot:5","conteudo":{"Slot":5,"ChunkId":"tre-b007","TilesEditados":0}}}
+{"seq":573,"tick":18,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"preencher(5)","plano":"testar_candidatos"}}
+{"seq":574,"tick":18,"agente":"arquiteto","tipo":"plano.selecionado","dados":{"intencao":1,"objetivo":"validar_nivel","plano":"playtest_do_nivel_completo","tratador":false}}
+{"seq":575,"tick":18,"agente":"arquiteto","tipo":"msg","dados":{"id":303,"para":"jogador-P-Peq","performativa":"Request","conversa":"validacao","conteudo":{"Rotulo":"final1|nivel","largura":140}}}
+{"seq":576,"tick":18,"agente":"arquiteto","tipo":"msg","dados":{"id":304,"para":"jogador-P-Gde","performativa":"Request","conversa":"validacao","conteudo":{"Rotulo":"final1|nivel","largura":140}}}
+{"seq":577,"tick":18,"agente":"curador","tipo":"crenca+","dados":{"predicado":"slot","chave":"5","valor":"tre-b007","fonte":"arquiteto"}}
+{"seq":578,"tick":18,"agente":"curador","tipo":"crenca+","dados":{"predicado":"custo","chave":"5","valor":0,"fonte":"arquiteto"}}
+{"seq":579,"tick":18,"agente":"curador","tipo":"crenca+","dados":{"predicado":"densidade","chave":"5","valor":0.021,"fonte":"percepção do nível"}}
+{"seq":580,"tick":18,"agente":"jogador-P-Peq","tipo":"msg","dados":{"id":305,"para":"arquiteto","performativa":"Inform","conversa":"validacao","conteudo":{"Rotulo":"final1|nivel","resultado":"P-Peq: concluiu"}}}
+{"seq":581,"tick":18,"agente":"jogador-P-Gde","tipo":"msg","dados":{"id":306,"para":"arquiteto","performativa":"Inform","conversa":"validacao","conteudo":{"Rotulo":"final1|nivel","resultado":"P-Gde: concluiu"}}}
+{"seq":582,"tick":19,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"final1|nivel|P-Peq","valor":"P-Peq: concluiu","fonte":"jogador-P-Peq"}}
+{"seq":583,"tick":19,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"teste","chave":"final1|nivel|P-Gde","valor":"P-Gde: concluiu","fonte":"jogador-P-Gde"}}
+{"seq":584,"tick":19,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"validar_nivel","plano":"playtest_do_nivel_completo"}}
+{"seq":585,"tick":19,"agente":"arquiteto","tipo":"crenca+","dados":{"predicado":"nivel_concluido","chave":"nivel","valor":true,"fonte":"deliberação"}}
+{"seq":586,"tick":19,"agente":"arquiteto","tipo":"objetivo.atingido","dados":{"intencao":1,"objetivo":"montar_nivel","plano":"montar_slot_a_slot"}}
+{"seq":587,"tick":19,"agente":"arquiteto","tipo":"intencao.concluida","dados":{"intencao":1,"desejo":"montar_nivel_jogavel"}}
+{"seq":588,"tick":19,"agente":"arquiteto","tipo":"memoria.gravada","dados":{"execucao":3,"episodios":0}}

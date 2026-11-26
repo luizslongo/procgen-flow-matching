@@ -1,0 +1,9 @@
+pool: 30 chunks · referência: 9 níveis de Overworld · original pareado: mario-1-1 (202 colunas) · slots: 7
+sucesso: True
+sequência: ove-r001 | ove-r005 | ove-r007 | ove-r008 | ove-r003 | ove-r009 | ove-r011
+conclusão por perfil (M1): P-Peq=sim, P-Gde=sim
+tiles editados (M4): 0 · backtracks (M5): 0 · mensagens (M6): 286 · ticks: 17
+KL padrões 2×2 (M12): 0.362 · costuras visíveis (M13): 0 · menor distância a originais (N4): 70.0 %
+assinatura do trace (RNF01): 26310C5D77B85F9F
+PNG do nível: exemplos/montagem-overworld/nivel-montado.png · par cego: exemplos/montagem-overworld/teste-cego/par-overworld-mario-1-1.png (gabarito em teste-cego/gabarito.csv)
+trace e métricas em exemplos/montagem-overworld/

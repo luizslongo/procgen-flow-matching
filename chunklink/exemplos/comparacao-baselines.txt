@@ -1,0 +1,28 @@
+pool 30 chunks · 7 slots · original mario-1-1 · semente E0 = 42
+
+estratégia            montou  P-Peq  P-Gde  tiles  KL 2×2   costuras  msgs   
+E0 aleatória+TCC      sim     sim    sim    7      0.538    0         0      
+E1 central guloso     sim     sim    sim    8      0.417    0         0      
+E2 ChunkLink          sim     sim    sim    0      0.362    0         286    
+E2 sem cognição       sim     sim    sim    0      0.362    0         286    
+
+pool 30 chunks · 5 slots · original mario-1-2 · semente E0 = 42
+
+estratégia            montou  P-Peq  P-Gde  tiles  KL 2×2   costuras  msgs   
+E0 aleatória+TCC      sim     sim    sim    10     0.665    0         0      
+E1 central guloso     sim     sim    sim    10     0.737    0         0      
+E2 ChunkLink          sim     sim    sim    0      0.732    0         262    
+E2 sem cognição       sim     sim    sim    0      0.764    0         328    
+
+pool 30 chunks · 5 slots · original mario-1-3 · semente E0 = 42
+
+estratégia            montou  P-Peq  P-Gde  tiles  KL 2×2   costuras  msgs   
+E0 aleatória+TCC      não     não    não    4      1.308    1         0      
+E1 central guloso     sim     sim    sim    5      1.248    1         0      
+E2 ChunkLink          sim     sim    sim    0      1.074    0         416    
+E2 sem cognição       não     —      —      0      —        0         396    
+
+E0 aleatória+TCC: nível não concluído por todos os perfis
+
+E2 sem cognição: subobjetivo !preencher(1) falhou: subobjetivo !reparar_slot(1, s1r12, …) falhou: nenhuma proposta aprovada resolveu a falha
+

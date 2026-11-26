@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  participant A as LevelArchitect (BDI)
+  participant J as Playtesters
+  participant C as Curator (BDI)
+  participant R as Repairers
+  participant N as Nível
+  A->>J: request(prefixo slot 1 + b-muro1 / b-muro2)
+  J-->>A: inform(PAREDE na coluna local 0) ×2
+  Note over A: inferência: culpa_costura(2), exigencia_saida(1) = alta
+  Note over A: intenção reparar_slot(2) adotada, mas a reconsideração abandona !preencher(2)
+  A->>N: recuar: libera o slot 1 (a-baixo)
+  A->>C: inform(SlotReaberto 1)
+  A->>J: request(d-escada, b-muro2) para o slot 1, ordenados pela exigência aprendida
+  A->>C: request(estilo slot 1)
+  C-->>A: inform(pareceres)
+  A->>N: fixar slot 1 = d-escada
+  C-->>A: inform(restrição "final" para o slot 4) — iniciativa do curador
+  Note over A,R: slot 4: nenhum candidato passa, Contract Net
+  A->>R: cfp(BURACO, reply_by)
+  R-->>A: propose(ponte, 5 tiles) · refuse · propose(pipeline TCC, 11)
+  A->>C: request(aprovar ponte)
+  C-->>A: agree(aprovação do diff)
+  A->>R: accept-proposal
+  R->>N: reservar colunas · edição provisória
+  A->>J: request(revalidação na cópia)
+  J-->>A: inform(sucesso ×2)
+  A->>N: commit (N5)

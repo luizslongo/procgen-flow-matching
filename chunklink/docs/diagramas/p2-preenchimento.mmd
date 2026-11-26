@@ -1,0 +1,15 @@
+stateDiagram-v2
+    [*] --> Ranking: +!ranquear_pool (P1 com cada chunk, com reenvio)
+    Ranking --> Rodada: +!preencher(k)
+    Rodada --> Estilo: algum candidato passa nos dois perfis
+    Rodada --> Reparo: nenhum passa
+    Estilo --> Fixado: curador registra aceite e Nível.Fixar confere
+    Estilo --> Tratadores: curador recusa todos
+    Reparo --> Fixado: Contract Net com commit
+    Reparo --> Tratadores: nenhuma proposta resolve
+    Tratadores --> Rodada: tentar_outros_candidatos
+    Tratadores --> Recuo: recuar_por_culpa_da_costura / recuar_por_esgotamento
+    Recuo --> Rodada: Nível.Liberar(k−1) e +!preencher(k−1)
+    Fixado --> Rodada: próximo slot
+    Fixado --> Validacao: último slot
+    Validacao --> [*]

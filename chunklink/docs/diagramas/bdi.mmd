@@ -1,0 +1,12 @@
+flowchart LR
+  M["Mailbox<br/>(mensagens)"] --> BRF["Revisão de crenças<br/>+ inferência<br/>culpa_costura · exigencia_saida<br/>incompativel"]
+  BRF --> B[("Crenças<br/>predicado(chave) = valor<br/>fonte · tick")]
+  B --> OPC["Opções<br/>desejos ativos"]
+  OPC --> INT["Intenções<br/>pilha de (sub)objetivos"]
+  INT --> REC{"Política de<br/>reconsideração"}
+  REC -->|"mantém"| EXE["Executa o plano<br/>(corrotina) até<br/>aguardar · ceder"]
+  REC -->|"abandona objetivo"| TRT["Tratador -!objetivo<br/>recuar · nova rodada"]
+  EXE -->|"falha"| TRT
+  TRT --> INT
+  EXE --> ACT["Ações<br/>mensagens · artefato Nível"]
+  ACT -.->|"respostas"| M

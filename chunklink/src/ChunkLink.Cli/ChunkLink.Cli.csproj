@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ChunkLink.Cli</RootNamespace>
+    <AssemblyName>chunklink</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ChunkLink.Core/ChunkLink.Core.csproj" />
+  </ItemGroup>
+</Project>

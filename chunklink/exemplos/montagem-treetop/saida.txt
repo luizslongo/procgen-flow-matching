@@ -1,0 +1,9 @@
+pool: 30 chunks · referência: 4 níveis de Treetop · original pareado: mario-1-3 (150 colunas) · slots: 5
+sucesso: True
+sequência: tre-r006 | tre-r016 | tre-r019 | tre-r014 | tre-r018
+conclusão por perfil (M1): P-Peq=sim, P-Gde=sim
+tiles editados (M4): 0 · backtracks (M5): 0 · mensagens (M6): 416 · ticks: 29
+KL padrões 2×2 (M12): 1.074 · costuras visíveis (M13): 0 · menor distância a originais (N4): 87.0 %
+assinatura do trace (RNF01): 7041387F7610178C
+PNG do nível: exemplos/montagem-treetop/nivel-montado.png · par cego: exemplos/montagem-treetop/teste-cego/par-treetop-mario-1-3.png (gabarito em teste-cego/gabarito.csv)
+trace e métricas em exemplos/montagem-treetop/

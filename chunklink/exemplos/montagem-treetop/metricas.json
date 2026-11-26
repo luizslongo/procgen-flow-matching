@@ -1,0 +1,24 @@
+{
+  "Sucesso": true,
+  "Motivo": null,
+  "Slots": 5,
+  "Sequencia": [
+    "tre-r006",
+    "tre-r016",
+    "tre-r019",
+    "tre-r014",
+    "tre-r018"
+  ],
+  "TilesEditados": 0,
+  "Backtracks": 0,
+  "Mensagens": 416,
+  "Ticks": 29,
+  "ConclusaoPorPerfil": {
+    "P-Peq": true,
+    "P-Gde": true
+  },
+  "KlPadroes2x2": 1.0736,
+  "CosturasVisiveis": 0,
+  "MenorDistanciaAOriginais": 0.8704,
+  "AssinaturaTrace": "7041387F7610178C"
+}
